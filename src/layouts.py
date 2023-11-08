@@ -1,14 +1,21 @@
 import PySimpleGUI as sg
 import typing
-from enums import Screen
+from enums import Screen, AppStatus
 from pony.orm import db_session
+from threading import Thread
 
 if typing.TYPE_CHECKING:
     from main import App
 
 
 def format_phone(phone_number: int) -> str:
+    """
+    Convert a ten-digit or eleven-digit phone number, such as
+    1234567890 or 11234567890, into a formatted phone number, such as
+    (123) 456-7890 or +1 (123) 456-7890.
+    """
     phone_number = str(phone_number)
+
     if len(phone_number) == 10:
         return f"({phone_number[:3]}) {phone_number[3:6]}-{phone_number[6:]}"
     elif len(phone_number) == 11:
@@ -23,6 +30,9 @@ def login_constructor(
     database_name: str = "",
     username: str = "",
 ):
+    """
+    Build the login screen layout.
+    """
     login = [
         [
             sg.Column(
@@ -71,6 +81,9 @@ def login_constructor(
 
 
 def get_contact_table(app: "App"):
+    """
+    Build the table that includes information of contacts.
+    """
     fields = [
         "Name",
         "Status",
@@ -79,7 +92,6 @@ def get_contact_table(app: "App"):
         "Custom Field Name",
         "Custom Field Value",
     ]
-    filters = ["Status", "Alphabetical", "Type", "Associated with resource..."]
     table_headings = ["Name", "Organization(s)", "Primary Phone"]
 
     contact_pages = app.db.get_contacts()
@@ -119,12 +131,47 @@ def get_contact_table(app: "App"):
         alternating_row_color=sg.theme_progress_bar_color()[1],
         justification="center",
         num_rows=5,
-    ), filters, fields
+    ), fields
+
+
+@db_session
+def lazy_load_contact_values(app: "App"):
+    """
+    Lazy load contact values.
+
+    This method is meant to be called in a separate thread,
+    and will get all the values from the database and update the table
+    to include them.
+    """
+    values = []
+
+    for contact in app.db.get_contacts():
+        org_name = contact.organizations.filter(lambda c: c.id == 1).first()
+
+        if org_name:
+            org_name = org_name.name
+        else:
+            org_name = "No Organization"
+
+        values.append(
+            [
+                contact.name,
+                org_name,
+                format_phone(contact.phone_numbers[0])
+                if contact.phone_numbers
+                else "No Phone Number",
+            ]
+        )
+
+    while app.status == AppStatus.READY:
+        app.window["-CONTACT_TABLE-"].update(values=values)
+        break
 
 
 def get_organization_table(app: "App"):
-    filters = ["Status", "Alphabetical", "Type"]
-
+    """
+    Build the table that includes information of organizations.
+    """
     fields = [
         "Name",
         "Status",
@@ -161,21 +208,51 @@ def get_organization_table(app: "App"):
         alternating_row_color=sg.theme_progress_bar_color()[1],
         justification="center",
         num_rows=5,
-    ), filters, fields
+    ), fields
 
 
 @db_session
-def main_constructor(app: "App"):
-    contact_table, contact_filters, contact_fields = get_contact_table(app)
-    org_table, org_filters, org_fields = get_organization_table(app)
+def lazy_load_org_values(app: "App"):
+    """
+    Lazy load organization values.
+
+    This method is meant to be called in a separate thread,
+    and will get all the values from the database and update the table
+    to include them.
+    """
+    values = []
+
+    for org in app.db.get_organizations():
+        contact = org.contacts.filter(
+            lambda c: c.org_titles[str(org.id)] == "Primary"
+        ).first()
+        contact_name = contact.name if contact else "No Primary Contact"
+        values.append([org.name, org.type, contact_name, org.status])
+
+    while app.status == AppStatus.READY:
+        app.window["-ORG_TABLE-"].update(values=values)
+        break
+
+
+@db_session
+def search_constructor(app: "App"):
+    """
+    Build the main screen layout and decide which
+    table to show.
+    """
+    filters = ["Status", "Alphabetical", "Type", "Associated with resource..."]
+
+    contact_table, contact_fields = get_contact_table(app)
+    org_table, org_fields = get_organization_table(app)
+
+    Thread(target=lazy_load_contact_values, args=(app,)).start()
+    Thread(target=lazy_load_org_values, args=(app,)).start()
 
     if app.screen == Screen.CONTACT_SEARCH:
         fields = contact_fields
-        filters = contact_filters
 
     elif app.screen == Screen.ORG_SEARCH:
         fields = org_fields
-        filters = org_filters
 
     layout = [
         [

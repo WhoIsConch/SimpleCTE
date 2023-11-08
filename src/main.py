@@ -2,8 +2,8 @@ import json
 import logging
 from database import db
 import PySimpleGUI as sg
-from layouts import login_constructor, main_constructor
-from enums import DBStatus, Screen
+from layouts import login_constructor, search_constructor
+from enums import DBStatus, Screen, AppStatus
 import os
 
 
@@ -12,6 +12,8 @@ class App:
         self.db = db
         self.logger = logging.getLogger("app")
         self.screen = Screen.LOGIN
+        self.window = None
+        self.status = AppStatus.BUSY
 
         self.logger.info("Loading database settings...")
 
@@ -125,15 +127,16 @@ app = App()
 sg.theme(app.settings["theme"])
 
 if app.screen == Screen.LOGIN:
-    window = sg.Window("Log In", login_constructor())
+    app.window = sg.Window("Log In", login_constructor())
 
 else:
-    window = sg.Window("Welcome", main_constructor(app))
+    app.window = sg.Window("Welcome", search_constructor(app), finalize=True)
 
-window.Font = ("Arial", 12)
+app.window.Font = ("Arial", 12)
 
 while True:
-    event, values = window.read()
+    app.status = AppStatus.READY
+    event, values = app.window.read()
 
     if event == sg.WIN_CLOSED or event == "Exit":
         break
@@ -156,13 +159,13 @@ while True:
 
         case "-SEARCHTYPE-":
             if values["-SEARCHTYPE-"] == "Organizations":
-                window["-CONTACT_SCREEN-"].update(visible=False)
-                window["-ORG_SCREEN-"].update(visible=True)
+                app.window["-CONTACT_SCREEN-"].update(visible=False)
+                app.window["-ORG_SCREEN-"].update(visible=True)
                 app.screen = Screen.ORG_SEARCH
 
             elif values["-SEARCHTYPE-"] == "Contacts":
-                window["-ORG_SCREEN-"].update(visible=False)
-                window["-CONTACT_SCREEN-"].update(visible=True)
+                app.window["-ORG_SCREEN-"].update(visible=False)
+                app.window["-CONTACT_SCREEN-"].update(visible=True)
 
                 app.screen = Screen.CONTACT_SEARCH
 

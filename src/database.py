@@ -4,6 +4,11 @@ from enums import DBStatus
 
 
 class Database(orm.Database):
+    """
+    The main database class.
+    This holds methods responsible for interacting with the database.
+    """
+
     def __init__(self):
         super().__init__()
         self.contacts_page = 0
