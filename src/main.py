@@ -2,10 +2,7 @@ import json
 import logging
 from database import db
 import PySimpleGUI as sg
-from layouts import (
-    login_constructor,
-    main_constructor
-    )
+from layouts import login_constructor, main_constructor
 from enums import DBStatus, Screen
 import os
 
@@ -20,26 +17,32 @@ class App:
 
         self.settings = self.load_settings()
 
-        if self.settings["database"]["system"] == "sqlite" and self.settings["database"]["location"] == "local":
+        if (
+            self.settings["database"]["system"] == "sqlite"
+            and self.settings["database"]["location"] == "local"
+        ):
             self.logger.info("Constructing SQLite database...")
-            self.db.construct_database(
-                "sqlite",
-                self.settings["database"]["path"]
-            )
+            self.db.construct_database("sqlite", self.settings["database"]["path"])
             self.screen = Screen.ORG_SEARCH
 
-        elif self.settings["database"]["system"] == "sqlite" and self.settings["database"]["location"] == "remote":
+        elif (
+            self.settings["database"]["system"] == "sqlite"
+            and self.settings["database"]["location"] == "remote"
+        ):
             self.logger.info("Constructing remote SQLite database...")
             self.db.construct_database(
                 "sqlite",
                 self.settings["database"]["path"],
                 server_address=self.settings["database"]["address"],
                 server_port=self.settings["database"]["port"],
-                username=self.settings["database"]["username"]
+                username=self.settings["database"]["username"],
             )
             self.screen = Screen.ORG_SEARCH
 
-        elif self.settings["database"]["system"] == "postgres" or self.settings["database"]["system"] == "mysql":
+        elif (
+            self.settings["database"]["system"] == "postgres"
+            or self.settings["database"]["system"] == "mysql"
+        ):
             self.logger.info("Constructing remote database...")
             try:
                 self.db.construct_database(
@@ -48,12 +51,14 @@ class App:
                     server_address=self.settings["database"]["address"],
                     server_port=self.settings["database"]["port"],
                     username=self.settings["database"]["username"],
-                    password=self.settings["database"]["password"]
+                    password=self.settings["database"]["password"],
                 )
             except Exception:
-                self.db.status = DBStatus.LOGIN_REQUIRED # TODO: Handle this via Database instead of in App
+                self.db.status = (
+                    DBStatus.LOGIN_REQUIRED
+                )  # TODO: Handle this via Database instead of in App
                 self.screen = Screen.LOGIN
-        
+
         else:
             self.logger.error("Invalid database system!")
             raise ValueError("Invalid database system!")
@@ -61,8 +66,11 @@ class App:
     def load_settings(self) -> dict:
         self.logger.info("Loading settings...")
         try:
-            with open(os.path.dirname(os.path.realpath(__file__)) + "\\data\\settings.json", "r") as f:
-                settings: dict = json.load(f) # Load our settings file
+            with open(
+                os.path.dirname(os.path.realpath(__file__)) + "\\data\\settings.json",
+                "r",
+            ) as f:
+                settings: dict = json.load(f)  # Load our settings file
 
         except FileNotFoundError:
             self.logger.info("No settings found. Creating settings...")
@@ -76,7 +84,7 @@ class App:
                     "port": 0,
                     "username": "",
                 },
-                "theme": "dark"
+                "theme": "dark",
             }
 
             self.save_settings(settings)
@@ -104,9 +112,11 @@ class App:
     def save_settings(self, settings: dict | None) -> None:
         self.logger.info("Saving settings...")
 
-        with open(os.path.dirname(os.path.realpath(__file__)) + "\\data\\settings.json", "w") as f:
+        with open(
+            os.path.dirname(os.path.realpath(__file__)) + "\\data\\settings.json", "w"
+        ) as f:
             json.dump(settings or self.settings, f, indent=4)
-        
+
         self.logger.info("Settings saved!")
 
 
@@ -143,8 +153,6 @@ while True:
             except ValueError:
                 sg.popup("Invalid port!")
                 continue
-
-
 
 
 print("Hello, world!")

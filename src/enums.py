@@ -1,9 +1,11 @@
 from enum import Enum
 
+
 class DBStatus(Enum):
     CONNECTED = 1
     DISCONNECTED = 2
     LOGIN_REQUIRED = 3
+
 
 class Screen(Enum):
     ORG_SEARCH = 1
