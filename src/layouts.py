@@ -258,14 +258,14 @@ def search_constructor(app: "App"):
         [
             sg.Column(
                 expand_x=True,
-                element_justification="center",
+                element_justification="left",
                 background_color=sg.theme_progress_bar_color()[1],
                 pad=((0, 0), (0, 10)),
                 layout=[
                     [
                         sg.Column(
                             pad=5,
-                            element_justification="center",
+                            element_justification="left",
                             background_color=sg.theme_progress_bar_color()[1],
                             layout=[
                                 [
@@ -278,7 +278,32 @@ def search_constructor(app: "App"):
                                     sg.Button("Add Record", k="-ADD_RECORD-"),
                                 ]
                             ],
-                        )
+                        ),
+                        sg.Push(background_color=sg.theme_progress_bar_color()[1]),
+                        sg.Column(
+                            element_justification="right",
+                            background_color=sg.theme_progress_bar_color()[1],
+                            layout=[
+                                [
+                                    sg.Text(
+                                        "View: ",
+                                        background_color=sg.theme_progress_bar_color()[
+                                            1
+                                        ],
+                                        pad=((0, 0), (0, 0)),
+                                    ),
+                                    sg.Combo(
+                                        ["Contacts", "Organizations"],
+                                        k="-SEARCHTYPE-",
+                                        default_value="Contacts"
+                                        if app.screen == Screen.CONTACT_SEARCH
+                                        else "Organizations",
+                                        enable_events=True,
+                                        pad=((0, 5), (0, 0)),
+                                    ),
+                                ]
+                            ],
+                        ),
                     ]
                 ],
             )
@@ -291,16 +316,7 @@ def search_constructor(app: "App"):
                     [
                         sg.Button("Search", k="-SEARCH-"),
                         sg.Text("Search Query:"),
-                        sg.Input(k="-SEARCH-"),
-                        sg.Text("Search In:"),
-                        sg.Combo(
-                            ["Contacts", "Organizations"],
-                            k="-SEARCHTYPE-",
-                            default_value="Contacts"
-                            if app.screen == Screen.CONTACT_SEARCH
-                            else "Organizations",
-                            enable_events=True,
-                        ),
+                        sg.Input(k="-SEARCH-", expand_x=True),
                     ],
                     [
                         sg.Text("Search Fields:"),
