@@ -120,6 +120,8 @@ if app.screen == Screen.LOGIN:
 else:
     window = sg.Window("Welcome", main_constructor(app))
 
+window.Font = ("Arial", 12)
+
 while True:
     event, values = window.read()
 

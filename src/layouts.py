@@ -5,6 +5,15 @@ from pony.orm import db_session
 if typing.TYPE_CHECKING:
     from main import App
 
+def format_phone(phone_number: int) -> str:
+    phone_number = str(phone_number)
+    if len(phone_number) == 10:
+        return f"({phone_number[:3]}) {phone_number[3:6]}-{phone_number[6:]}"
+    elif len(phone_number) == 11:
+        return f"+{phone_number[0]} ({phone_number[1:4]}) {phone_number[4:7]}-{phone_number[7:]}"
+    else:
+        return phone_number
+
 def login_constructor(
         server_address: str = "",
         server_port: str = "",
@@ -41,7 +50,7 @@ def login_constructor(
 @db_session
 def main_constructor(app: "App"):
     filters = ["Status", "Alphabetical", "Type"]
-    # app.screen = Screen.CONTACT_SEARCH
+    app.screen = Screen.CONTACT_SEARCH
 
     if app.screen == Screen.ORG_SEARCH:
         fields = ["Name", "Status", "Primary Phone", "Address", "Custom Field Name", "Custom Field Value"]
@@ -58,13 +67,20 @@ def main_constructor(app: "App"):
     elif app.screen == Screen.CONTACT_SEARCH:
         fields = ["Name", "Status", "Primary Phone", "Address", "Custom Field Name", "Custom Field Value"]
         filters.append("Associated with resource...")
-        table_headings = ["Name", "Organization(s)"]
+        table_headings = ["Name", "Organization(s)", "Primary Phone"]
 
         contact_pages = app.db.get_contacts()
 
         table_values = []
         for contact in contact_pages:
-            table_values.append([contact.name, contact.organizations])
+            org_name = contact.organizations.filter(lambda c: c.id == 1).first()
+
+            if org_name:
+                org_name = org_name.name
+            else:
+                org_name = "No Organization"
+
+            table_values.append([contact.name, org_name, format_phone(contact.phone_numbers[0]) if contact.phone_numbers else "No Phone Number"])
 
     layout = [
         [sg.Column(
@@ -78,28 +94,38 @@ def main_constructor(app: "App"):
                         pad=5,
                         element_justification="center",
                         background_color=sg.theme_progress_bar_color()[1],
-                        layout=[[sg.Button("Export by Filter"),
-                        sg.Button("Export All"),
-                        sg.Button("Settings"),
-                        sg.Button("Backup"),
-                        sg.Button("Help"),
-                        sg.Button("Logout"),
-                        sg.Button("Add Record")]]
+                        layout=[[
+                            sg.Button("Export by Filter"),
+                            sg.Button("Export All"),
+                            sg.Button("Settings"),
+                            sg.Button("Backup"),
+                            sg.Button("Help"),
+                            sg.Button("Logout"),
+                            sg.Button("Add Record")
+                        ]]
                     )
                 ]
             ]
         )
         ],
         [
-            sg.Button("Search"), 
-            sg.Text("Search Query:"),
-            sg.Input(k="-SEARCH-"), 
-            sg.Text("Search Fields:"),
-            sg.Combo(fields, k="-SEARCHFIELDS-"),
-            sg.Text("Search In:"), 
-            sg.Combo(["Contacts", "Organizations"], k="-SEARCHTYPE-", default_value="Contacts" if app.screen == Screen.CONTACT_SEARCH else "Organizations"), 
-            sg.Text("Search Filters:"), 
-            sg.Combo(filters, k="-SORTTYPE-")
+            sg.Column(
+                expand_x=True,
+                pad=((0, 0), (0, 10)),
+                layout=[[
+                    sg.Button("Search"), 
+                    sg.Text("Search Query:"),
+                    sg.Input(k="-SEARCH-"), 
+                    sg.Text("Search In:"), 
+                    sg.Combo(["Contacts", "Organizations"], k="-SEARCHTYPE-", default_value="Contacts" if app.screen == Screen.CONTACT_SEARCH else "Organizations")
+                ], 
+                [
+                    sg.Text("Search Fields:"),
+                    sg.Combo(fields, k="-SEARCHFIELDS-", expand_x=True),
+                    sg.Text("Search Filters:"), 
+                    sg.Combo(filters, k="-SORTTYPE-", expand_x=True),
+                ]]
+            )
         ],
         [sg.Column(
             background_color=sg.theme_progress_bar_color()[1],
@@ -118,9 +144,10 @@ def main_constructor(app: "App"):
                     right_click_selects=True,
                     k="-TABLE-",
                     select_mode=sg.TABLE_SELECT_MODE_BROWSE,
-                    row_height=30,
+                    row_height=40,
                     alternating_row_color=sg.theme_progress_bar_color()[1],
-                    justification="center"
+                    justification="center",
+                    num_rows=5
                 )]
             ]
         )]
