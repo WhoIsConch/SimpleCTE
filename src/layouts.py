@@ -70,64 +70,112 @@ def login_constructor(
     return login
 
 
+def get_contact_table(app: "App"):
+    fields = [
+        "Name",
+        "Status",
+        "Primary Phone",
+        "Address",
+        "Custom Field Name",
+        "Custom Field Value",
+    ]
+    filters = ["Status", "Alphabetical", "Type", "Associated with resource..."]
+    table_headings = ["Name", "Organization(s)", "Primary Phone"]
+
+    contact_pages = app.db.get_contacts()
+
+    table_values = []
+    for contact in contact_pages:
+        org_name = contact.organizations.filter(lambda c: c.id == 1).first()
+
+        if org_name:
+            org_name = org_name.name
+        else:
+            org_name = "No Organization"
+
+        table_values.append(
+            [
+                contact.name,
+                org_name,
+                format_phone(contact.phone_numbers[0])
+                if contact.phone_numbers
+                else "No Phone Number",
+            ]
+        )
+
+    return sg.Table(
+        headings=table_headings,
+        values=table_values,
+        expand_x=True,
+        font=("Arial", 15),
+        right_click_menu=[
+            "&Right",
+            ["Right", "!&Click", "&Menu", "E&xit", "Properties"],
+        ],
+        right_click_selects=True,
+        k="-CONTACT_TABLE-",
+        select_mode=sg.TABLE_SELECT_MODE_BROWSE,
+        row_height=40,
+        alternating_row_color=sg.theme_progress_bar_color()[1],
+        justification="center",
+        num_rows=5,
+    ), filters, fields
+
+
+def get_organization_table(app: "App"):
+    filters = ["Status", "Alphabetical", "Type"]
+
+    fields = [
+        "Name",
+        "Status",
+        "Primary Phone",
+        "Address",
+        "Custom Field Name",
+        "Custom Field Value",
+    ]
+    table_headings = ["Organization Name", "Type", "Primary Contact", "Status"]
+
+    org_pages = app.db.get_organizations()
+
+    table_values = []
+    for org in org_pages:
+        contact = org.contacts.filter(
+            lambda c: c.org_titles[str(org.id)] == "Primary"
+        ).first()
+        contact_name = contact.name if contact else "No Primary Contact"
+        table_values.append([org.name, org.type, contact_name, org.status])
+
+    return sg.Table(
+        headings=table_headings,
+        values=table_values,
+        expand_x=True,
+        font=("Arial", 15),
+        right_click_menu=[
+            "&Right",
+            ["Right", "!&Click", "&Menu", "E&xit", "Properties"],
+        ],
+        right_click_selects=True,
+        k="-ORG_TABLE-",
+        select_mode=sg.TABLE_SELECT_MODE_BROWSE,
+        row_height=40,
+        alternating_row_color=sg.theme_progress_bar_color()[1],
+        justification="center",
+        num_rows=5,
+    ), filters, fields
+
+
 @db_session
 def main_constructor(app: "App"):
-    filters = ["Status", "Alphabetical", "Type"]
-    app.screen = Screen.CONTACT_SEARCH
+    contact_table, contact_filters, contact_fields = get_contact_table(app)
+    org_table, org_filters, org_fields = get_organization_table(app)
 
-    if app.screen == Screen.ORG_SEARCH:
-        fields = [
-            "Name",
-            "Status",
-            "Primary Phone",
-            "Address",
-            "Custom Field Name",
-            "Custom Field Value",
-        ]
-        table_headings = ["Organization Name", "Type", "Primary Contact", "Status"]
+    if app.screen == Screen.CONTACT_SEARCH:
+        fields = contact_fields
+        filters = contact_filters
 
-        org_pages = app.db.get_organizations()
-
-        table_values = []
-        for org in org_pages:
-            contact = org.contacts.filter(
-                lambda c: c.org_titles[str(org.id)] == "Primary"
-            ).first()
-            contact_name = contact.name if contact else "No Primary Contact"
-            table_values.append([org.name, org.type, contact_name, org.status])
-
-    elif app.screen == Screen.CONTACT_SEARCH:
-        fields = [
-            "Name",
-            "Status",
-            "Primary Phone",
-            "Address",
-            "Custom Field Name",
-            "Custom Field Value",
-        ]
-        filters.append("Associated with resource...")
-        table_headings = ["Name", "Organization(s)", "Primary Phone"]
-
-        contact_pages = app.db.get_contacts()
-
-        table_values = []
-        for contact in contact_pages:
-            org_name = contact.organizations.filter(lambda c: c.id == 1).first()
-
-            if org_name:
-                org_name = org_name.name
-            else:
-                org_name = "No Organization"
-
-            table_values.append(
-                [
-                    contact.name,
-                    org_name,
-                    format_phone(contact.phone_numbers[0])
-                    if contact.phone_numbers
-                    else "No Phone Number",
-                ]
-            )
+    elif app.screen == Screen.ORG_SEARCH:
+        fields = org_fields
+        filters = org_filters
 
     layout = [
         [
@@ -174,6 +222,7 @@ def main_constructor(app: "App"):
                             default_value="Contacts"
                             if app.screen == Screen.CONTACT_SEARCH
                             else "Organizations",
+                            enable_events=True,
                         ),
                     ],
                     [
@@ -191,38 +240,41 @@ def main_constructor(app: "App"):
                 expand_x=True,
                 expand_y=True,
                 element_justification="center",
-                pad=((0, 0), (20, 0)),
+                key="-ORG_SCREEN-",
+                visible=app.screen == Screen.ORG_SEARCH,
                 layout=[
                     [
                         sg.Text(
-                            "Contact Search"
-                            if app.screen == Screen.CONTACT_SEARCH
-                            else "Organization Search",
+                            "Organization Search",
                             background_color=sg.theme_progress_bar_color()[1],
                             font=("Arial", 20),
                         )
                     ],
                     [
-                        sg.Table(
-                            headings=table_headings,
-                            values=table_values,
-                            expand_x=True,
-                            font=("Arial", 15),
-                            right_click_menu=[
-                                "&Right",
-                                ["Right", "!&Click", "&Menu", "E&xit", "Properties"],
-                            ],
-                            right_click_selects=True,
-                            k="-TABLE-",
-                            select_mode=sg.TABLE_SELECT_MODE_BROWSE,
-                            row_height=40,
-                            alternating_row_color=sg.theme_progress_bar_color()[1],
-                            justification="center",
-                            num_rows=5,
-                        )
+                        org_table,
                     ],
                 ],
-            )
+            ),
+            sg.Column(
+                background_color=sg.theme_progress_bar_color()[1],
+                expand_x=True,
+                expand_y=True,
+                element_justification="center",
+                key="-CONTACT_SCREEN-",
+                visible=app.screen == Screen.CONTACT_SEARCH,
+                layout=[
+                    [
+                        sg.Text(
+                            "Contact Search",
+                            background_color=sg.theme_progress_bar_color()[1],
+                            font=("Arial", 20),
+                        ),
+                    ],
+                    [
+                        contact_table,
+                    ],
+                ],
+            ),
         ],
     ]
     return layout

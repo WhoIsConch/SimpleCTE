@@ -154,5 +154,17 @@ while True:
                 sg.popup("Invalid port!")
                 continue
 
+        case "-SEARCHTYPE-":
+            if values["-SEARCHTYPE-"] == "Organizations":
+                window["-CONTACT_SCREEN-"].update(visible=False)
+                window["-ORG_SCREEN-"].update(visible=True)
+                app.screen = Screen.ORG_SEARCH
+
+            elif values["-SEARCHTYPE-"] == "Contacts":
+                window["-ORG_SCREEN-"].update(visible=False)
+                window["-CONTACT_SCREEN-"].update(visible=True)
+
+                app.screen = Screen.CONTACT_SEARCH
+
 
 print("Hello, world!")
