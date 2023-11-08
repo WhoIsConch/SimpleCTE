@@ -144,13 +144,13 @@ def main_constructor(app: "App"):
                             background_color=sg.theme_progress_bar_color()[1],
                             layout=[
                                 [
-                                    sg.Button("Export by Filter"),
-                                    sg.Button("Export All"),
-                                    sg.Button("Settings"),
-                                    sg.Button("Backup"),
-                                    sg.Button("Help"),
-                                    sg.Button("Logout"),
-                                    sg.Button("Add Record"),
+                                    sg.Button("Export by Filter", k="-EXPORT_FILTER-"),
+                                    sg.Button("Export All", k="-EXPORT_ALL-"),
+                                    sg.Button("Settings", k="-SETTINGS-"),
+                                    sg.Button("Backup", k="-BACKUP-"),
+                                    sg.Button("Help", k="-HELP-"),
+                                    sg.Button("Logout", k="-LOGOUT-"),
+                                    sg.Button("Add Record", k="-ADD_RECORD-"),
                                 ]
                             ],
                         )
@@ -164,7 +164,7 @@ def main_constructor(app: "App"):
                 pad=((0, 0), (0, 10)),
                 layout=[
                     [
-                        sg.Button("Search"),
+                        sg.Button("Search", k="-SEARCH-"),
                         sg.Text("Search Query:"),
                         sg.Input(k="-SEARCH-"),
                         sg.Text("Search In:"),
