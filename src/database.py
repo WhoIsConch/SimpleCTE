@@ -74,10 +74,6 @@ class Database(orm.Database):
         self.status = DBStatus.CONNECTED
         return self
 
-    @orm.db_session
-    def populate_database():
-        Contact()
-
 
 db = Database()
 
@@ -114,7 +110,8 @@ class Contact(db.Entity):
 
 class Resource(db.Entity):
     id = orm.PrimaryKey(int, auto=True)
-    value = orm.Optional(str)
+    name = orm.Required(str)
+    value = orm.Required(str)
 
     organizations = orm.Set(Organization)
     contacts = orm.Set(Contact)

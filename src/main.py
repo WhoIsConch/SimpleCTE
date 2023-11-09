@@ -2,9 +2,16 @@ import json
 import logging
 from database import db
 import PySimpleGUI as sg
-from layouts import login_constructor, search_constructor
+from layouts import (
+    login_constructor,
+    search_constructor,
+    empty_org_view_constructor,
+    empty_contact_view_constructor,
+    swap_to_org_viewer,
+)
 from enums import DBStatus, Screen, AppStatus
 import os
+from datetime import datetime
 
 
 class App:
@@ -12,8 +19,9 @@ class App:
         self.db = db
         self.logger = logging.getLogger("app")
         self.screen = Screen.LOGIN
-        self.window = None
+        self.window: sg.Window | None = None
         self.status = AppStatus.BUSY
+        self.last_clicked_table_time = None
 
         self.logger.info("Loading database settings...")
 
@@ -127,10 +135,32 @@ app = App()
 sg.theme(app.settings["theme"])
 
 if app.screen == Screen.LOGIN:
-    app.window = sg.Window("Log In", login_constructor())
+    app.window = sg.Window("Log In to your SimpleCTE Database", login_constructor())
 
 else:
-    app.window = sg.Window("Welcome", search_constructor(app), finalize=True)
+    app.window = sg.Window(
+        "SimpleCTE",
+        finalize=True,
+        layout=[
+            [
+                sg.Column(
+                    layout=search_constructor(app),
+                    key="-SEARCH_SCREEN-",
+                    visible=True,
+                ),
+                sg.Column(
+                    layout=empty_org_view_constructor(),
+                    key="-ORG_VIEW-",
+                    visible=False,
+                ),
+                sg.Column(
+                    layout=empty_contact_view_constructor(),
+                    key="-CONTACT_VIEW-",
+                    visible=False,
+                ),
+            ]
+        ],
+    )
 
 app.window.Font = ("Arial", 12)
 
@@ -143,31 +173,48 @@ while True:
 
     print(event, values)
 
-    match event:
-        case "-LOGIN-":
-            server_address = values["-SERVER-"]
-            server_port = values["-PORT-"]
-            database_name = values["-DBNAME-"]
-            username = values["-USERNAME-"]
-            password = values["-PASSWORD-"]
+    if isinstance(event, tuple):
+        match event[0]:
+            case "-ORG_TABLE-":
+                if (app.last_clicked_table_time is not None) and (
+                    (datetime.now() - app.last_clicked_table_time).total_seconds() < 0.5
+                ):
+                    swap_to_org_viewer(app, event[2])
+                    app.last_clicked_table_time = None
+                else:
+                    app.last_clicked_table_time = datetime.now()
+    else:
+        match event:
+            case "-LOGIN-":
+                server_address = values["-SERVER-"]
+                server_port = values["-PORT-"]
+                database_name = values["-DBNAME-"]
+                username = values["-USERNAME-"]
+                password = values["-PASSWORD-"]
 
-            try:
-                server_port = int(server_port)
-            except ValueError:
-                sg.popup("Invalid port!")
-                continue
+                try:
+                    server_port = int(server_port)
+                except ValueError:
+                    sg.popup("Invalid port!")
+                    continue
 
-        case "-SEARCHTYPE-":
-            if values["-SEARCHTYPE-"] == "Organizations":
-                app.window["-CONTACT_SCREEN-"].update(visible=False)
-                app.window["-ORG_SCREEN-"].update(visible=True)
-                app.screen = Screen.ORG_SEARCH
+            case "-SEARCHTYPE-":
+                if values["-SEARCHTYPE-"] == "Organizations":
+                    app.window["-CONTACT_SCREEN-"].update(visible=False)
+                    app.window["-ORG_SCREEN-"].update(visible=True)
+                    app.screen = Screen.ORG_SEARCH
 
-            elif values["-SEARCHTYPE-"] == "Contacts":
-                app.window["-ORG_SCREEN-"].update(visible=False)
-                app.window["-CONTACT_SCREEN-"].update(visible=True)
+                elif values["-SEARCHTYPE-"] == "Contacts":
+                    app.window["-ORG_SCREEN-"].update(visible=False)
+                    app.window["-CONTACT_SCREEN-"].update(visible=True)
 
-                app.screen = Screen.CONTACT_SEARCH
+                    app.screen = Screen.CONTACT_SEARCH
+            
+            case "-EXIT-" | "-EXIT_1-":
+                # go to previous screen
+                app.window["-ORG_VIEW-"].update(visible=False)
+                app.window["-CONTACT_VIEW-"].update(visible=False)
+                app.window["-SEARCH_SCREEN-"].update(visible=True)
 
 
 print("Hello, world!")

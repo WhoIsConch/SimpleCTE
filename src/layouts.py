@@ -3,6 +3,7 @@ import typing
 from enums import Screen, AppStatus
 from pony.orm import db_session
 from threading import Thread
+from database import Contact, Organization, Resource
 
 if typing.TYPE_CHECKING:
     from main import App
@@ -80,6 +81,38 @@ def login_constructor(
     return login
 
 
+def get_action_bar(screen: Screen) -> list[list[sg.Button]]:
+    """
+    Return the action bar for the given screen.
+    """
+    if screen == Screen.CONTACT_SEARCH or screen == Screen.ORG_SEARCH:
+        layout = [
+            [
+                sg.Button("Export by Filter", k="-EXPORT_FILTER-"),
+                sg.Button("Export All", k="-EXPORT_ALL-"),
+                sg.Button("Settings", k="-SETTINGS-"),
+                sg.Button("Backup", k="-BACKUP-"),
+                sg.Button("Help", k="-HELP-"),
+                sg.Button("Logout", k="-LOGOUT-"),
+                sg.Button("Add Record", k="-ADD_RECORD-"),
+            ]
+        ]
+    else:
+        layout = [
+            [
+                sg.Button("Export", k="-EXPORT-"),
+                sg.Button("Settings", k="-SETTINGS-"),
+                sg.Button("Backup", k="-BACKUP-"),
+                sg.Button("Help", k="-HELP-"),
+                sg.Button("Logout", k="-LOGOUT-"),
+                sg.Button("Add Record", k="-ADD_RECORD-"),
+            ]
+        ]
+
+    return layout
+
+
+@db_session
 def get_contact_table(app: "App"):
     """
     Build the table that includes information of contacts.
@@ -168,6 +201,7 @@ def lazy_load_contact_values(app: "App"):
         break
 
 
+@db_session
 def get_organization_table(app: "App"):
     """
     Build the table that includes information of organizations.
@@ -202,6 +236,7 @@ def get_organization_table(app: "App"):
             ["Right", "!&Click", "&Menu", "E&xit", "Properties"],
         ],
         right_click_selects=True,
+        enable_click_events=True,
         k="-ORG_TABLE-",
         select_mode=sg.TABLE_SELECT_MODE_BROWSE,
         row_height=40,
@@ -234,13 +269,14 @@ def lazy_load_org_values(app: "App"):
         break
 
 
-@db_session
 def search_constructor(app: "App"):
     """
     Build the main screen layout and decide which
     table to show.
     """
     filters = ["Status", "Alphabetical", "Type", "Associated with resource..."]
+
+    print("Search Constructor")
 
     contact_table, contact_fields = get_contact_table(app)
     org_table, org_fields = get_organization_table(app)
@@ -267,17 +303,7 @@ def search_constructor(app: "App"):
                             pad=5,
                             element_justification="left",
                             background_color=sg.theme_progress_bar_color()[1],
-                            layout=[
-                                [
-                                    sg.Button("Export by Filter", k="-EXPORT_FILTER-"),
-                                    sg.Button("Export All", k="-EXPORT_ALL-"),
-                                    sg.Button("Settings", k="-SETTINGS-"),
-                                    sg.Button("Backup", k="-BACKUP-"),
-                                    sg.Button("Help", k="-HELP-"),
-                                    sg.Button("Logout", k="-LOGOUT-"),
-                                    sg.Button("Add Record", k="-ADD_RECORD-"),
-                                ]
-                            ],
+                            layout=get_action_bar(app.screen),
                         ),
                         sg.Push(background_color=sg.theme_progress_bar_color()[1]),
                         sg.Column(
@@ -371,3 +397,352 @@ def search_constructor(app: "App"):
         ],
     ]
     return layout
+
+
+def empty_viewer_head_constructor():
+    print("Empty Viewer Head Constructor")
+
+    layout = [
+        [
+            sg.Column(
+                layout=get_action_bar(Screen.ORG_VIEW),
+                background_color=sg.theme_progress_bar_color()[1],
+                element_justification="left",
+            ),
+            sg.Push(),
+            sg.Column(
+                background_color=sg.theme_progress_bar_color()[1],
+                element_justification="right",
+                layout=[
+                    [
+                        sg.Button("Edit", k="-EDIT-"),
+                        sg.Button("Delete", k="-DELETE-"),
+                        sg.Button("Exit", k="-EXIT-"),
+                    ]
+                ],
+            ),
+        ],
+        [
+            sg.Column(
+                expand_x=True,
+                layout=[
+                    [
+                        sg.Button("Exit", k="-EXIT_1-", expand_y=True, expand_x=True),
+                        sg.Column(
+                            element_justification="center",
+                            expand_x=True,
+                            background_color=sg.theme_progress_bar_color()[1],
+                            layout=[
+                                [
+                                    sg.Text(
+                                        "Name: ",
+                                        background_color=sg.theme_progress_bar_color()[
+                                            1
+                                        ],
+                                    )
+                                ],
+                                [
+                                    sg.Text(
+                                        "",
+                                        key="-NAME-",
+                                        background_color=sg.theme_progress_bar_color()[
+                                            1
+                                        ],
+                                    ),
+                                ],
+                            ],
+                        ),
+                        sg.Column(
+                            element_justification="center",
+                            expand_x=True,
+                            background_color=sg.theme_progress_bar_color()[1],
+                            layout=[
+                                [
+                                    sg.Text(
+                                        "Status: ",
+                                        background_color=sg.theme_progress_bar_color()[
+                                            1
+                                        ],
+                                    )
+                                ],
+                                [
+                                    sg.Text(
+                                        "",
+                                        key="-STATUS-",
+                                        background_color=sg.theme_progress_bar_color()[
+                                            1
+                                        ],
+                                    ),
+                                ],
+                            ],
+                        ),
+                        sg.Column(
+                            element_justification="center",
+                            expand_x=True,
+                            background_color=sg.theme_progress_bar_color()[1],
+                            layout=[
+                                [
+                                    sg.Text(
+                                        "Primary Phone: ",
+                                        background_color=sg.theme_progress_bar_color()[
+                                            1
+                                        ],
+                                    )
+                                ],
+                                [
+                                    sg.Text(
+                                        "",
+                                        key="-PHONE-",
+                                        background_color=sg.theme_progress_bar_color()[
+                                            1
+                                        ],
+                                    ),
+                                ],
+                            ],
+                        ),
+                        sg.Column(
+                            element_justification="center",
+                            expand_x=True,
+                            background_color=sg.theme_progress_bar_color()[1],
+                            layout=[
+                                [
+                                    sg.Text(
+                                        "Address: ",
+                                        background_color=sg.theme_progress_bar_color()[
+                                            1
+                                        ],
+                                    )
+                                ],
+                                [
+                                    sg.Text(
+                                        "",
+                                        key="-ADDRESS-",
+                                        background_color=sg.theme_progress_bar_color()[
+                                            1
+                                        ],
+                                    ),
+                                ],
+                            ],
+                        ),
+                    ]
+                ],
+            )
+        ],
+        [sg.Sizer(800, 0)]
+    ]
+
+    return layout
+
+
+def empty_contact_view_constructor():
+    """
+    Returns the layout used to view the details of an organization.
+    This returns empty, as we cannot predict the organization that the
+    user is going to look at. Later, the program will fill in the blanks.
+    """
+    print("Empty Contact View Constructor")
+    layout = [
+        [
+            sg.Column(
+                expand_x=True,
+                layout=empty_viewer_head_constructor(),
+            )
+        ],
+        [
+            sg.Column(
+                expand_x=True,
+                background_color=sg.theme_progress_bar_color()[1],
+                layout=[
+                    [
+                        sg.Column(
+                            element_justification="center",
+                            expand_x=True,
+                            expand_y=True,
+                            layout=[
+                                [sg.Text("Contact Info")],
+                                [
+                                    sg.Table(
+                                        key="-CONTACT_INFO_TABLE-",
+                                        headings=["Name", "Value"],
+                                        values=[[]],
+                                    )
+                                ],
+                            ],
+                        ),
+                        sg.Column(
+                            element_justification="center",
+                            expand_x=True,
+                            expand_y=True,
+                            layout=[
+                                [sg.Text("Organizatons")],
+                                [
+                                    sg.Table(
+                                        key="-CONTACT_ORGANIZATIONS_TABLE-",
+                                        headings=["Name", "Status"],
+                                        values=[[]],
+                                    )
+                                ],
+                            ],
+                        ),
+                        sg.Column(
+                            element_justification="center",
+                            expand_x=True,
+                            expand_y=True,
+                            layout=[
+                                [sg.Text("Associated Resources")],
+                                [
+                                    sg.Table(
+                                        key="-CONTACT_RESOURCES_TABLE-",
+                                        headings=["Name", "Status"],
+                                        values=[[]],
+                                    )
+                                ],
+                            ],
+                        ),
+                        sg.Column(
+                            element_justification="center",
+                            expand_x=True,
+                            expand_y=True,
+                            layout=[
+                                [sg.Text("Custom Fields")],
+                                [
+                                    sg.Table(
+                                        key="-CONTACT_CUSTOM_FIELDS_TABLE-",
+                                        headings=["Name", "Value"],
+                                        values=[[]],
+                                    )
+                                ],
+                            ],
+                        ),
+                    ]
+                ],
+            )
+        ],
+    ]
+
+    return layout
+
+
+def empty_org_view_constructor():
+    print("Empty Org View Constructor")
+    layout = [
+        [
+            sg.Column(
+                expand_x=True,
+                layout=empty_viewer_head_constructor(),
+            )
+        ],
+        [
+            sg.Column(
+                background_color=sg.theme_progress_bar_color()[1],
+                expand_x=True,
+                layout=[
+                    [
+                        sg.Column(
+                            element_justification="center",
+                            expand_x=True,
+                            layout=[
+                                [sg.Text("Organization Contacts")],
+                                [
+                                    sg.Table(
+                                        key="-ORG_CONTACT_INFO_TABLE-",
+                                        headings=["Name", "Title", "Email", "Phone"],
+                                        select_mode=sg.TABLE_SELECT_MODE_BROWSE,
+                                        row_height=40,
+                                        alternating_row_color=sg.theme_progress_bar_color()[1],
+                                        justification="center",
+                                        num_rows=5,
+                                        auto_size_columns=True,
+                                        expand_x=True,
+                                        values=[[]],
+                                    )
+                                ],
+                            ],
+                        ),
+                        sg.Column(
+                            element_justification="center",
+                            layout=[
+                                [sg.Text("Associated Resources")],
+                                [
+                                    sg.Table(
+                                        key="-ORG_RESOURCES_TABLE-",
+                                        headings=["Name", "Value"],
+                                        select_mode=sg.TABLE_SELECT_MODE_BROWSE,
+                                        row_height=40,
+                                        alternating_row_color=sg.theme_progress_bar_color()[1],
+                                        justification="center",
+                                        num_rows=5,
+                                        auto_size_columns=True,
+                                        values=[[]],
+                                    )
+                                ],
+                            ],
+                        ),
+                        sg.Column(
+                            element_justification="center",
+                            layout=[
+                                [sg.Text("Custom Fields")],
+                                [
+                                    sg.Table(
+                                        key="-ORG_CUSTOM_FIELDS_TABLE-",
+                                        headings=["Name", "Value"],
+                                        select_mode=sg.TABLE_SELECT_MODE_BROWSE,
+                                        row_height=40,
+                                        alternating_row_color=sg.theme_progress_bar_color()[1],
+                                        justification="center",
+                                        num_rows=5,
+                                        auto_size_columns=True,
+                                        values=[[]],
+                                    )
+                                ],
+                            ],
+                        ),
+                    ]
+                ],
+            )
+        ],
+    ]
+
+    return layout
+
+
+@db_session
+def swap_to_org_viewer(app: "App", location: tuple[int, int]) -> None:
+    app.window["-ORG_VIEW-"].update(visible=True)
+    app.window["-SEARCH_SCREEN-"].update(visible=False)
+    app.screen = Screen.ORG_VIEW
+
+    org_name = app.window["-ORG_TABLE-"].get()[location[0]][0]
+
+    contact_table_values = []
+    resource_table_values = []
+    custom_field_table_values = []
+
+    org = Organization.get(name=org_name)
+
+    for contact in org.contacts:
+        contact_table_values.append(
+            [
+                contact.name,
+                contact.org_titles[str(org.id)] if contact.org_titles else "No Title",
+                contact.emails[0] if contact.emails else "No Email",
+                format_phone(contact.phone_numbers[0])
+                if contact.phone_numbers
+                else "No Phone Number",
+            ]
+        )
+
+    for resource in org.resources:
+        resource_table_values.append([resource.name, resource.value])
+
+    for key, value in org.custom_fields.items():
+        custom_field_table_values.append([key, value])
+
+    app.window["-ORG_CONTACT_INFO_TABLE-"].update(values=contact_table_values)
+    app.window["-ORG_RESOURCES_TABLE-"].update(values=resource_table_values)
+    app.window["-ORG_CUSTOM_FIELDS_TABLE-"].update(values=custom_field_table_values)
+
+    app.window["-NAME-"].update(org.name)
+    app.window["-STATUS-"].update(org.status)
+    app.window["-PHONE-"].update(format_phone(org.phones[0]) if org.phones else "No phone number")
+    app.window["-ADDRESS-"].update(org.addresses[0] if org.addresses else "No address")
