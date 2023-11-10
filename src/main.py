@@ -8,6 +8,7 @@ from layouts import (
     empty_org_view_constructor,
     empty_contact_view_constructor,
     swap_to_org_viewer,
+    swap_to_contact_viewer,
 )
 from enums import DBStatus, Screen, AppStatus
 import os
@@ -180,6 +181,15 @@ while True:
                     (datetime.now() - app.last_clicked_table_time).total_seconds() < 0.5
                 ):
                     swap_to_org_viewer(app, event[2])
+                    app.last_clicked_table_time = None
+                else:
+                    app.last_clicked_table_time = datetime.now()
+                
+            case "-CONTACT_TABLE-":
+                if (app.last_clicked_table_time is not None) and (
+                    (datetime.now() - app.last_clicked_table_time).total_seconds() < 0.5
+                ):
+                    swap_to_contact_viewer(app, event[2])
                     app.last_clicked_table_time = None
                 else:
                     app.last_clicked_table_time = datetime.now()

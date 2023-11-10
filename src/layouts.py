@@ -163,6 +163,7 @@ def get_contact_table(app: "App"):
         row_height=40,
         alternating_row_color=sg.theme_progress_bar_color()[1],
         justification="center",
+        enable_click_events=True,
         num_rows=5,
     ), fields
 
@@ -661,6 +662,7 @@ def empty_org_view_constructor():
                         ),
                         sg.Column(
                             element_justification="center",
+                            expand_x=True,
                             layout=[
                                 [sg.Text("Associated Resources")],
                                 [
@@ -673,6 +675,7 @@ def empty_org_view_constructor():
                                         justification="center",
                                         num_rows=5,
                                         auto_size_columns=True,
+                                        expand_x=True,
                                         values=[[]],
                                     )
                                 ],
@@ -680,6 +683,7 @@ def empty_org_view_constructor():
                         ),
                         sg.Column(
                             element_justification="center",
+                            expand_x=True,
                             layout=[
                                 [sg.Text("Custom Fields")],
                                 [
@@ -692,6 +696,7 @@ def empty_org_view_constructor():
                                         justification="center",
                                         num_rows=5,
                                         auto_size_columns=True,
+                                        expand_x=True,
                                         values=[[]],
                                     )
                                 ],
@@ -746,3 +751,52 @@ def swap_to_org_viewer(app: "App", location: tuple[int, int]) -> None:
     app.window["-STATUS-"].update(org.status)
     app.window["-PHONE-"].update(format_phone(org.phones[0]) if org.phones else "No phone number")
     app.window["-ADDRESS-"].update(org.addresses[0] if org.addresses else "No address")
+
+
+@db_session
+def swap_to_contact_viewer(app: "App", location: tuple[int, int]) -> None:
+    app.window["-CONTACT_VIEW-"].update(visible=True)
+    app.window["-SEARCH_SCREEN-"].update(visible=False)
+    app.screen = Screen.CONTACT_VIEW
+
+    contact_name = app.window["-CONTACT_TABLE-"].get()[location[0]][0]
+
+    contact_info_table_values = []
+    organization_table_values = []
+    resource_table_values = []
+    custom_field_table_values = []
+
+    contact = Contact.get(name=contact_name)
+
+    for number in contact.phone_numbers:
+        contact_info_table_values.append(["Phone", format_phone(number)])
+    
+    for addresses in contact.addresses:
+        contact_info_table_values.append(["Address", addresses])
+
+    for email in contact.emails:
+        contact_info_table_values.append(["Email", email])
+
+    contact_info_table_values.append(["Availability", contact.availability if contact.availability else "No Recorded Availability"])
+
+    for key, value in contact.contact_info.items():
+        contact_info_table_values.append([key, value])
+
+    for org in contact.organizations:
+        organization_table_values.append([org.name, org.status])
+
+    for resource in contact.resources:
+        resource_table_values.append([resource.name, resource.value])
+
+    for key, value in contact.custom_fields.items():
+        custom_field_table_values.append([key, value])
+
+    app.window["-CONTACT_INFO_TABLE-"].update(values=contact_info_table_values)
+    app.window["-CONTACT_ORGANIZATIONS_TABLE-"].update(values=organization_table_values)
+    app.window["-CONTACT_RESOURCES_TABLE-"].update(values=resource_table_values)
+    app.window["-CONTACT_CUSTOM_FIELDS_TABLE-"].update(values=custom_field_table_values)
+
+    app.window["-NAME-"].update(contact.name)
+    app.window["-STATUS-"].update(contact.status)
+    app.window["-PHONE-"].update(format_phone(contact.phone_numbers[0]) if contact.phone_numbers else "No phone number")
+    app.window["-ADDRESS-"].update(contact.addresses[0] if contact.addresses else "No address")
