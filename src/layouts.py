@@ -729,9 +729,15 @@ def empty_org_view_constructor():
 
 @db_session
 def swap_to_org_viewer(app: "App", location: tuple[int, int]) -> None:
+    screen = app.current_screen
+
     app.switch_screen(Screen.ORG_VIEW)
 
-    org_name = app.window["-ORG_TABLE-"].get()[location[0]][0]
+    if screen == Screen.ORG_SEARCH:
+        org_name = app.window["-ORG_TABLE-"].get()[location[0]][0]
+    
+    elif screen == Screen.CONTACT_VIEW:
+        org_name = app.window["-ORG_TABLE-"].get()[location[0]][0]
 
     contact_table_values = []
     resource_table_values = []
@@ -769,9 +775,14 @@ def swap_to_org_viewer(app: "App", location: tuple[int, int]) -> None:
 
 @db_session
 def swap_to_contact_viewer(app: "App", location: tuple[int, int]) -> None:
+    screen = app.current_screen
+
     app.switch_screen(Screen.CONTACT_VIEW)
 
-    contact_name = app.window["-CONTACT_TABLE-"].get()[location[0]][0]
+    if screen == Screen.CONTACT_SEARCH: 
+        contact_name = app.window["-CONTACT_TABLE-"].get()[location[0]][0]
+    elif screen == Screen.ORG_VIEW:
+        contact_name = app.window["-ORG_CONTACT_INFO_TABLE-"].get()[location[0]][0]
 
     contact_info_table_values = []
     organization_table_values = []
