@@ -285,10 +285,10 @@ def search_constructor(app: "App"):
     Thread(target=lazy_load_contact_values, args=(app,)).start()
     Thread(target=lazy_load_org_values, args=(app,)).start()
 
-    if app.screen == Screen.CONTACT_SEARCH:
+    if app.current_screen == Screen.CONTACT_SEARCH:
         fields = contact_fields
 
-    elif app.screen == Screen.ORG_SEARCH:
+    elif app.current_screen == Screen.ORG_SEARCH:
         fields = org_fields
 
     layout = [
@@ -304,7 +304,7 @@ def search_constructor(app: "App"):
                             pad=5,
                             element_justification="left",
                             background_color=sg.theme_progress_bar_color()[1],
-                            layout=get_action_bar(app.screen),
+                            layout=get_action_bar(app.current_screen),
                         ),
                         sg.Push(background_color=sg.theme_progress_bar_color()[1]),
                         sg.Column(
@@ -323,7 +323,7 @@ def search_constructor(app: "App"):
                                         ["Contacts", "Organizations"],
                                         k="-SEARCHTYPE-",
                                         default_value="Contacts"
-                                        if app.screen == Screen.CONTACT_SEARCH
+                                        if app.current_screen == Screen.CONTACT_SEARCH
                                         else "Organizations",
                                         enable_events=True,
                                         pad=((0, 5), (0, 0)),
@@ -361,7 +361,7 @@ def search_constructor(app: "App"):
                 expand_y=True,
                 element_justification="center",
                 key="-ORG_SCREEN-",
-                visible=app.screen == Screen.ORG_SEARCH,
+                visible=app.current_screen == Screen.ORG_SEARCH,
                 layout=[
                     [
                         sg.Text(
@@ -381,7 +381,7 @@ def search_constructor(app: "App"):
                 expand_y=True,
                 element_justification="center",
                 key="-CONTACT_SCREEN-",
-                visible=app.screen == Screen.CONTACT_SEARCH,
+                visible=app.current_screen == Screen.CONTACT_SEARCH,
                 layout=[
                     [
                         sg.Text(
@@ -586,6 +586,7 @@ def empty_contact_view_constructor():
                                         expand_x=True,
                                         font=("Arial", 15),
                                         num_rows = 5,
+                                        enable_click_events=True,
                                         values=[[]],
                                     )
                                 ],
@@ -669,6 +670,7 @@ def empty_org_view_constructor():
                                         num_rows=5,
                                         auto_size_columns=True,
                                         expand_x=True,
+                                        enable_click_events=True,
                                         values=[[]],
                                     )
                                 ],
@@ -727,9 +729,7 @@ def empty_org_view_constructor():
 
 @db_session
 def swap_to_org_viewer(app: "App", location: tuple[int, int]) -> None:
-    app.window["-ORG_VIEW-"].update(visible=True)
-    app.window["-SEARCH_SCREEN-"].update(visible=False)
-    app.screen = Screen.ORG_VIEW
+    app.switch_screen(Screen.ORG_VIEW)
 
     org_name = app.window["-ORG_TABLE-"].get()[location[0]][0]
 
@@ -769,9 +769,7 @@ def swap_to_org_viewer(app: "App", location: tuple[int, int]) -> None:
 
 @db_session
 def swap_to_contact_viewer(app: "App", location: tuple[int, int]) -> None:
-    app.window["-CONTACT_VIEW-"].update(visible=True)
-    app.window["-SEARCH_SCREEN-"].update(visible=False)
-    app.screen = Screen.CONTACT_VIEW
+    app.switch_screen(Screen.CONTACT_VIEW)
 
     contact_name = app.window["-CONTACT_TABLE-"].get()[location[0]][0]
 
