@@ -100,6 +100,7 @@ class Contact(db.Entity):
     phone_numbers = orm.Optional(orm.IntArray)
     emails = orm.Optional(orm.StrArray)
     availability = orm.Optional(str)
+    status = orm.Optional(str)
     contact_info = orm.Optional(orm.Json)
     custom_fields = orm.Optional(orm.Json)
 

@@ -400,7 +400,7 @@ def search_constructor(app: "App"):
     return layout
 
 
-def empty_viewer_head_constructor():
+def empty_viewer_head_constructor(contact: bool = False):
     print("Empty Viewer Head Constructor")
 
     layout = [
@@ -416,9 +416,9 @@ def empty_viewer_head_constructor():
                 element_justification="right",
                 layout=[
                     [
-                        sg.Button("Edit", k="-EDIT-"),
-                        sg.Button("Delete", k="-DELETE-"),
-                        sg.Button("Exit", k="-EXIT-"),
+                        sg.Button("Edit", k="-EDIT-" if not contact else "-CONTACT_EDIT-"),
+                        sg.Button("Delete", k="-DELETE-" if not contact else "-CONTACT_DELETE-"),
+                        sg.Button("Exit", k="-EXIT-" if not contact else "-CONTACT_EXIT-"),
                     ]
                 ],
             ),
@@ -428,7 +428,7 @@ def empty_viewer_head_constructor():
                 expand_x=True,
                 layout=[
                     [
-                        sg.Button("Exit", k="-EXIT_1-", expand_y=True, expand_x=True),
+                        sg.Button("Exit", k="-EXIT_1-" if not contact else "-CONTACT_EXIT_1-", expand_y=True, expand_x=True),
                         sg.Column(
                             element_justification="center",
                             expand_x=True,
@@ -445,7 +445,7 @@ def empty_viewer_head_constructor():
                                 [
                                     sg.Text(
                                         "",
-                                        key="-NAME-",
+                                        key="-NAME-" if not contact else "-CONTACT_NAME-",
                                         background_color=sg.theme_progress_bar_color()[
                                             1
                                         ],
@@ -469,7 +469,7 @@ def empty_viewer_head_constructor():
                                 [
                                     sg.Text(
                                         "",
-                                        key="-STATUS-",
+                                        key="-STATUS-" if not contact else "-CONTACT_STATUS-",
                                         background_color=sg.theme_progress_bar_color()[
                                             1
                                         ],
@@ -493,7 +493,7 @@ def empty_viewer_head_constructor():
                                 [
                                     sg.Text(
                                         "",
-                                        key="-PHONE-",
+                                        key="-PHONE-" if not contact else "-CONTACT_PHONE-",
                                         background_color=sg.theme_progress_bar_color()[
                                             1
                                         ],
@@ -517,7 +517,7 @@ def empty_viewer_head_constructor():
                                 [
                                     sg.Text(
                                         "",
-                                        key="-ADDRESS-",
+                                        key="-ADDRESS-" if not contact else "-CONTACT_ADDRESS-",
                                         background_color=sg.theme_progress_bar_color()[
                                             1
                                         ],
@@ -546,7 +546,7 @@ def empty_contact_view_constructor():
         [
             sg.Column(
                 expand_x=True,
-                layout=empty_viewer_head_constructor(),
+                layout=empty_viewer_head_constructor(True),
             )
         ],
         [
@@ -560,11 +560,14 @@ def empty_contact_view_constructor():
                             expand_x=True,
                             expand_y=True,
                             layout=[
-                                [sg.Text("Contact Info")],
+                                [sg.Text("Contact Info", font=("Arial", 13))],
                                 [
                                     sg.Table(
                                         key="-CONTACT_INFO_TABLE-",
                                         headings=["Name", "Value"],
+                                        expand_x=True,
+                                        font=("Arial", 15),
+                                        num_rows = 5,
                                         values=[[]],
                                     )
                                 ],
@@ -575,26 +578,34 @@ def empty_contact_view_constructor():
                             expand_x=True,
                             expand_y=True,
                             layout=[
-                                [sg.Text("Organizatons")],
+                                [sg.Text("Organizatons", font=("Arial", 13))],
                                 [
                                     sg.Table(
                                         key="-CONTACT_ORGANIZATIONS_TABLE-",
                                         headings=["Name", "Status"],
+                                        expand_x=True,
+                                        font=("Arial", 15),
+                                        num_rows = 5,
                                         values=[[]],
                                     )
                                 ],
                             ],
                         ),
+                    ],
+                    [
                         sg.Column(
                             element_justification="center",
                             expand_x=True,
                             expand_y=True,
                             layout=[
-                                [sg.Text("Associated Resources")],
+                                [sg.Text("Associated Resources", font=("Arial", 13))],
                                 [
                                     sg.Table(
                                         key="-CONTACT_RESOURCES_TABLE-",
                                         headings=["Name", "Status"],
+                                        expand_x=True,
+                                        font=("Arial", 15),
+                                        num_rows = 5,
                                         values=[[]],
                                     )
                                 ],
@@ -605,11 +616,14 @@ def empty_contact_view_constructor():
                             expand_x=True,
                             expand_y=True,
                             layout=[
-                                [sg.Text("Custom Fields")],
+                                [sg.Text("Custom Fields", font=("Arial", 13))],
                                 [
                                     sg.Table(
                                         key="-CONTACT_CUSTOM_FIELDS_TABLE-",
                                         headings=["Name", "Value"],
+                                        expand_x=True,
+                                        font=("Arial", 15),
+                                        num_rows = 5,
                                         values=[[]],
                                     )
                                 ],
@@ -796,7 +810,7 @@ def swap_to_contact_viewer(app: "App", location: tuple[int, int]) -> None:
     app.window["-CONTACT_RESOURCES_TABLE-"].update(values=resource_table_values)
     app.window["-CONTACT_CUSTOM_FIELDS_TABLE-"].update(values=custom_field_table_values)
 
-    app.window["-NAME-"].update(contact.name)
-    app.window["-STATUS-"].update(contact.status)
-    app.window["-PHONE-"].update(format_phone(contact.phone_numbers[0]) if contact.phone_numbers else "No phone number")
-    app.window["-ADDRESS-"].update(contact.addresses[0] if contact.addresses else "No address")
+    app.window["-CONTACT_NAME-"].update(contact.name)
+    app.window["-CONTACT_STATUS-"].update(contact.status)
+    app.window["-CONTACT_PHONE-"].update(format_phone(contact.phone_numbers[0]) if contact.phone_numbers else "No phone number")
+    app.window["-CONTACT_ADDRESS-"].update(contact.addresses[0] if contact.addresses else "No address")

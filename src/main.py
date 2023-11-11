@@ -223,8 +223,11 @@ while True:
             case "-EXIT-" | "-EXIT_1-":
                 # go to previous screen
                 app.window["-ORG_VIEW-"].update(visible=False)
-                app.window["-CONTACT_VIEW-"].update(visible=False)
                 app.window["-SEARCH_SCREEN-"].update(visible=True)
 
+            case "-CONTACT_EXIT-" | "-CONTACT_EXIT_1-":
+                # go to previous screen
+                app.window["-CONTACT_VIEW-"].update(visible=False)
+                app.window["-SEARCH_SCREEN-"].update(visible=True)
 
 print("Hello, world!")
