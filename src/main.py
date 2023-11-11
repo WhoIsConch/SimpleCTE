@@ -42,6 +42,7 @@ class App:
         self.window: sg.Window | None = None
         self.status = AppStatus.BUSY
         self.last_clicked_table_time = None
+        self.last_clicked_index = None
         self.logger.info("Loading database settings...")
 
         self.settings = self.load_settings()
@@ -208,7 +209,6 @@ class App:
 
 app = App()
 
-# TODO: Fix an issue where double clicking separate elements still opens the first one
 def check_doubleclick(callback: callable, args: set) -> None:
     if (app.last_clicked_table_time is not None) and (
         (datetime.now() - app.last_clicked_table_time).total_seconds() < 0.5
@@ -261,6 +261,11 @@ while True:
     print(event, values)
 
     if isinstance(event, tuple) and event[2][0] is not None:
+        if app.last_clicked_index != event[2][0] and app.last_clicked_index is not None:
+            continue
+    
+        app.last_clicked_index = event[2][0]
+
         match event[0]:
             case "-ORG_TABLE-" | "-CONTACT_ORGANIZATIONS_TABLE-":
                 check_doubleclick(swap_to_org_viewer, args=(app, event[2]))
