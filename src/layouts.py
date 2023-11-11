@@ -728,16 +728,21 @@ def empty_org_view_constructor():
 
 
 @db_session
-def swap_to_org_viewer(app: "App", location: tuple[int, int]) -> None:
+def swap_to_org_viewer(app: "App", location: tuple[int, int] | None = None, org_name: str | None = None) -> None:
     screen = app.current_screen
 
-    app.switch_screen(Screen.ORG_VIEW)
+    if org_name:
+        app.switch_screen(Screen.ORG_VIEW, org_name, push=False)
 
-    if screen == Screen.ORG_SEARCH:
-        org_name = app.window["-ORG_TABLE-"].get()[location[0]][0]
-    
-    elif screen == Screen.CONTACT_VIEW:
-        org_name = app.window["-ORG_TABLE-"].get()[location[0]][0]
+    else:
+        if screen == Screen.ORG_SEARCH:
+            org_name = app.window["-ORG_TABLE-"].get()[location[0]][0]
+        
+        elif screen == Screen.CONTACT_VIEW:
+            org_name = app.window["-ORG_TABLE-"].get()[location[0]][0]
+
+        app.switch_screen(Screen.ORG_VIEW, org_name)
+
 
     contact_table_values = []
     resource_table_values = []
@@ -774,15 +779,19 @@ def swap_to_org_viewer(app: "App", location: tuple[int, int]) -> None:
 
 
 @db_session
-def swap_to_contact_viewer(app: "App", location: tuple[int, int]) -> None:
+def swap_to_contact_viewer(app: "App", location: tuple[int, int] | None = None, contact_name: str | None = None) -> None:
     screen = app.current_screen
 
-    app.switch_screen(Screen.CONTACT_VIEW)
+    if contact_name:
+        app.switch_screen(Screen.CONTACT_VIEW, contact_name, push=False)
+    
+    else:
+        if screen == Screen.CONTACT_SEARCH: 
+            contact_name = app.window["-CONTACT_TABLE-"].get()[location[0]][0]
+        elif screen == Screen.ORG_VIEW:
+            contact_name = app.window["-ORG_CONTACT_INFO_TABLE-"].get()[location[0]][0]
 
-    if screen == Screen.CONTACT_SEARCH: 
-        contact_name = app.window["-CONTACT_TABLE-"].get()[location[0]][0]
-    elif screen == Screen.ORG_VIEW:
-        contact_name = app.window["-ORG_CONTACT_INFO_TABLE-"].get()[location[0]][0]
+        app.switch_screen(Screen.CONTACT_VIEW, contact_name)
 
     contact_info_table_values = []
     organization_table_values = []

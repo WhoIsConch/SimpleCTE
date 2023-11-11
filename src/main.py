@@ -15,15 +15,33 @@ import os
 from datetime import datetime
 
 
+class Stack:
+    """
+    Add a stack that will keep track of each screen.
+    If a stack is associated with information, such as a Viewer,
+    it will also keep track of that information.
+    """
+    def __init__(self):
+        self.stack = []
+
+    def push(self, screen: Screen, data: any = None) -> None:
+        self.stack.append((screen, data))
+
+    def pop(self) -> None:
+        self.stack.pop()
+
+    def peek(self) -> tuple[Screen, dict | None]:
+        return self.stack[-1]
+
+
 class App:
     def __init__(self):
         self.db = db
         self.logger = logging.getLogger("app")
-        self.stack = [Screen.LOGIN]
+        self.stack = Stack()
         self.window: sg.Window | None = None
         self.status = AppStatus.BUSY
         self.last_clicked_table_time = None
-
         self.logger.info("Loading database settings...")
 
         self.settings = self.load_settings()
@@ -34,7 +52,7 @@ class App:
         ):
             self.logger.info("Constructing SQLite database...")
             self.db.construct_database("sqlite", self.settings["database"]["path"])
-            self.stack[0] = Screen.ORG_SEARCH
+            self.stack.push(Screen.ORG_SEARCH)
 
         elif (
             self.settings["database"]["system"] == "sqlite"
@@ -48,7 +66,7 @@ class App:
                 server_port=self.settings["database"]["port"],
                 username=self.settings["database"]["username"],
             )
-            self.stack[0] = Screen.ORG_SEARCH
+            self.stack.push(Screen.ORG_SEARCH)
 
         elif (
             self.settings["database"]["system"] == "postgres"
@@ -68,7 +86,7 @@ class App:
                 self.db.status = (
                     DBStatus.LOGIN_REQUIRED
                 )  # TODO: Handle this via Database instead of in App
-                self.stack[0] = Screen.LOGIN
+                self.stack.push(Screen.LOGIN)
 
         else:
             self.logger.error("Invalid database system!")
@@ -76,14 +94,16 @@ class App:
 
     @property
     def current_screen(self) -> Screen:
-        return self.stack[-1]
+        return self.stack.peek()[0]
     
     @property
     def last_screen(self) -> Screen:
-        return self.stack[-2]
+        return self.stack.stack[-2][0]
     
-    def switch_screen(self, screen: Screen) -> None:
-        self.stack.append(screen)
+    def switch_screen(self, screen: Screen, data = None, push: bool = True) -> None:
+        if push:
+            self.stack.push(screen, data)
+
         self.window["-SEARCH_SCREEN-"].update(visible=False)
         self.window["-ORG_VIEW-"].update(visible=False)
         self.window["-CONTACT_VIEW-"].update(visible=False)
@@ -106,6 +126,7 @@ class App:
 
     def switch_to_last_screen(self) -> None:
         self.stack.pop()
+
         self.window["-SEARCH_SCREEN-"].update(visible=False)
         self.window["-ORG_VIEW-"].update(visible=False)
         self.window["-CONTACT_VIEW-"].update(visible=False)
@@ -122,9 +143,12 @@ class App:
         
         elif self.current_screen == Screen.ORG_VIEW:
             self.window["-ORG_VIEW-"].update(visible=True)
+            swap_to_org_viewer(self, org_name=self.stack.peek()[1])
         
         elif self.current_screen == Screen.CONTACT_VIEW:
             self.window["-CONTACT_VIEW-"].update(visible=True)
+            swap_to_contact_viewer(self, contact_name=self.stack.peek()[1])
+
 
     def load_settings(self) -> dict:
         self.logger.info("Loading settings...")
@@ -196,7 +220,7 @@ def check_doubleclick(callback: callable, args: set) -> None:
 
 sg.theme(app.settings["theme"])
 
-if app.stack[-1] == Screen.LOGIN:
+if app.current_screen == Screen.LOGIN:
     app.window = sg.Window("Log In to your SimpleCTE Database", login_constructor())
 
 else:
@@ -267,13 +291,13 @@ while True:
                 if values["-SEARCHTYPE-"] == "Organizations":
                     app.window["-CONTACT_SCREEN-"].update(visible=False)
                     app.window["-ORG_SCREEN-"].update(visible=True)
-                    app.stack.append(Screen.ORG_SEARCH)
+                    app.stack.push(Screen.ORG_SEARCH)
 
                 elif values["-SEARCHTYPE-"] == "Contacts":
                     app.window["-ORG_SCREEN-"].update(visible=False)
                     app.window["-CONTACT_SCREEN-"].update(visible=True)
 
-                    app.stack.append(Screen.CONTACT_SEARCH)
+                    app.stack.push(Screen.CONTACT_SEARCH)
             
             case "-EXIT-" | "-EXIT_1-" | "-CONTACT_EXIT-" | "-CONTACT_EXIT_1-":
                 app.switch_to_last_screen()
