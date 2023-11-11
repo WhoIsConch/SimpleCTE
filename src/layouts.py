@@ -155,7 +155,7 @@ def get_contact_table(app: "App"):
         font=("Arial", 15),
         right_click_menu=[
             "&Right",
-            ["Right", "!&Click", "&Menu", "E&xit", "Properties"],
+            ["View", "Edit", "Delete"],
         ],
         right_click_selects=True,
         k="-CONTACT_TABLE-",
@@ -234,7 +234,7 @@ def get_organization_table(app: "App"):
         font=("Arial", 15),
         right_click_menu=[
             "&Right",
-            ["Right", "!&Click", "&Menu", "E&xit", "Properties"],
+            ["View", "Edit", "Delete"],
         ],
         right_click_selects=True,
         enable_click_events=True,
@@ -587,6 +587,11 @@ def empty_contact_view_constructor():
                                         font=("Arial", 15),
                                         num_rows = 5,
                                         enable_click_events=True,
+                                        right_click_menu=[
+                                            "&Right",
+                                            ["View", "Edit", "Delete"],
+                                        ],
+                                        right_click_selects=True,
                                         values=[[]],
                                     )
                                 ],
@@ -671,6 +676,11 @@ def empty_org_view_constructor():
                                         auto_size_columns=True,
                                         expand_x=True,
                                         enable_click_events=True,
+                                        right_click_menu=[
+                                            "&Right",
+                                            ["View", "Edit", "Delete"],
+                                        ],
+                                        right_click_selects=True,
                                         values=[[]],
                                     )
                                 ],
@@ -739,7 +749,7 @@ def swap_to_org_viewer(app: "App", location: tuple[int, int] | None = None, org_
             org_name = app.window["-ORG_TABLE-"].get()[location[0]][0]
         
         elif screen == Screen.CONTACT_VIEW:
-            org_name = app.window["-ORG_TABLE-"].get()[location[0]][0]
+            org_name = app.window["-CONTACT_ORGANIZATIONS_TABLE-"].get()[location[0]][0]
 
         app.switch_screen(Screen.ORG_VIEW, org_name)
 

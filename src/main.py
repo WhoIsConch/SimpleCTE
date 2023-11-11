@@ -208,6 +208,7 @@ class App:
 
 app = App()
 
+# TODO: Fix an issue where double clicking separate elements still opens the first one
 def check_doubleclick(callback: callable, args: set) -> None:
     if (app.last_clicked_table_time is not None) and (
         (datetime.now() - app.last_clicked_table_time).total_seconds() < 0.5
@@ -261,17 +262,49 @@ while True:
 
     if isinstance(event, tuple) and event[2][0] is not None:
         match event[0]:
-            case "-ORG_TABLE-":
+            case "-ORG_TABLE-" | "-CONTACT_ORGANIZATIONS_TABLE-":
                 check_doubleclick(swap_to_org_viewer, args=(app, event[2]))
                 
-            case "-CONTACT_TABLE-":
+            case "-CONTACT_TABLE-" | "-ORG_CONTACT_INFO_TABLE-":
                 check_doubleclick(swap_to_contact_viewer, args=(app, event[2]))
-                
-            case "-ORG_CONTACT_INFO_TABLE-":
-                check_doubleclick(swap_to_contact_viewer, args=(app, event[2]))
+        
+    elif event == "View":
+        value = None
+        method = None
 
-            case "-CONTACT_ORGANIZATIONS_TABLE-":
-                check_doubleclick(swap_to_org_viewer, args=(app, event[2]))
+        match app.current_screen:
+            case Screen.ORG_SEARCH:
+                if not values["-ORG_TABLE-"]:
+                    continue
+
+                value = values["-ORG_TABLE-"][0]
+                method = swap_to_org_viewer
+
+            case Screen.CONTACT_VIEW:
+                if not values["-CONTACT_ORGANIZATIONS_TABLE-"]:
+                    continue
+
+                value = values["-CONTACT_ORGANIZATIONS_TABLE-"][0]
+                method = swap_to_org_viewer
+            
+            case Screen.CONTACT_SEARCH:
+                if not values["-CONTACT_TABLE-"]:
+                    continue
+
+                value = values["-CONTACT_TABLE-"][0]
+                method = swap_to_contact_viewer
+            
+            case Screen.ORG_VIEW:
+                if not values["-ORG_CONTACT_INFO_TABLE-"]:
+                    continue
+
+                value = values["-ORG_CONTACT_INFO_TABLE-"][0]
+                method = swap_to_contact_viewer
+
+        if value is not None and method is not None:
+            method(app, (value, 0))
+
+
     else:
         match event:
             case "-LOGIN-":
