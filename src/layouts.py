@@ -121,10 +121,13 @@ def get_action_bar(screen: Screen) -> list[list[sg.Button]]:
 
 @db_session
 def get_contact_table(app: "App", values_only: bool = False, search_info: dict[str, str, str] | None = None,
-                      lazy=False, table_values: list = []) -> sg.Table | tuple[sg.Table, list[str]]:
+                      lazy=False, table_values: list | None = None) -> sg.Table | tuple[sg.Table, list[str]]:
     """
     Build the table that includes information of contacts.
     """
+    if table_values is None:
+        table_values = []
+
     fields = [
         "Name",
         "Status",
@@ -143,8 +146,6 @@ def get_contact_table(app: "App", values_only: bool = False, search_info: dict[s
     if not contact_pages:
         contact_pages = app.db.get_contacts()
 
-    if not table_values:
-        table_values = []
 
     for contact in contact_pages:
         org = None
@@ -194,7 +195,7 @@ def get_contact_table(app: "App", values_only: bool = False, search_info: dict[s
 
 @db_session
 def get_organization_table(app: "App", values_only: bool = False, search_info: dict[str, str, str] | None = None,
-                           lazy=False) -> None | list[list[str | Any]] | tuple[Table, list[str]]:
+                           lazy=False, table_values: list | None = None) -> None | list[list[str | Any]] | tuple[Table, list[str]]:
     """
     Build the table that includes information of organizations.
     """
@@ -208,12 +209,14 @@ def get_organization_table(app: "App", values_only: bool = False, search_info: d
     ]
     table_headings = ["ID", "Organization Name", "Type", "Primary Contact", "Status"]
 
+    if table_values is None:
+        table_values = []
+
     if search_info:
         org_pages = app.db.get_organizations(**search_info, paginated=(not lazy))
     else:
         org_pages = app.db.get_organizations(paginated=(not lazy))
 
-    table_values = []
     for org in org_pages:
         contact = org.primary_contact
         contact_name = contact.name if contact else "No Primary Contact"

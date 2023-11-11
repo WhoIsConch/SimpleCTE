@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import threading
 from datetime import datetime
 from typing import Callable
 
@@ -227,8 +228,20 @@ def check_doubleclick(callback: Callable, args: tuple, check: Callable | None = 
     else:
         app.last_clicked_table_time = datetime.now()
 
+
 def lazy():
-    values = []
+    contact_values = []
+    org_values = []
+
+    get_contact_table(app, values_only=True, lazy=True, table_values=contact_values)
+    get_organization_table(app, values_only=True, lazy=True, table_values=org_values)
+
+    while not app.status == AppStatus.READY:
+        pass
+
+    app.window["-CONTACT_TABLE-"].update(values=contact_values)
+    app.window["-ORG_TABLE-"].update(values=org_values)
+
 
 sg.theme(app.settings["theme"])
 
@@ -261,6 +274,7 @@ else:
     )
 
 app.window.Font = ("Arial", 12)
+threading.Thread(target=lazy).start()
 
 while True:
     app.status = AppStatus.READY
@@ -473,7 +487,8 @@ while True:
             case "Add Organization":
                 # Add an organization to the contact.
                 user_input = sg.popup_get_text(
-                    "Enter the ID of the organization you would like to add.\n\nIf you don't know the ID, you can find it by "
+                    "Enter the ID of the organization you would like to add.\n\nIf you don't know the ID, "
+                    "you can find it by"
                     "searching\nfor the organization, then alt-clicking on it and selecting \"Copy ID\".",
                     title="Add Organization",
                 )
@@ -501,7 +516,7 @@ while True:
                 # Get organization selected in the table
                 try:
                     org_id = \
-                    app.window["-CONTACT_ORGANIZATIONS_TABLE-"].get()[values["-CONTACT_ORGANIZATIONS_TABLE-"][0]][0]
+                        app.window["-CONTACT_ORGANIZATIONS_TABLE-"].get()[values["-CONTACT_ORGANIZATIONS_TABLE-"][0]][0]
                 except IndexError:
                     sg.popup("No organization selected!")
                     continue
