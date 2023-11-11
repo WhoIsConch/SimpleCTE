@@ -259,7 +259,7 @@ while True:
 
     print(event, values)
 
-    if isinstance(event, tuple):
+    if isinstance(event, tuple) and event[2][0] is not None:
         match event[0]:
             case "-ORG_TABLE-":
                 check_doubleclick(swap_to_org_viewer, args=(app, event[2]))
