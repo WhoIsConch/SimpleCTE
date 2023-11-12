@@ -1,3 +1,4 @@
+from typing import Callable
 import json
 import logging
 from database import db
@@ -209,11 +210,13 @@ class App:
 
 app = App()
 
-def check_doubleclick(callback: callable, args: set) -> None:
+def check_doubleclick(callback: Callable, args: set, check: Callable | None = None) -> None:
     if (app.last_clicked_table_time is not None) and (
         (datetime.now() - app.last_clicked_table_time).total_seconds() < 0.5
     ):
-        callback(*args)
+        if not (check and check()): 
+            callback(*args)
+
         app.last_clicked_table_time = None
     else:
         app.last_clicked_table_time = datetime.now()
@@ -261,17 +264,23 @@ while True:
     print(event, values)
 
     if isinstance(event, tuple) and event[2][0] is not None:
-        if app.last_clicked_index != event[2][0] and app.last_clicked_index is not None:
-            continue
-    
-        app.last_clicked_index = event[2][0]
-
+        def doubleclick_check():
+            return app.last_clicked_index != event[2][0] and app.last_clicked_index is not None
+        
         match event[0]:
             case "-ORG_TABLE-" | "-CONTACT_ORGANIZATIONS_TABLE-":
-                check_doubleclick(swap_to_org_viewer, args=(app, event[2]))
+                check_doubleclick(
+                    swap_to_org_viewer, 
+                    check=doubleclick_check,
+                    args=(app, event[2])
+                    )
                 
             case "-CONTACT_TABLE-" | "-ORG_CONTACT_INFO_TABLE-":
-                check_doubleclick(swap_to_contact_viewer, args=(app, event[2]))
+                check_doubleclick(
+                    swap_to_contact_viewer, 
+                    check=doubleclick_check,
+                    args=(app, event[2])
+                    )
         
     elif event == "View":
         value = None
