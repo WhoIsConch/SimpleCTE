@@ -341,9 +341,9 @@ def search_constructor(app: "App"):
                 pad=((0, 0), (0, 10)),
                 layout=[
                     [
-                        sg.Button("Search", k="-SEARCH-"),
+                        sg.Button("Search", k="-SEARCH_BUTTON-"),
                         sg.Text("Search Query:"),
-                        sg.Input(k="-SEARCH-", expand_x=True),
+                        sg.Input(k="-SEARCH_QUERY-", expand_x=True),
                     ],
                     [
                         sg.Text("Search Fields:"),
@@ -738,7 +738,11 @@ def empty_org_view_constructor():
 
 
 @db_session
-def swap_to_org_viewer(app: "App", location: tuple[int, int] | None = None, org_name: str | None = None) -> None:
+def swap_to_org_viewer(
+    app: "App", 
+    location: tuple[int, int] | None = None, 
+    org_name: str | None = None
+    ) -> None:
     screen = app.current_screen
 
     if org_name:
@@ -789,7 +793,12 @@ def swap_to_org_viewer(app: "App", location: tuple[int, int] | None = None, org_
 
 
 @db_session
-def swap_to_contact_viewer(app: "App", location: tuple[int, int] | None = None, contact_name: str | None = None) -> None:
+def swap_to_contact_viewer(
+    app: "App", 
+    location: tuple[int, int] | None = None, 
+    contact_name: str | None = None,
+    search: dict | None = None
+    ) -> None:
     screen = app.current_screen
 
     if contact_name:

@@ -261,12 +261,12 @@ while True:
     if event == sg.WIN_CLOSED or event == "Exit":
         break
 
-    print(event, values)
+    print(event, values, "\n")
 
     if isinstance(event, tuple) and event[2][0] is not None:
         def doubleclick_check():
             return app.last_clicked_index != event[2][0] and app.last_clicked_index is not None
-        
+
         match event[0]:
             case "-ORG_TABLE-" | "-CONTACT_ORGANIZATIONS_TABLE-":
                 check_doubleclick(
@@ -318,7 +318,6 @@ while True:
         if value is not None and method is not None:
             method(app, (value, 0))
 
-
     else:
         match event:
             case "-LOGIN-":
@@ -348,5 +347,12 @@ while True:
             
             case "-EXIT-" | "-EXIT_1-" | "-CONTACT_EXIT-" | "-CONTACT_EXIT_1-":
                 app.switch_to_last_screen()
+
+            case "-SEARCH_BUTTON-":
+                search_info = {
+                    "query": values["-SEARCH_QUERY-"],
+                    "field": values["-SEARCH_FIELDS-"],
+                    "sort": values["-SEARCH_SORT-"],
+                }
 
 print("Hello, world!")
