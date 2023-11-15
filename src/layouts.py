@@ -286,7 +286,7 @@ def lazy_load_org_values(app: "App", search_info: dict[str, str, str] | None = N
         break
 
 
-def search_constructor(app: "App", search_info: dict[str, str, str] | None = None):
+def search_constructor(app: "App"):
     """
     Build the main screen layout and decide which
     table to show.

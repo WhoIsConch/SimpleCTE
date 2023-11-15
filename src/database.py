@@ -35,12 +35,6 @@ class Database(orm.Database):
         query = query.lower()
         sort = sort.lower()
         db_query = None
-
-        if (not (query or field or sort)) or (not (query or field) and sort):
-            db_query = orm.select(c for c in Contact)
-
-        elif not (query or field):
-            return False
         
         if field == "name":
             db_query = orm.select(c for c in Contact if query in c.name.lower())
@@ -64,6 +58,8 @@ class Database(orm.Database):
         elif field == "custom field value":
             db_query = orm.select(c for c in Contact if query in c.custom_fields.values())
         
+        else:
+            db_query = orm.select(c for c in Contact)
 
         if sort == "status":
             db_query = db_query.sort_by(Contact.status)
@@ -105,12 +101,6 @@ class Database(orm.Database):
 
         db_query = None
 
-        if (not (query or field or sort)) or (not (query or field) and sort):
-            db_query = orm.select(o for o in Organization)
-
-        elif not (query or field):
-            return False
-        
         if field == "name":
             db_query = orm.select(o for o in Organization if query in o.name.lower())
 
@@ -132,6 +122,9 @@ class Database(orm.Database):
 
         elif field == "custom field value":
             db_query = orm.select(o for o in Organization if query in o.custom_fields.values())
+        
+        else:
+            db_query = orm.select(o for o in Organization)
 
         if sort == "status":
             db_query = db_query.sort_by(Organization.status)
