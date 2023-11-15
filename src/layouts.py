@@ -832,7 +832,7 @@ def swap_to_contact_viewer(
     resource_table_values = []
     custom_field_table_values = []
 
-    contact = Contact.get(name=contact_name)
+    contact = Contact.get_by_name(name=contact_name)
 
     for number in contact.phone_numbers:
         contact_info_table_values.append(["Phone", format_phone(number)])

@@ -252,6 +252,15 @@ class Contact(db.Entity):
     @property
     def name(self):
         return f"{self.first_name} {self.last_name}"
+    
+    @staticmethod
+    def get_by_name(name: str):
+        """
+        Get a contact by name.
+        """
+        first_name, last_name = name.split(" ")
+        return orm.select(c for c in Contact if c.first_name == first_name and c.last_name == last_name).first()
+    
 
 
 class Resource(db.Entity):
