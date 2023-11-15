@@ -10,6 +10,8 @@ from layouts import (
     empty_contact_view_constructor,
     swap_to_org_viewer,
     swap_to_contact_viewer,
+    get_contact_table,
+    get_organization_table,
 )
 from enums import DBStatus, Screen, AppStatus
 import os
@@ -352,7 +354,14 @@ while True:
                 search_info = {
                     "query": values["-SEARCH_QUERY-"],
                     "field": values["-SEARCH_FIELDS-"],
-                    "sort": values["-SEARCH_SORT-"],
+                    "sort": values["-SORT_TYPE-"],
                 }
+
+                match app.current_screen:
+                    case Screen.ORG_SEARCH:
+                        app.window["-ORG_TABLE-"].update(get_organization_table(app, values_only=True, search_info=search_info))
+                    
+                    case Screen.CONTACT_SEARCH:
+                        app.window["-CONTACT_TABLE-"].update(get_contact_table(app, values_only=True, search_info=search_info))
 
 print("Hello, world!")

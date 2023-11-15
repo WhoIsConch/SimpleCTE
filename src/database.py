@@ -15,11 +15,141 @@ class Database(orm.Database):
         self.organizations_page = 0
         self.status = DBStatus.DISCONNECTED
 
-    def get_contacts(self):
-        return orm.select(c for c in Contact).page(self.contacts_page, 10)
+    def get_contacts(
+            self,
+            query: str = "",
+            field: str = "",
+            sort: str = "",
+            ):
+    
+        """
+        Get a list of contacts from the database.
+        Field can include, based on the GUI implementation,
+        name, status, primary phone, address, custom field name and
+        custom field value.
+        Sort can be by status, alphabetical, type (commercial/community/other), or 
+        association with a resource. 
+        """
 
-    def get_organizations(self):
-        return orm.select(o for o in Organization).page(self.organizations_page, 10)
+        field = field.lower()
+        query = query.lower()
+        sort = sort.lower()
+        db_query = None
+
+        if (not (query or field or sort)) or (not (query or field) and sort):
+            db_query = orm.select(c for c in Contact)
+
+        elif not (query or field):
+            return False
+        
+        if field == "name":
+            db_query = orm.select(c for c in Contact if query in c.name.lower())
+        
+        elif field == "status":
+            db_query = orm.select(c for c in Contact if query in c.status.lower())
+        
+        elif field == "primary phone":
+            try:
+                query = int(query)
+            except ValueError:
+                return False
+            db_query = orm.select(c for c in Contact if query in c.phone_numbers)
+        
+        elif field == "address":
+            db_query = orm.select(c for c in Contact if query in c.addresses)
+        
+        elif field == "custom field name":
+            db_query = orm.select(c for c in Contact if query in c.custom_fields.keys())
+        
+        elif field == "custom field value":
+            db_query = orm.select(c for c in Contact if query in c.custom_fields.values())
+        
+
+        if sort == "status":
+            db_query = db_query.sort_by(Contact.status)
+        
+        elif sort == "alphabetical":
+            db_query = db_query.sort_by(Contact.last_name)
+
+        elif sort == "type":
+            db_query = db_query.sort_by(Contact.availability)
+
+        elif sort == "resource":
+            # Query has the ID of the resource to sort by. So, search for all of the 
+            # contacts that are associated with the resource.
+            # TODO: Filter by Resource
+            db_query = orm.select(c for c in Contact if query in c.resources)
+        
+        return db_query.page(self.contacts_page, 10)
+
+
+    def get_organizations(
+            self,
+            query: str = "",
+            field: str = "",
+            sort: str = "",
+            paginated: bool = True,
+            ):
+        """
+        Get a list of organizations from the database.
+        Field can include, based on the GUI implementation,
+        name, status, primary phone, address, custom field name and
+        custom field value.
+        Sort can be by status, alphabetical, type (commercial/community/other), or 
+        primary contact. 
+        """
+
+        field = field.lower()
+        query = query.lower()
+        sort = sort.lower()
+
+        db_query = None
+
+        if (not (query or field or sort)) or (not (query or field) and sort):
+            db_query = orm.select(o for o in Organization)
+
+        elif not (query or field):
+            return False
+        
+        if field == "name":
+            db_query = orm.select(o for o in Organization if query in o.name.lower())
+
+        elif field == "status":
+            db_query = orm.select(o for o in Organization if query in o.status.lower())
+
+        elif field == "primary phone":
+            try:
+                query = int(query)
+            except ValueError:
+                return False
+            db_query = orm.select(o for o in Organization if query in o.phones)
+
+        elif field == "address":
+            db_query = orm.select(o for o in Organization if query in o.addresses)
+
+        elif field == "custom field name":
+            db_query = orm.select(o for o in Organization if query in o.custom_fields.keys())
+
+        elif field == "custom field value":
+            db_query = orm.select(o for o in Organization if query in o.custom_fields.values())
+
+        if sort == "status":
+            db_query = db_query.sort_by(Organization.status)
+
+        elif sort == "alphabetical":
+            db_query = db_query.sort_by(Organization.name)
+
+        elif sort == "type":
+            db_query = db_query.sort_by(Organization.type)
+
+        elif sort == "primary contact":
+            db_query = db_query.sort_by(Organization.contacts.first().last_name)
+
+        if paginated:
+            return db_query.page(self.organizations_page, 10)
+        else:
+            return db_query
+
 
     def construct_database(
         self,
@@ -91,10 +221,21 @@ class Organization(db.Entity):
     contacts = orm.Set("Contact")
     resources = orm.Set("Resource")
 
+    @property
+    def primary_contact(self):
+        contact = self.contacts.filter(
+            lambda c: c.org_titles[str(self.id)] == "Primary"
+        ).first()
+        if contact:
+            return contact
+        else:
+            return None
+
 
 class Contact(db.Entity):
     id = orm.PrimaryKey(int, auto=True)
-    name = orm.Required(str)
+    first_name = orm.Required(str)
+    last_name = orm.Required(str)
 
     addresses = orm.Optional(orm.StrArray)
     phone_numbers = orm.Optional(orm.IntArray)
@@ -107,6 +248,10 @@ class Contact(db.Entity):
     org_titles = orm.Optional(orm.Json)
     organizations = orm.Set(Organization)
     resources = orm.Set("Resource")
+
+    @property
+    def name(self):
+        return f"{self.first_name} {self.last_name}"
 
 
 class Resource(db.Entity):

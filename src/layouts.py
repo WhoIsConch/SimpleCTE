@@ -113,7 +113,7 @@ def get_action_bar(screen: Screen) -> list[list[sg.Button]]:
 
 
 @db_session
-def get_contact_table(app: "App"):
+def get_contact_table(app: "App", values_only: bool = False, search_info: dict[str, str, str] | None = None) -> sg.Table | list[list[str]]:
     """
     Build the table that includes information of contacts.
     """
@@ -127,7 +127,13 @@ def get_contact_table(app: "App"):
     ]
     table_headings = ["Name", "Organization(s)", "Primary Phone"]
 
-    contact_pages = app.db.get_contacts()
+    if search_info:
+        contact_pages = app.db.get_contacts(**search_info)
+    else:
+        contact_pages = app.db.get_contacts()
+
+    if not contact_pages:
+        contact_pages = app.db.get_contacts()
 
     table_values = []
     for contact in contact_pages:
@@ -147,6 +153,9 @@ def get_contact_table(app: "App"):
                 else "No Phone Number",
             ]
         )
+
+    if values_only:
+        return table_values
 
     return sg.Table(
         headings=table_headings,
@@ -203,7 +212,7 @@ def lazy_load_contact_values(app: "App"):
 
 
 @db_session
-def get_organization_table(app: "App"):
+def get_organization_table(app: "App", values_only: bool = False, search_info: dict[str, str, str] | None = None):
     """
     Build the table that includes information of organizations.
     """
@@ -217,15 +226,19 @@ def get_organization_table(app: "App"):
     ]
     table_headings = ["Organization Name", "Type", "Primary Contact", "Status"]
 
-    org_pages = app.db.get_organizations()
+    if search_info:
+        org_pages = app.db.get_organizations(**search_info)
+    else:
+        org_pages = app.db.get_organizations()
 
     table_values = []
     for org in org_pages:
-        contact = org.contacts.filter(
-            lambda c: c.org_titles[str(org.id)] == "Primary"
-        ).first()
+        contact = org.primary_contact
         contact_name = contact.name if contact else "No Primary Contact"
         table_values.append([org.name, org.type, contact_name, org.status])
+
+    if values_only:
+        return table_values
 
     return sg.Table(
         headings=table_headings,
@@ -248,7 +261,7 @@ def get_organization_table(app: "App"):
 
 
 @db_session
-def lazy_load_org_values(app: "App"):
+def lazy_load_org_values(app: "App", search_info: dict[str, str, str] | None = None):
     """
     Lazy load organization values.
 
@@ -258,10 +271,13 @@ def lazy_load_org_values(app: "App"):
     """
     values = []
 
-    for org in app.db.get_organizations():
-        contact = org.contacts.filter(
-            lambda c: c.org_titles[str(org.id)] == "Primary"
-        ).first()
+    if search_info:
+        orgs = app.db.get_organizations(**search_info, paginated=False)
+    else:
+        orgs = app.db.get_organizations(paginated=False)
+
+    for org in orgs:
+        contact = org.primary_contact
         contact_name = contact.name if contact else "No Primary Contact"
         values.append([org.name, org.type, contact_name, org.status])
 
@@ -270,7 +286,7 @@ def lazy_load_org_values(app: "App"):
         break
 
 
-def search_constructor(app: "App"):
+def search_constructor(app: "App", search_info: dict[str, str, str] | None = None):
     """
     Build the main screen layout and decide which
     table to show.
@@ -347,9 +363,9 @@ def search_constructor(app: "App"):
                     ],
                     [
                         sg.Text("Search Fields:"),
-                        sg.Combo(fields, k="-SEARCHFIELDS-", expand_x=True),
+                        sg.Combo(fields, k="-SEARCH_FIELDS-", expand_x=True),
                         sg.Text("Search Filters:"),
-                        sg.Combo(filters, k="-SORTTYPE-", expand_x=True),
+                        sg.Combo(filters, k="-SORT_TYPE-", expand_x=True),
                     ],
                 ],
             )
@@ -796,8 +812,7 @@ def swap_to_org_viewer(
 def swap_to_contact_viewer(
     app: "App", 
     location: tuple[int, int] | None = None, 
-    contact_name: str | None = None,
-    search: dict | None = None
+    contact_name: str | None = None
     ) -> None:
     screen = app.current_screen
 
