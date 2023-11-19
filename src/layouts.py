@@ -256,8 +256,8 @@ def search_constructor(app: "App"):
     contact_table, contact_fields = get_contact_table(app)
     org_table, org_fields = get_organization_table(app)
 
-    Thread(target=get_contact_table(app, values_only=True, lazy=True), args=(app,)).start()
-    Thread(target=get_organization_table(app, values_only=True, lazy=True), args=(app,)).start()
+    Thread(target=get_contact_table, args=(app,), kwargs={"values_only": True, "lazy": True}).start()
+    Thread(target=get_organization_table, args=(app,), kwargs={"values_only": True, "lazy": True}).start()
 
     if app.current_screen == Screen.CONTACT_SEARCH:
         fields = contact_fields
@@ -716,27 +716,30 @@ def empty_org_view_constructor():
 def swap_to_org_viewer(
         app: "App",
         location: tuple[int, int] | None = None,
-        org_name: str | None = None
+        org_name: str | None = None,
+        org: Organization | None = None,
+        push: bool = True,
 ) -> None:
     screen = app.current_screen
 
     if org_name:
-        app.switch_screen(Screen.ORG_VIEW, org_name, push=False)
+        org = Organization.get(name=org_name)
 
-    else:
+    elif not org:
         if screen == Screen.ORG_SEARCH:
             org_name = app.window["-ORG_TABLE-"].get()[location[0]][0]
 
         elif screen == Screen.CONTACT_VIEW:
             org_name = app.window["-CONTACT_ORGANIZATIONS_TABLE-"].get()[location[0]][0]
 
-        app.switch_screen(Screen.ORG_VIEW, org_name)
+        org = Organization.get(name=org_name)
+
+    app.switch_screen(Screen.ORG_VIEW, org.name, push=push)
 
     contact_table_values = []
     resource_table_values = []
     custom_field_table_values = []
 
-    org = Organization.get(name=org_name)
 
     for contact in org.contacts:
         contact_table_values.append(
@@ -770,27 +773,29 @@ def swap_to_org_viewer(
 def swap_to_contact_viewer(
         app: "App",
         location: tuple[int, int] | None = None,
-        contact_name: str | None = None
+        contact_name: str | None = None,
+        contact: Contact | None = None,
+        push: bool = True,
 ) -> None:
     screen = app.current_screen
 
     if contact_name:
-        app.switch_screen(Screen.CONTACT_VIEW, contact_name, push=False)
+        contact = Contact.get_by_name(name=contact_name)
 
-    else:
+    elif not contact:
         if screen == Screen.CONTACT_SEARCH:
             contact_name = app.window["-CONTACT_TABLE-"].get()[location[0]][0]
         elif screen == Screen.ORG_VIEW:
             contact_name = app.window["-ORG_CONTACT_INFO_TABLE-"].get()[location[0]][0]
 
-        app.switch_screen(Screen.CONTACT_VIEW, contact_name)
+        contact = Contact.get_by_name(name=contact_name)
+
+    app.switch_screen(Screen.CONTACT_VIEW, contact.name, push=push)
 
     contact_info_table_values = []
     organization_table_values = []
     resource_table_values = []
     custom_field_table_values = []
-
-    contact = Contact.get_by_name(name=contact_name)
 
     for number in contact.phone_numbers:
         contact_info_table_values.append(["Phone", format_phone(number)])
@@ -826,3 +831,84 @@ def swap_to_contact_viewer(
     app.window["-CONTACT_PHONE-"].update(
         format_phone(contact.phone_numbers[0]) if contact.phone_numbers else "No phone number")
     app.window["-CONTACT_ADDRESS-"].update(contact.addresses[0] if contact.addresses else "No address")
+
+
+def create_contact():
+    layout = [
+        [
+            sg.Column(
+                expand_x=True,
+                layout=[
+                    [
+                        sg.Text("First Name: "),
+                        sg.Input(k="-FIRST_NAME-", tooltip="The contact's first name."),
+                    ],
+                    [
+                        sg.Text("Last Name: "),
+                        sg.Input(k="-LAST_NAME-", tooltip="The contact's last name."),
+                    ],
+                    [
+                        sg.Text("Status: "),
+                        sg.Input(k="-STATUS-", tooltip="The contact's status, e.g. 'Active' or 'Former'"),
+                    ],
+                    [
+                        sg.Text("Primary Phone: "),
+                        sg.Input(k="-PHONE_NUMBER-", tooltip="The contact's primary phone number. You can add more later."),
+                    ],
+                    [
+                        sg.Text("Address: "),
+                        sg.Input(k="-ADDRESS-", tooltip="The contact's primary address. You can add more later."),
+                    ],
+                    [
+                        sg.Text("Availability: "),
+                        sg.Input(k="-AVAILABILITY-", tooltip="The contact's availability, e.g. weekends or 9am-5pm"),
+                    ],
+                ],
+            )
+        ],
+        [
+            sg.Button("Add Contact", k="-CONFIRM_ADD_CONTACT-"),
+            sg.Button("Cancel", k="-CANCEL-"),
+        ]
+    ]
+
+    return layout
+
+
+def create_organization():
+    layout = [
+        [
+            sg.Column(
+                expand_x=True,
+                layout=[
+                    [
+                        sg.Text("Name: "),
+                        sg.Input(k="-NAME-", tooltip="The organization's name."),
+                    ],
+                    [
+                        sg.Text("Type: "),
+                        sg.Input(k="-TYPE-", tooltip="The organization's type, e.g. 'Food Bank' or 'Shelter'."),
+                    ],
+                    [
+                        sg.Text("Status: "),
+                        sg.Input(k="-STATUS-", tooltip="The organization's status, e.g. 'Active' or 'Former'"),
+                    ],
+                    [
+                        sg.Text("Primary Phone: "),
+                        sg.Input(k="-PHONE_NUMBER-", tooltip="The organization's primary phone number. You can add "
+                                                             "more later."),
+                    ],
+                    [
+                        sg.Text("Address: "),
+                        sg.Input(k="-ADDRESS-", tooltip="The organization's primary address. You can add more later."),
+                    ],
+                ],
+            )
+        ],
+        [
+            sg.Button("Add Organization", k="-CONFIRM_ADD_ORGANIZATION-"),
+            sg.Button("Cancel", k="-CANCEL-"),
+        ]
+    ]
+
+    return layout

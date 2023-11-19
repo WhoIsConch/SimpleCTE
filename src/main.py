@@ -12,6 +12,8 @@ from layouts import (
     swap_to_contact_viewer,
     get_contact_table,
     get_organization_table,
+    create_contact,
+    create_organization
 )
 from enums import DBStatus, Screen, AppStatus
 import os
@@ -146,11 +148,11 @@ class App:
 
         elif self.current_screen == Screen.ORG_VIEW:
             self.window["-ORG_VIEW-"].update(visible=True)
-            swap_to_org_viewer(self, org_name=self.stack.peek()[1])
+            swap_to_org_viewer(self, org_name=self.stack.peek()[1], push=False)
 
         elif self.current_screen == Screen.CONTACT_VIEW:
             self.window["-CONTACT_VIEW-"].update(visible=True)
-            swap_to_contact_viewer(self, contact_name=self.stack.peek()[1])
+            swap_to_contact_viewer(self, contact_name=self.stack.peek()[1], push=False)
 
     def load_settings(self) -> dict:
         self.logger.info("Loading settings...")
@@ -259,6 +261,7 @@ app.window.Font = ("Arial", 12)
 while True:
     app.status = AppStatus.READY
     event, values = app.window.read()
+    app.status = AppStatus.BUSY
 
     if event == sg.WIN_CLOSED or event == "Exit":
         break
@@ -366,5 +369,52 @@ while True:
                     case Screen.CONTACT_SEARCH:
                         app.window["-CONTACT_TABLE-"].update(
                             get_contact_table(app, values_only=True, search_info=search_info))
+
+            case "-ADD_RECORD-":
+                match app.current_screen:
+                    case Screen.CONTACT_SEARCH:
+                        new_window = sg.Window("Add Contact", create_contact(), modal=True, finalize=True)
+                        event, values = new_window.read()
+                        new_window.close()
+
+                        if event == "-CANCEL-":
+                            continue
+
+                        if not (values["-FIRST_NAME-"] and values["-LAST_NAME-"]):
+                            sg.popup("First and last name are required to create a contact.")
+                            continue
+
+                        elif values["-PHONE_NUMBER-"]:
+                            try:
+                                values["-PHONE_NUMBER-"] = int(values["-PHONE_NUMBER-"])
+                            except ValueError:
+                                sg.popup("Invalid phone number! Phone number must be a continuous string of numbers.")
+                                continue
+
+                        db_values = {k.lower().replace("-", ""): v for k, v in values.items() if v}
+
+                        contact = app.db.create_contact(**db_values)
+
+                        swap_to_contact_viewer(app, contact=contact)
+
+                    case Screen.ORG_SEARCH:
+                        new_window = sg.Window("Add Organization", create_organization(), modal=True, finalize=True)
+                        event, values = new_window.read()
+                        new_window.close()
+
+                        if event == "-CANCEL-":
+                            continue
+
+                        if not values["-NAME-"] or not values["-TYPE-"]:
+                            sg.popup("Name and type are required to create an organization.")
+                            continue
+
+                        db_values = {k.lower().replace("-", ""): v for k, v in values.items() if v}
+
+                        organization = app.db.create_organization(**db_values)
+
+                        swap_to_org_viewer(app, org=organization)
+
+
 
 print("Hello, world!")

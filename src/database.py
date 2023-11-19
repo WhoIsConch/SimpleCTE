@@ -21,8 +21,8 @@ class Database(orm.Database):
             field: str = "",
             sort: str = "",
             paginated: bool = True,
-            ):
-    
+    ):
+
         """
         Get a list of contacts from the database.
         Field can include, based on the GUI implementation,
@@ -36,35 +36,35 @@ class Database(orm.Database):
         query = query.lower()
         sort = sort.lower()
         db_query = None
-        
+
         if field == "name":
             db_query = orm.select(c for c in Contact if query in c.name.lower())
-        
+
         elif field == "status":
             db_query = orm.select(c for c in Contact if query in c.status.lower())
-        
+
         elif field == "primary phone":
             try:
                 query = int(query)
             except ValueError:
                 return False
             db_query = orm.select(c for c in Contact if query in c.phone_numbers)
-        
+
         elif field == "address":
             db_query = orm.select(c for c in Contact if query in c.addresses)
-        
+
         elif field == "custom field name":
             db_query = orm.select(c for c in Contact if query in c.custom_fields.keys())
-        
+
         elif field == "custom field value":
             db_query = orm.select(c for c in Contact if query in c.custom_fields.values())
-        
+
         else:
             db_query = orm.select(c for c in Contact)
 
         if sort == "status":
             db_query = db_query.sort_by(Contact.status)
-        
+
         elif sort == "alphabetical":
             db_query = db_query.sort_by(Contact.last_name)
 
@@ -76,12 +76,11 @@ class Database(orm.Database):
             # contacts that are associated with the resource.
             # TODO: Filter by Resource
             db_query = orm.select(c for c in Contact if query in c.resources)
-        
+
         if paginated:
             return db_query.page(self.contacts_page, 10)
         else:
             return db_query
-
 
     def get_organizations(
             self,
@@ -89,7 +88,7 @@ class Database(orm.Database):
             field: str = "",
             sort: str = "",
             paginated: bool = True,
-            ):
+    ):
         """
         Get a list of organizations from the database.
         Field can include, based on the GUI implementation,
@@ -126,7 +125,7 @@ class Database(orm.Database):
 
         elif field == "custom field value":
             db_query = orm.select(o for o in Organization if query in o.custom_fields.values())
-        
+
         else:
             db_query = orm.select(o for o in Organization)
 
@@ -147,16 +146,45 @@ class Database(orm.Database):
         else:
             return db_query
 
+    def create_contact(self, **kwargs) -> "Contact":
+        values = kwargs.copy()
+        if phone := values.get("phone_number", None):
+            values["phone_numbers"] = [phone]
+            del values["phone_number"]
+
+        if address := values.get("address", None):
+            values["addresses"] = [address]
+            del values["address"]
+
+        contact = Contact(**values)
+        self.commit()
+
+        return contact
+
+    def create_organization(self, **kwargs) -> "Organization":
+        values = kwargs.copy()
+        if phone := values.get("phone_number", None):
+            values["phone_numbers"] = [phone]
+            del values["phone_number"]
+
+        if address := values.get("address", None):
+            values["addresses"] = [address]
+            del values["address"]
+
+        organization = Organization(**values)
+        self.commit()
+
+        return organization
 
     def construct_database(
-        self,
-        provider: str,
-        absolute_path: str,
-        database_name: str | None = None,
-        server_address: str | None = None,
-        server_port: int | None = None,
-        username: str | None = None,
-        password: str | None = None,
+            self,
+            provider: str,
+            absolute_path: str,
+            database_name: str | None = None,
+            server_address: str | None = None,
+            server_port: int | None = None,
+            username: str | None = None,
+            password: str | None = None,
     ) -> "Database":
         # Perform a different operation based on what type of database is being used
         match provider:
@@ -249,7 +277,7 @@ class Contact(db.Entity):
     @property
     def name(self):
         return f"{self.first_name} {self.last_name}"
-    
+
     @staticmethod
     def get_by_name(name: str):
         """
@@ -257,7 +285,6 @@ class Contact(db.Entity):
         """
         first_name, last_name = name.split(" ")
         return orm.select(c for c in Contact if c.first_name == first_name and c.last_name == last_name).first()
-    
 
 
 class Resource(db.Entity):
