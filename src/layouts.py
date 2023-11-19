@@ -125,7 +125,7 @@ def get_contact_table(app: "App", values_only: bool = False, search_info: dict[s
         "Custom Field Name",
         "Custom Field Value",
     ]
-    table_headings = ["Name", "Organization(s)", "Primary Phone"]
+    table_headings = ["Name", "Primary Organization", "Primary Phone"]
 
     if search_info:
         contact_pages = app.db.get_contacts(**search_info)
@@ -137,10 +137,12 @@ def get_contact_table(app: "App", values_only: bool = False, search_info: dict[s
 
     table_values = []
     for contact in contact_pages:
-        org_name = contact.organizations.filter(lambda c: c.id == 1).first()
+        for org in contact.organizations:
+            if org.primary_contact == contact:
+                break
 
-        if org_name:
-            org_name = org_name.name
+        if org:
+            org_name = org.name
         else:
             org_name = "No Organization"
 
