@@ -113,7 +113,7 @@ def get_action_bar(screen: Screen) -> list[list[sg.Button]]:
 
 
 @db_session
-def get_contact_table(app: "App", values_only: bool = False, search_info: dict[str, str, str] | None = None) -> sg.Table | list[list[str]]:
+def get_contact_table(app: "App", values_only: bool = False, search_info: dict[str, str, str] | None = None, lazy=False) -> sg.Table | list[list[str]]:
     """
     Build the table that includes information of contacts.
     """
@@ -128,9 +128,9 @@ def get_contact_table(app: "App", values_only: bool = False, search_info: dict[s
     table_headings = ["Name", "Primary Organization", "Primary Phone"]
 
     if search_info:
-        contact_pages = app.db.get_contacts(**search_info)
+        contact_pages = app.db.get_contacts(**search_info, paginated=(not lazy))
     else:
-        contact_pages = app.db.get_contacts()
+        contact_pages = app.db.get_contacts(paginated=(not lazy))
 
     if not contact_pages:
         contact_pages = app.db.get_contacts()
@@ -156,7 +156,14 @@ def get_contact_table(app: "App", values_only: bool = False, search_info: dict[s
             ]
         )
 
-    if values_only:
+    if values_only and lazy:
+        while app.status == AppStatus.READY:
+            app.window["-CONTACT_TABLE-"].update(values=table_values)
+            app.window.refresh()
+            break
+        return
+
+    elif values_only:
         return table_values
 
     return sg.Table(
@@ -180,41 +187,7 @@ def get_contact_table(app: "App", values_only: bool = False, search_info: dict[s
 
 
 @db_session
-def lazy_load_contact_values(app: "App"):
-    """
-    Lazy load contact values.
-
-    This method is meant to be called in a separate thread,
-    and will get all the values from the database and update the table
-    to include them.
-    """
-    values = []
-
-    for contact in app.db.get_contacts():
-        org_name = contact.organizations.filter(lambda c: c.id == 1).first()
-
-        if org_name:
-            org_name = org_name.name
-        else:
-            org_name = "No Organization"
-
-        values.append(
-            [
-                contact.name,
-                org_name,
-                format_phone(contact.phone_numbers[0])
-                if contact.phone_numbers
-                else "No Phone Number",
-            ]
-        )
-
-    while app.status == AppStatus.READY:
-        app.window["-CONTACT_TABLE-"].update(values=values)
-        break
-
-
-@db_session
-def get_organization_table(app: "App", values_only: bool = False, search_info: dict[str, str, str] | None = None):
+def get_organization_table(app: "App", values_only: bool = False, search_info: dict[str, str, str] | None = None, lazy=False) -> sg.Table | list[list[str]]:
     """
     Build the table that includes information of organizations.
     """
@@ -229,9 +202,9 @@ def get_organization_table(app: "App", values_only: bool = False, search_info: d
     table_headings = ["Organization Name", "Type", "Primary Contact", "Status"]
 
     if search_info:
-        org_pages = app.db.get_organizations(**search_info)
+        org_pages = app.db.get_organizations(**search_info, paginated=(not lazy))
     else:
-        org_pages = app.db.get_organizations()
+        org_pages = app.db.get_organizations(paginated=(not lazy))
 
     table_values = []
     for org in org_pages:
@@ -239,7 +212,14 @@ def get_organization_table(app: "App", values_only: bool = False, search_info: d
         contact_name = contact.name if contact else "No Primary Contact"
         table_values.append([org.name, org.type, contact_name, org.status])
 
-    if values_only:
+    if lazy and values_only:
+        while app.status == AppStatus.READY:
+            app.window["-ORG_TABLE-"].update(values=table_values)
+            app.window.refresh()
+            break
+        return
+
+    elif values_only:
         return table_values
 
     return sg.Table(
@@ -262,32 +242,6 @@ def get_organization_table(app: "App", values_only: bool = False, search_info: d
     ), fields
 
 
-@db_session
-def lazy_load_org_values(app: "App", search_info: dict[str, str, str] | None = None):
-    """
-    Lazy load organization values.
-
-    This method is meant to be called in a separate thread,
-    and will get all the values from the database and update the table
-    to include them.
-    """
-    values = []
-
-    if search_info:
-        orgs = app.db.get_organizations(**search_info, paginated=False)
-    else:
-        orgs = app.db.get_organizations(paginated=False)
-
-    for org in orgs:
-        contact = org.primary_contact
-        contact_name = contact.name if contact else "No Primary Contact"
-        values.append([org.name, org.type, contact_name, org.status])
-
-    while app.status == AppStatus.READY:
-        app.window["-ORG_TABLE-"].update(values=values)
-        break
-
-
 def search_constructor(app: "App"):
     """
     Build the main screen layout and decide which
@@ -300,8 +254,8 @@ def search_constructor(app: "App"):
     contact_table, contact_fields = get_contact_table(app)
     org_table, org_fields = get_organization_table(app)
 
-    Thread(target=lazy_load_contact_values, args=(app,)).start()
-    Thread(target=lazy_load_org_values, args=(app,)).start()
+    Thread(target=get_contact_table(app, values_only=True, lazy=True), args=(app,)).start()
+    Thread(target=get_organization_table(app, values_only=True, lazy=True), args=(app,)).start()
 
     if app.current_screen == Screen.CONTACT_SEARCH:
         fields = contact_fields

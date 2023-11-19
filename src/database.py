@@ -20,6 +20,7 @@ class Database(orm.Database):
             query: str = "",
             field: str = "",
             sort: str = "",
+            paginated: bool = True,
             ):
     
         """
@@ -76,7 +77,10 @@ class Database(orm.Database):
             # TODO: Filter by Resource
             db_query = orm.select(c for c in Contact if query in c.resources)
         
-        return db_query.page(self.contacts_page, 10)
+        if paginated:
+            return db_query.page(self.contacts_page, 10)
+        else:
+            return db_query
 
 
     def get_organizations(
