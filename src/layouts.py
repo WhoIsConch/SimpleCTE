@@ -26,10 +26,10 @@ def format_phone(phone_number: int) -> str:
 
 
 def login_constructor(
-    server_address: str = "",
-    server_port: str = "",
-    database_name: str = "",
-    username: str = "",
+        server_address: str = "",
+        server_port: str = "",
+        database_name: str = "",
+        username: str = "",
 ):
     """
     Build the login screen layout.
@@ -113,7 +113,8 @@ def get_action_bar(screen: Screen) -> list[list[sg.Button]]:
 
 
 @db_session
-def get_contact_table(app: "App", values_only: bool = False, search_info: dict[str, str, str] | None = None, lazy=False) -> sg.Table | list[list[str]]:
+def get_contact_table(app: "App", values_only: bool = False, search_info: dict[str, str, str] | None = None,
+                      lazy=False) -> sg.Table | tuple[sg.Table, list[str]]:
     """
     Build the table that includes information of contacts.
     """
@@ -137,6 +138,7 @@ def get_contact_table(app: "App", values_only: bool = False, search_info: dict[s
 
     table_values = []
     for contact in contact_pages:
+        org = None
         for org in contact.organizations:
             if org.primary_contact == contact:
                 break
@@ -161,7 +163,6 @@ def get_contact_table(app: "App", values_only: bool = False, search_info: dict[s
             app.window["-CONTACT_TABLE-"].update(values=table_values)
             app.window.refresh()
             break
-        return
 
     elif values_only:
         return table_values
@@ -187,7 +188,8 @@ def get_contact_table(app: "App", values_only: bool = False, search_info: dict[s
 
 
 @db_session
-def get_organization_table(app: "App", values_only: bool = False, search_info: dict[str, str, str] | None = None, lazy=False) -> sg.Table | list[list[str]]:
+def get_organization_table(app: "App", values_only: bool = False, search_info: dict[str, str, str] | None = None,
+                           lazy=False) -> sg.Table | list[list[str]]:
     """
     Build the table that includes information of organizations.
     """
@@ -400,7 +402,8 @@ def empty_viewer_head_constructor(contact: bool = False):
                 expand_x=True,
                 layout=[
                     [
-                        sg.Button("Exit", k="-EXIT_1-" if not contact else "-CONTACT_EXIT_1-", expand_y=True, expand_x=True),
+                        sg.Button("Exit", k="-EXIT_1-" if not contact else "-CONTACT_EXIT_1-", expand_y=True,
+                                  expand_x=True),
                         sg.Column(
                             element_justification="center",
                             expand_x=True,
@@ -539,7 +542,7 @@ def empty_contact_view_constructor():
                                         headings=["Name", "Value"],
                                         expand_x=True,
                                         font=("Arial", 15),
-                                        num_rows = 5,
+                                        num_rows=5,
                                         values=[[]],
                                     )
                                 ],
@@ -550,14 +553,14 @@ def empty_contact_view_constructor():
                             expand_x=True,
                             expand_y=True,
                             layout=[
-                                [sg.Text("Organizatons", font=("Arial", 13))],
+                                [sg.Text("Organizations", font=("Arial", 13))],
                                 [
                                     sg.Table(
                                         key="-CONTACT_ORGANIZATIONS_TABLE-",
                                         headings=["Name", "Status"],
                                         expand_x=True,
                                         font=("Arial", 15),
-                                        num_rows = 5,
+                                        num_rows=5,
                                         enable_click_events=True,
                                         right_click_menu=[
                                             "&Right",
@@ -583,7 +586,7 @@ def empty_contact_view_constructor():
                                         headings=["Name", "Status"],
                                         expand_x=True,
                                         font=("Arial", 15),
-                                        num_rows = 5,
+                                        num_rows=5,
                                         values=[[]],
                                     )
                                 ],
@@ -601,7 +604,7 @@ def empty_contact_view_constructor():
                                         headings=["Name", "Value"],
                                         expand_x=True,
                                         font=("Arial", 15),
-                                        num_rows = 5,
+                                        num_rows=5,
                                         values=[[]],
                                     )
                                 ],
@@ -711,10 +714,10 @@ def empty_org_view_constructor():
 
 @db_session
 def swap_to_org_viewer(
-    app: "App", 
-    location: tuple[int, int] | None = None, 
-    org_name: str | None = None
-    ) -> None:
+        app: "App",
+        location: tuple[int, int] | None = None,
+        org_name: str | None = None
+) -> None:
     screen = app.current_screen
 
     if org_name:
@@ -723,12 +726,11 @@ def swap_to_org_viewer(
     else:
         if screen == Screen.ORG_SEARCH:
             org_name = app.window["-ORG_TABLE-"].get()[location[0]][0]
-        
+
         elif screen == Screen.CONTACT_VIEW:
             org_name = app.window["-CONTACT_ORGANIZATIONS_TABLE-"].get()[location[0]][0]
 
         app.switch_screen(Screen.ORG_VIEW, org_name)
-
 
     contact_table_values = []
     resource_table_values = []
@@ -766,17 +768,17 @@ def swap_to_org_viewer(
 
 @db_session
 def swap_to_contact_viewer(
-    app: "App", 
-    location: tuple[int, int] | None = None, 
-    contact_name: str | None = None
-    ) -> None:
+        app: "App",
+        location: tuple[int, int] | None = None,
+        contact_name: str | None = None
+) -> None:
     screen = app.current_screen
 
     if contact_name:
         app.switch_screen(Screen.CONTACT_VIEW, contact_name, push=False)
-    
+
     else:
-        if screen == Screen.CONTACT_SEARCH: 
+        if screen == Screen.CONTACT_SEARCH:
             contact_name = app.window["-CONTACT_TABLE-"].get()[location[0]][0]
         elif screen == Screen.ORG_VIEW:
             contact_name = app.window["-ORG_CONTACT_INFO_TABLE-"].get()[location[0]][0]
@@ -792,14 +794,15 @@ def swap_to_contact_viewer(
 
     for number in contact.phone_numbers:
         contact_info_table_values.append(["Phone", format_phone(number)])
-    
+
     for addresses in contact.addresses:
         contact_info_table_values.append(["Address", addresses])
 
     for email in contact.emails:
         contact_info_table_values.append(["Email", email])
 
-    contact_info_table_values.append(["Availability", contact.availability if contact.availability else "No Recorded Availability"])
+    contact_info_table_values.append(
+        ["Availability", contact.availability if contact.availability else "No Recorded Availability"])
 
     for key, value in contact.contact_info.items():
         contact_info_table_values.append([key, value])
@@ -820,5 +823,6 @@ def swap_to_contact_viewer(
 
     app.window["-CONTACT_NAME-"].update(contact.name)
     app.window["-CONTACT_STATUS-"].update(contact.status)
-    app.window["-CONTACT_PHONE-"].update(format_phone(contact.phone_numbers[0]) if contact.phone_numbers else "No phone number")
+    app.window["-CONTACT_PHONE-"].update(
+        format_phone(contact.phone_numbers[0]) if contact.phone_numbers else "No phone number")
     app.window["-CONTACT_ADDRESS-"].update(contact.addresses[0] if contact.addresses else "No address")
