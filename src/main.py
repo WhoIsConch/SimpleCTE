@@ -24,6 +24,7 @@ class Stack:
     If a stack is associated with information, such as a Viewer,
     it will also keep track of that information.
     """
+
     def __init__(self):
         self.stack = []
 
@@ -51,16 +52,16 @@ class App:
         self.settings = self.load_settings()
 
         if (
-            self.settings["database"]["system"] == "sqlite"
-            and self.settings["database"]["location"] == "local"
+                self.settings["database"]["system"] == "sqlite"
+                and self.settings["database"]["location"] == "local"
         ):
             self.logger.info("Constructing SQLite database...")
             self.db.construct_database("sqlite", self.settings["database"]["path"])
             self.stack.push(Screen.ORG_SEARCH)
 
         elif (
-            self.settings["database"]["system"] == "sqlite"
-            and self.settings["database"]["location"] == "remote"
+                self.settings["database"]["system"] == "sqlite"
+                and self.settings["database"]["location"] == "remote"
         ):
             self.logger.info("Constructing remote SQLite database...")
             self.db.construct_database(
@@ -73,8 +74,8 @@ class App:
             self.stack.push(Screen.ORG_SEARCH)
 
         elif (
-            self.settings["database"]["system"] == "postgres"
-            or self.settings["database"]["system"] == "mysql"
+                self.settings["database"]["system"] == "postgres"
+                or self.settings["database"]["system"] == "mysql"
         ):
             self.logger.info("Constructing remote database...")
             try:
@@ -99,67 +100,64 @@ class App:
     @property
     def current_screen(self) -> Screen:
         return self.stack.peek()[0]
-    
+
     @property
     def last_screen(self) -> Screen:
         return self.stack.stack[-2][0]
-    
-    def switch_screen(self, screen: Screen, data = None, push: bool = True) -> None:
+
+    def hide_major_screens(self):
+        screens = ["-SEARCH_SCREEN-", "-ORG_VIEW-", "-CONTACT_VIEW-", "-ORG_SCREEN-", "-CONTACT_SCREEN-"]
+
+        for screen in screens:
+            self.window[screen].update(visible=False)
+
+    def switch_screen(self, screen: Screen, data=None, push: bool = True) -> None:
         if push:
             self.stack.push(screen, data)
 
-        self.window["-SEARCH_SCREEN-"].update(visible=False)
-        self.window["-ORG_VIEW-"].update(visible=False)
-        self.window["-CONTACT_VIEW-"].update(visible=False)
-        self.window["-ORG_SCREEN-"].update(visible=False)
-        self.window["-CONTACT_SCREEN-"].update(visible=False)
+        self.hide_major_screens()
 
         if screen == Screen.ORG_SEARCH:
             self.window["-SEARCH_SCREEN-"].update(visible=True)
             self.window["-ORG_SCREEN-"].update(visible=True)
-        
+
         elif screen == Screen.CONTACT_SEARCH:
             self.window["-SEARCH_SCREEN-"].update(visible=True)
             self.window["-CONTACT_SCREEN-"].update(visible=True)
-        
+
         elif screen == Screen.ORG_VIEW:
             self.window["-ORG_VIEW-"].update(visible=True)
-        
+
         elif screen == Screen.CONTACT_VIEW:
             self.window["-CONTACT_VIEW-"].update(visible=True)
 
     def switch_to_last_screen(self) -> None:
         self.stack.pop()
 
-        self.window["-SEARCH_SCREEN-"].update(visible=False)
-        self.window["-ORG_VIEW-"].update(visible=False)
-        self.window["-CONTACT_VIEW-"].update(visible=False)
-        self.window["-ORG_SCREEN-"].update(visible=False)
-        self.window["-CONTACT_SCREEN-"].update(visible=False)
+        self.hide_major_screens()
 
         if self.current_screen == Screen.ORG_SEARCH:
             self.window["-SEARCH_SCREEN-"].update(visible=True)
             self.window["-ORG_SCREEN-"].update(visible=True)
-        
+
         elif self.current_screen == Screen.CONTACT_SEARCH:
             self.window["-SEARCH_SCREEN-"].update(visible=True)
             self.window["-CONTACT_SCREEN-"].update(visible=True)
-        
+
         elif self.current_screen == Screen.ORG_VIEW:
             self.window["-ORG_VIEW-"].update(visible=True)
             swap_to_org_viewer(self, org_name=self.stack.peek()[1])
-        
+
         elif self.current_screen == Screen.CONTACT_VIEW:
             self.window["-CONTACT_VIEW-"].update(visible=True)
             swap_to_contact_viewer(self, contact_name=self.stack.peek()[1])
-
 
     def load_settings(self) -> dict:
         self.logger.info("Loading settings...")
         try:
             with open(
-                os.path.dirname(os.path.realpath(__file__)) + "\\data\\settings.json",
-                "r",
+                    os.path.dirname(os.path.realpath(__file__)) + "\\data\\settings.json",
+                    "r",
             ) as f:
                 settings: dict = json.load(f)  # Load our settings file
 
@@ -200,23 +198,25 @@ class App:
         self.logger.info("Settings loaded!")
         return settings
 
-    def save_settings(self, settings: dict | None) -> None:
+    def save_settings(self, settings: dict | None = None) -> None:
         self.logger.info("Saving settings...")
 
         with open(
-            os.path.dirname(os.path.realpath(__file__)) + "\\data\\settings.json", "w"
+                os.path.dirname(os.path.realpath(__file__)) + "\\data\\settings.json", "w"
         ) as f:
             json.dump(settings or self.settings, f, indent=4)
 
         self.logger.info("Settings saved!")
 
+
 app = App()
 
-def check_doubleclick(callback: Callable, args: set, check: Callable | None = None) -> None:
+
+def check_doubleclick(callback: Callable, args: tuple, check: Callable | None = None) -> None:
     if (app.last_clicked_table_time is not None) and (
-        (datetime.now() - app.last_clicked_table_time).total_seconds() < 0.5
+            (datetime.now() - app.last_clicked_table_time).total_seconds() < 0.5
     ):
-        if not (check and check()): 
+        if not (check and check()):
             callback(*args)
 
         app.last_clicked_table_time = None
@@ -269,21 +269,22 @@ while True:
         def doubleclick_check():
             return app.last_clicked_index != event[2][0] and app.last_clicked_index is not None
 
+
         match event[0]:
             case "-ORG_TABLE-" | "-CONTACT_ORGANIZATIONS_TABLE-":
                 check_doubleclick(
-                    swap_to_org_viewer, 
+                    swap_to_org_viewer,
                     check=doubleclick_check,
                     args=(app, event[2])
-                    )
-                
+                )
+
             case "-CONTACT_TABLE-" | "-ORG_CONTACT_INFO_TABLE-":
                 check_doubleclick(
-                    swap_to_contact_viewer, 
+                    swap_to_contact_viewer,
                     check=doubleclick_check,
                     args=(app, event[2])
-                    )
-        
+                )
+
     elif event == "View":
         value = None
         method = None
@@ -302,14 +303,14 @@ while True:
 
                 value = values["-CONTACT_ORGANIZATIONS_TABLE-"][0]
                 method = swap_to_org_viewer
-            
+
             case Screen.CONTACT_SEARCH:
                 if not values["-CONTACT_TABLE-"]:
                     continue
 
                 value = values["-CONTACT_TABLE-"][0]
                 method = swap_to_contact_viewer
-            
+
             case Screen.ORG_VIEW:
                 if not values["-ORG_CONTACT_INFO_TABLE-"]:
                     continue
@@ -317,7 +318,7 @@ while True:
                 value = values["-ORG_CONTACT_INFO_TABLE-"][0]
                 method = swap_to_contact_viewer
 
-        if value is not None and method is not None:
+        if value and method:
             method(app, (value, 0))
 
     else:
@@ -346,7 +347,7 @@ while True:
                     app.window["-CONTACT_SCREEN-"].update(visible=True)
 
                     app.stack.push(Screen.CONTACT_SEARCH)
-            
+
             case "-EXIT-" | "-EXIT_1-" | "-CONTACT_EXIT-" | "-CONTACT_EXIT_1-":
                 app.switch_to_last_screen()
 
@@ -359,9 +360,11 @@ while True:
 
                 match app.current_screen:
                     case Screen.ORG_SEARCH:
-                        app.window["-ORG_TABLE-"].update(get_organization_table(app, values_only=True, search_info=search_info))
-                    
+                        app.window["-ORG_TABLE-"].update(
+                            get_organization_table(app, values_only=True, search_info=search_info))
+
                     case Screen.CONTACT_SEARCH:
-                        app.window["-CONTACT_TABLE-"].update(get_contact_table(app, values_only=True, search_info=search_info))
+                        app.window["-CONTACT_TABLE-"].update(
+                            get_contact_table(app, values_only=True, search_info=search_info))
 
 print("Hello, world!")
