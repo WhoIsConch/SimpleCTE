@@ -22,7 +22,7 @@ def format_phone(phone_number: int) -> str:
     elif len(phone_number) == 11:
         return f"+{phone_number[0]} ({phone_number[1:4]}) {phone_number[4:7]}-{phone_number[7:]}"
     else:
-        return phone_number
+        return str(phone_number)
 
 
 def login_constructor(
