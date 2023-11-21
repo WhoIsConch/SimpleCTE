@@ -766,6 +766,7 @@ def swap_to_org_viewer(
     for key, value in org.custom_fields.items():
         custom_field_table_values.append([key, value])
 
+    app.window["-ORG_VIEW-"].metadata = org.id
     app.window["-ORG_CONTACT_INFO_TABLE-"].update(values=contact_table_values)
     app.window["-ORG_RESOURCES_TABLE-"].update(values=resource_table_values)
     app.window["-ORG_CUSTOM_FIELDS_TABLE-"].update(values=custom_field_table_values)
@@ -824,6 +825,7 @@ def swap_to_contact_viewer(
     for key, value in contact.custom_fields.items():
         custom_field_table_values.append([key, value])
 
+    app.window["-CONTACT_VIEW-"].metadata = contact.id
     app.window["-CONTACT_INFO_TABLE-"].update(values=contact_info_table_values)
     app.window["-CONTACT_ORGANIZATIONS_TABLE-"].update(values=organization_table_values)
     app.window["-CONTACT_RESOURCES_TABLE-"].update(values=resource_table_values)
