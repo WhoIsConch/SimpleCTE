@@ -359,7 +359,11 @@ while True:
 
     elif event == "Remove Contact":
         # Get contact selected in the table
-        contact_name = app.window["-ORG_CONTACT_INFO_TABLE-"].get()[values["-ORG_CONTACT_INFO_TABLE-"][0]][0]
+        try:
+            contact_name = app.window["-ORG_CONTACT_INFO_TABLE-"].get()[values["-ORG_CONTACT_INFO_TABLE-"][0]][0]
+        except IndexError:
+            sg.popup("No contact selected!")
+            continue
 
         # Get organization name
         org_id = app.window["-ORG_VIEW-"].metadata
@@ -402,7 +406,11 @@ while True:
 
     elif event == "Remove Organization":
         # Get organization selected in the table
-        org_id = app.window["-CONTACT_ORGANIZATIONS_TABLE-"].get()[values["-CONTACT_ORGANIZATIONS_TABLE-"][0]][0]
+        try:
+            org_id = app.window["-CONTACT_ORGANIZATIONS_TABLE-"].get()[values["-CONTACT_ORGANIZATIONS_TABLE-"][0]][0]
+        except IndexError:
+            sg.popup("No organization selected!")
+            continue
 
         # Get contact name
         contact_id = app.window["-CONTACT_VIEW-"].metadata

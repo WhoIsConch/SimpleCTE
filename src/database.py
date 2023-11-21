@@ -146,6 +146,7 @@ class Database(orm.Database):
         else:
             return db_query
 
+    @orm.db_session
     def create_contact(self, **kwargs) -> "Contact":
         values = kwargs.copy()
         if phone := values.get("phone_number", None):
@@ -161,6 +162,7 @@ class Database(orm.Database):
 
         return contact
 
+    @orm.db_session
     def create_organization(self, **kwargs) -> "Organization":
         values = kwargs.copy()
         if phone := values.get("phone_number", None):
@@ -176,6 +178,7 @@ class Database(orm.Database):
 
         return organization
 
+    @orm.db_session
     def add_contact_to_org(self, contact: "Contact | str | int", org: "Organization | str | int") -> bool:
         if isinstance(org, int):
             org = Organization.get(id=org)
@@ -197,6 +200,7 @@ class Database(orm.Database):
 
         return True
 
+    @orm.db_session
     def remove_contact_from_org(self, contact: "Contact | str | int", org: "Organization | str | int") -> bool:
         if isinstance(org, int):
             org = Organization.get(id=org)

@@ -1,0 +1,12 @@
+{
+    "configurations": [
+        {
+            "type": "python",
+            "name": "Debug SimpleCTE",
+            "file": "main.py",
+            "arguments": [],
+            "workingDir": "src/"
+        },
+        
+    ]
+}
