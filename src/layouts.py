@@ -1,5 +1,10 @@
+from typing import List, Any, Tuple
+
 import PySimpleGUI as sg
 import typing
+
+from PySimpleGUI import Table
+
 from enums import Screen, AppStatus
 from pony.orm import db_session
 from threading import Thread
@@ -126,7 +131,7 @@ def get_contact_table(app: "App", values_only: bool = False, search_info: dict[s
         "Custom Field Name",
         "Custom Field Value",
     ]
-    table_headings = ["Name", "Primary Organization", "Primary Phone"]
+    table_headings = ["ID", "Name", "Primary Organization", "Primary Phone"]
 
     if search_info:
         contact_pages = app.db.get_contacts(**search_info, paginated=(not lazy))
@@ -150,6 +155,7 @@ def get_contact_table(app: "App", values_only: bool = False, search_info: dict[s
 
         table_values.append(
             [
+                contact.id,
                 contact.name,
                 org_name,
                 format_phone(contact.phone_numbers[0])
@@ -170,6 +176,7 @@ def get_contact_table(app: "App", values_only: bool = False, search_info: dict[s
     return sg.Table(
         headings=table_headings,
         values=table_values,
+        visible_column_map=[False, True, True, True],
         expand_x=True,
         font=("Arial", 15),
         right_click_menu=[
@@ -189,7 +196,7 @@ def get_contact_table(app: "App", values_only: bool = False, search_info: dict[s
 
 @db_session
 def get_organization_table(app: "App", values_only: bool = False, search_info: dict[str, str, str] | None = None,
-                           lazy=False) -> sg.Table | list[list[str]]:
+                           lazy=False) -> None | list[list[str | Any]] | tuple[Table, list[str]]:
     """
     Build the table that includes information of organizations.
     """
@@ -201,7 +208,7 @@ def get_organization_table(app: "App", values_only: bool = False, search_info: d
         "Custom Field Name",
         "Custom Field Value",
     ]
-    table_headings = ["Organization Name", "Type", "Primary Contact", "Status"]
+    table_headings = ["ID", "Organization Name", "Type", "Primary Contact", "Status"]
 
     if search_info:
         org_pages = app.db.get_organizations(**search_info, paginated=(not lazy))
@@ -212,7 +219,7 @@ def get_organization_table(app: "App", values_only: bool = False, search_info: d
     for org in org_pages:
         contact = org.primary_contact
         contact_name = contact.name if contact else "No Primary Contact"
-        table_values.append([org.name, org.type, contact_name, org.status])
+        table_values.append([org.id, org.name, org.type, contact_name, org.status])
 
     if lazy and values_only:
         while app.status == AppStatus.READY:
@@ -227,6 +234,7 @@ def get_organization_table(app: "App", values_only: bool = False, search_info: d
     return sg.Table(
         headings=table_headings,
         values=table_values,
+        visible_column_map=[False, True, True, True, True],
         expand_x=True,
         font=("Arial", 15),
         right_click_menu=[
@@ -557,7 +565,8 @@ def empty_contact_view_constructor():
                                 [
                                     sg.Table(
                                         key="-CONTACT_ORGANIZATIONS_TABLE-",
-                                        headings=["Name", "Status"],
+                                        headings=["ID", "Name", "Status"],
+                                        visible_column_map=[False, True, True],
                                         expand_x=True,
                                         font=("Arial", 15),
                                         num_rows=5,
@@ -642,7 +651,8 @@ def empty_org_view_constructor():
                                 [
                                     sg.Table(
                                         key="-ORG_CONTACT_INFO_TABLE-",
-                                        headings=["Name", "Title", "Email", "Phone"],
+                                        headings=["ID", "Name", "Title", "Email", "Phone"],
+                                        visible_column_map=[False, True, True, True, True],
                                         select_mode=sg.TABLE_SELECT_MODE_BROWSE,
                                         row_height=40,
                                         alternating_row_color=sg.theme_progress_bar_color()[1],
@@ -669,7 +679,8 @@ def empty_org_view_constructor():
                                 [
                                     sg.Table(
                                         key="-ORG_RESOURCES_TABLE-",
-                                        headings=["Name", "Value"],
+                                        headings=["ID", "Name", "Value"],
+                                        visible_column_map=[False, True, True],
                                         select_mode=sg.TABLE_SELECT_MODE_BROWSE,
                                         row_height=40,
                                         alternating_row_color=sg.theme_progress_bar_color()[1],
@@ -690,7 +701,8 @@ def empty_org_view_constructor():
                                 [
                                     sg.Table(
                                         key="-ORG_CUSTOM_FIELDS_TABLE-",
-                                        headings=["Name", "Value"],
+                                        headings=["ID", "Name", "Value"],
+                                        visible_column_map=[False, True, True],
                                         select_mode=sg.TABLE_SELECT_MODE_BROWSE,
                                         row_height=40,
                                         alternating_row_color=sg.theme_progress_bar_color()[1],
@@ -715,24 +727,19 @@ def empty_org_view_constructor():
 @db_session
 def swap_to_org_viewer(
         app: "App",
-        location: tuple[int, int] | None = None,
+        org_id: int | None = None,
         org_name: str | None = None,
         org: Organization | None = None,
         push: bool = True,
 ) -> None:
-    screen = app.current_screen
+    if org_id:
+        org = Organization.get(id=org_id)
 
-    if org_name:
+    elif org_name:
         org = Organization.get(name=org_name)
 
-    elif not org:
-        if screen == Screen.ORG_SEARCH:
-            org_name = app.window["-ORG_TABLE-"].get()[location[0]][0]
-
-        elif screen == Screen.CONTACT_VIEW:
-            org_name = app.window["-CONTACT_ORGANIZATIONS_TABLE-"].get()[location[0]][0]
-
-        org = Organization.get(name=org_name)
+    if not org:
+        raise ValueError("Must provide either ID, Name, or Organization.")
 
     app.switch_screen(Screen.ORG_VIEW, org.name, push=push)
 
@@ -743,6 +750,7 @@ def swap_to_org_viewer(
     for contact in org.contacts:
         contact_table_values.append(
             [
+                contact.id,
                 contact.name,
                 contact.org_titles.get(str(org.id), "No Title") if contact.org_titles else "No Title",
                 contact.emails[0] if contact.emails else "No Email",
@@ -771,23 +779,19 @@ def swap_to_org_viewer(
 @db_session
 def swap_to_contact_viewer(
         app: "App",
-        location: tuple[int, int] | None = None,
+        contact_id: int | None = None,
         contact_name: str | None = None,
         contact: Contact | None = None,
         push: bool = True,
 ) -> None:
-    screen = app.current_screen
+    if contact_id:
+        contact = Contact.get(id=contact_id)
 
-    if contact_name:
+    elif contact_name:
         contact = Contact.get_by_name(name=contact_name)
 
-    elif not contact:
-        if screen == Screen.CONTACT_SEARCH:
-            contact_name = app.window["-CONTACT_TABLE-"].get()[location[0]][0]
-        elif screen == Screen.ORG_VIEW:
-            contact_name = app.window["-ORG_CONTACT_INFO_TABLE-"].get()[location[0]][0]
-
-        contact = Contact.get_by_name(name=contact_name)
+    if not contact:
+        raise ValueError("Must provide either ID, Name, or Contact.")
 
     app.switch_screen(Screen.CONTACT_VIEW, contact.name, push=push)
 
@@ -812,7 +816,7 @@ def swap_to_contact_viewer(
         contact_info_table_values.append([key, value])
 
     for org in contact.organizations:
-        organization_table_values.append([org.name, org.status])
+        organization_table_values.append([org.id, org.name, org.status])
 
     for resource in contact.resources:
         resource_table_values.append([resource.name, resource.value])

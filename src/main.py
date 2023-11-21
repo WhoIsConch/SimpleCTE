@@ -275,17 +275,21 @@ while True:
 
         match event[0]:
             case "-ORG_TABLE-" | "-CONTACT_ORGANIZATIONS_TABLE-":
+                org_id = app.window[event[0]].get()[event[2][0]][0]
+
                 check_doubleclick(
                     swap_to_org_viewer,
                     check=doubleclick_check,
-                    args=(app, event[2])
+                    args=(app, org_id)
                 )
 
             case "-CONTACT_TABLE-" | "-ORG_CONTACT_INFO_TABLE-":
+                contact_id = app.window[event[0]].get()[event[2][0]][0]
+
                 check_doubleclick(
                     swap_to_contact_viewer,
                     check=doubleclick_check,
-                    args=(app, event[2])
+                    args=(app, contact_id)
                 )
 
     elif event == "View":
@@ -321,8 +325,11 @@ while True:
                 value = values["-ORG_CONTACT_INFO_TABLE-"][0]
                 method = swap_to_contact_viewer
 
+            case _:
+                continue
+
         if value and method:
-            method(app, (value, 0))
+            method(app, value)
 
     elif event == "Add Contact":
         user_input = sg.popup_get_text(

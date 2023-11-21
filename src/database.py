@@ -325,7 +325,17 @@ class Contact(db.Entity):
         """
         Get a contact by name.
         """
-        first_name, last_name = name.split(" ")
+        name = name.strip()
+        # Separate the name into first and last name. If there is no last name, then the last name is an empty string.
+        # If there are more than one space in the name, then treat all but the last space as part of the first name.
+        if name.count(" ") > 1:
+            first_name = name[: name.rindex(" ")]
+            last_name = name[name.rindex(" ") + 1:]
+        elif name.count(" ") == 1:
+            first_name, last_name = name.split(" ")
+        else:
+            first_name = name
+            last_name = ""
         return orm.select(c for c in Contact if c.first_name == first_name and c.last_name == last_name).first()
 
 
