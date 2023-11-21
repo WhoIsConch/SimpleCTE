@@ -10,6 +10,8 @@ from pony.orm import db_session
 from threading import Thread
 from database import Contact, Organization, Resource
 
+import time
+
 if typing.TYPE_CHECKING:
     from main import App
 
@@ -119,7 +121,7 @@ def get_action_bar(screen: Screen) -> list[list[sg.Button]]:
 
 @db_session
 def get_contact_table(app: "App", values_only: bool = False, search_info: dict[str, str, str] | None = None,
-                      lazy=False) -> sg.Table | tuple[sg.Table, list[str]]:
+                      lazy=False, table_values: list = []) -> sg.Table | tuple[sg.Table, list[str]]:
     """
     Build the table that includes information of contacts.
     """
@@ -141,7 +143,9 @@ def get_contact_table(app: "App", values_only: bool = False, search_info: dict[s
     if not contact_pages:
         contact_pages = app.db.get_contacts()
 
-    table_values = []
+    if not table_values:
+        table_values = []
+
     for contact in contact_pages:
         org = None
         for org in contact.organizations:
@@ -164,13 +168,7 @@ def get_contact_table(app: "App", values_only: bool = False, search_info: dict[s
             ]
         )
 
-    if values_only and lazy:
-        while app.status == AppStatus.READY:
-            app.window["-CONTACT_TABLE-"].update(values=table_values)
-            app.window.refresh()
-            break
-
-    elif values_only:
+    if values_only or (values_only and lazy):
         return table_values
 
     return sg.Table(

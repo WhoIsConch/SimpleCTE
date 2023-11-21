@@ -227,6 +227,8 @@ def check_doubleclick(callback: Callable, args: tuple, check: Callable | None = 
     else:
         app.last_clicked_table_time = datetime.now()
 
+def lazy():
+    values = []
 
 sg.theme(app.settings["theme"])
 
