@@ -324,6 +324,90 @@ while True:
         if value and method:
             method(app, (value, 0))
 
+    elif event == "Add Contact":
+        user_input = sg.popup_get_text(
+            "Enter the ID of the contact you would like to add.\n\nIf you don't know the ID, you can find it by "
+            "searching\nfor the contact, then alt-clicking on it and selecting \"Copy ID\".",
+            title="Add Contact",
+        )
+
+        if not user_input:
+            continue
+
+        try:
+            user_input = int(user_input)
+        except ValueError:
+            sg.popup("Invalid ID!")
+            continue
+
+        org_name = app.window["-ORG_TABLE-"].get()[values["-ORG_TABLE-"][0]][0]
+
+        status = app.db.add_contact_to_org(user_input, org_name)
+
+        if not status:
+            sg.popup("Error adding contact.\nPerhaps you used an incorrect ID?")
+            continue
+
+        swap_to_org_viewer(app, org_name=org_name, push=False)
+
+    elif event == "Remove Contact":
+        # Get contact selected in the table
+        contact_name = app.window["-ORG_CONTACT_INFO_TABLE-"].get()[values["-ORG_CONTACT_INFO_TABLE-"][0]][0]
+
+        # Get organization name
+        org_name = app.window["-ORG_TABLE-"].get()[values["-ORG_TABLE-"][0]][0]
+
+        # Remove contact from organization
+        status = app.db.remove_contact_from_org(contact_name, org_name)
+
+        if not status:
+            sg.popup("Error removing contact.")
+            continue
+
+        swap_to_org_viewer(app, org_name=org_name, push=False)
+
+    elif event == "Add Organization":
+        user_input = sg.popup_get_text(
+            "Enter the ID of the organization you would like to add.\n\nIf you don't know the ID, you can find it by "
+            "searching\nfor the organization, then alt-clicking on it and selecting \"Copy ID\".",
+            title="Add Organization",
+        )
+
+        if not user_input:
+            continue
+
+        try:
+            user_input = int(user_input)
+        except ValueError:
+            sg.popup("Invalid ID!")
+            continue
+
+        contact_name = app.window["-CONTACT_TABLE-"].get()[values["-CONTACT_TABLE-"][0]][0]
+
+        status = app.db.add_contact_to_org(contact_name, user_input)
+
+        if not status:
+            sg.popup("Error adding organization.\nPerhaps you used an incorrect ID?")
+            continue
+
+        swap_to_contact_viewer(app, contact_name=contact_name, push=False)
+
+    elif event == "Remove Organization":
+        # Get organization selected in the table
+        org_name = app.window["-CONTACT_ORGANIZATIONS_TABLE-"].get()[values["-CONTACT_ORGANIZATIONS_TABLE-"][0]][0]
+
+        # Get contact name
+        contact_name = app.window["-CONTACT_TABLE-"].get()[values["-CONTACT_TABLE-"][0]][0]
+
+        # Remove contact from organization
+        status = app.db.remove_contact_from_org(contact_name, org_name)
+
+        if not status:
+            sg.popup("Error removing organization.")
+            continue
+
+        swap_to_contact_viewer(app, contact_name=contact_name, push=False)
+
     else:
         match event:
             case "-LOGIN-":
@@ -414,7 +498,6 @@ while True:
                         organization = app.db.create_organization(**db_values)
 
                         swap_to_org_viewer(app, org=organization)
-
 
 
 print("Hello, world!")

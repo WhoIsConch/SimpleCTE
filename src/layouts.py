@@ -564,7 +564,7 @@ def empty_contact_view_constructor():
                                         enable_click_events=True,
                                         right_click_menu=[
                                             "&Right",
-                                            ["View", "Edit", "Delete"],
+                                            ["View", "Add Organization", "Remove Organization"],
                                         ],
                                         right_click_selects=True,
                                         values=[[]],
@@ -653,7 +653,7 @@ def empty_org_view_constructor():
                                         enable_click_events=True,
                                         right_click_menu=[
                                             "&Right",
-                                            ["View", "Edit", "Delete"],
+                                            ["View", "Change Title", "Add Contact", "Remove Contact"],
                                         ],
                                         right_click_selects=True,
                                         values=[[]],
@@ -740,12 +740,11 @@ def swap_to_org_viewer(
     resource_table_values = []
     custom_field_table_values = []
 
-
     for contact in org.contacts:
         contact_table_values.append(
             [
                 contact.name,
-                contact.org_titles[str(org.id)] if contact.org_titles else "No Title",
+                contact.org_titles.get(str(org.id), "No Title") if contact.org_titles else "No Title",
                 contact.emails[0] if contact.emails else "No Email",
                 format_phone(contact.phone_numbers[0])
                 if contact.phone_numbers
@@ -853,7 +852,8 @@ def create_contact():
                     ],
                     [
                         sg.Text("Primary Phone: "),
-                        sg.Input(k="-PHONE_NUMBER-", tooltip="The contact's primary phone number. You can add more later."),
+                        sg.Input(k="-PHONE_NUMBER-",
+                                 tooltip="The contact's primary phone number. You can add more later."),
                     ],
                     [
                         sg.Text("Address: "),

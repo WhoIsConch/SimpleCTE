@@ -176,6 +176,48 @@ class Database(orm.Database):
 
         return organization
 
+    def add_contact_to_org(self, contact: "Contact | str | int", org: "Organization | str | int") -> bool:
+        if isinstance(org, int):
+            org = Organization.get(id=org)
+
+        elif isinstance(org, str):
+            org: Organization = Organization.get(name=org)
+
+        if isinstance(contact, int):
+            contact = Contact.get(id=contact)
+
+        elif isinstance(contact, str):
+            contact: Contact = Contact.get_by_name(contact)
+
+        if org is None or contact is None:
+            return False
+
+        org.contacts.add(contact)
+        self.commit()
+
+        return True
+
+    def remove_contact_from_org(self, contact: "Contact | str | int", org: "Organization | str | int") -> bool:
+        if isinstance(org, int):
+            org = Organization.get(id=org)
+
+        elif isinstance(org, str):
+            org: Organization = Organization.get(name=org)
+
+        if isinstance(contact, int):
+            contact = Contact.get(id=contact)
+
+        elif isinstance(contact, str):
+            contact: Contact = Contact.get_by_name(contact)
+
+        if org is None or contact is None:
+            return False
+
+        org.contacts.remove(contact)
+        self.commit()
+
+        return True
+
     def construct_database(
             self,
             provider: str,
