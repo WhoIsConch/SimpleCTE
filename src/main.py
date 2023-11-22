@@ -543,6 +543,30 @@ while True:
             case "Copy ID":
                 sg.clipboard_set(app.last_selected_id)
 
+            case "Change Title":
+                # Triggered when a user tries to change the title of a user
+                # in an organization. This is only available in the organization
+                # view.
+
+                # Get the organization ID
+                org_id = app.window["-ORG_VIEW-"].metadata
+
+                # Get the contact ID
+                contact_id = app.window["-ORG_CONTACT_INFO_TABLE-"].get()[values["-ORG_CONTACT_INFO_TABLE-"][0]][0]
+
+                title = sg.popup_get_text("Enter the new title for this contact.", title="Change Title")
+
+                if not title:
+                    continue
+
+                status = app.db.change_contact_title(org_id, contact_id, title)
+
+                if not status:
+                    sg.popup("Error changing title.")
+                    continue
+
+                swap_to_org_viewer(app, org_id=org_id, push=False)
+
             case "Delete" | "-DELETE-" | "-CONTACT_DELETE-":
                 confirmation = sg.popup_yes_no("Are you sure you want to delete this record?", title="Delete Record")
 

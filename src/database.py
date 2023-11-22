@@ -236,6 +236,22 @@ class Database(orm.Database):
 
         return True
 
+    @orm.db_session
+    def change_contact_title(self, org: "Organization | int", contact: "Contact | int", title: str) -> bool:
+        if isinstance(org, int):
+            org = Organization.get(id=org)
+
+        if isinstance(contact, int):
+            contact = Contact.get(id=contact)
+
+        if org is None or contact is None:
+            return False
+
+        contact.org_titles[str(org.id)] = title
+        self.commit()
+
+        return True
+
     def construct_database(
             self,
             provider: str,
