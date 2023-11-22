@@ -180,7 +180,7 @@ def get_contact_table(app: "App", values_only: bool = False, search_info: dict[s
         font=("Arial", 15),
         right_click_menu=[
             "&Right",
-            ["View", "Edit", "Delete"],
+            ["View", "Copy ID", "Delete"],
         ],
         right_click_selects=True,
         k="-CONTACT_TABLE-",
@@ -240,7 +240,7 @@ def get_organization_table(app: "App", values_only: bool = False, search_info: d
         font=("Arial", 15),
         right_click_menu=[
             "&Right",
-            ["View", "Edit", "Delete"],
+            ["View", "Copy ID", "Delete"],
         ],
         right_click_selects=True,
         enable_click_events=True,
@@ -574,7 +574,7 @@ def empty_contact_view_constructor():
                                         enable_click_events=True,
                                         right_click_menu=[
                                             "&Right",
-                                            ["View", "Add Organization", "Remove Organization"],
+                                            ["View", "Copy ID", "Add Organization", "Remove Organization"],
                                         ],
                                         right_click_selects=True,
                                         values=[[]],
@@ -664,7 +664,7 @@ def empty_org_view_constructor():
                                         enable_click_events=True,
                                         right_click_menu=[
                                             "&Right",
-                                            ["View", "Change Title", "Add Contact", "Remove Contact"],
+                                            ["View", "Copy ID", "Change Title", "Add Contact", "Remove Contact"],
                                         ],
                                         right_click_selects=True,
                                         values=[[]],
