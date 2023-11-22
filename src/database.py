@@ -179,18 +179,12 @@ class Database(orm.Database):
         return organization
 
     @orm.db_session
-    def add_contact_to_org(self, contact: "Contact | str | int", org: "Organization | str | int") -> bool:
+    def add_contact_to_org(self, contact: "Contact int", org: "Organization | int") -> bool:
         if isinstance(org, int):
             org = Organization.get(id=org)
 
-        elif isinstance(org, str):
-            org: Organization = Organization.get(name=org)
-
         if isinstance(contact, int):
             contact = Contact.get(id=contact)
-
-        elif isinstance(contact, str):
-            contact: Contact = Contact.get_by_name(contact)
 
         if org is None or contact is None:
             return False
@@ -201,18 +195,12 @@ class Database(orm.Database):
         return True
 
     @orm.db_session
-    def remove_contact_from_org(self, contact: "Contact | str | int", org: "Organization | str | int") -> bool:
+    def remove_contact_from_org(self, contact: "Contact | int", org: "Organization | int") -> bool:
         if isinstance(org, int):
             org = Organization.get(id=org)
 
-        elif isinstance(org, str):
-            org: Organization = Organization.get(name=org)
-
         if isinstance(contact, int):
             contact = Contact.get(id=contact)
-
-        elif isinstance(contact, str):
-            contact: Contact = Contact.get_by_name(contact)
 
         if org is None or contact is None:
             return False
@@ -323,25 +311,6 @@ class Contact(db.Entity):
     @property
     def name(self):
         return f"{self.first_name} {self.last_name}"
-
-    @staticmethod
-    def get_by_name(name: str):
-        """
-        Get a contact by name.
-        """
-        name = name.strip()
-        # Separate the name into first and last name. If there is no last name, then the last name is an empty string.
-        # If there are more than one space in the name, then treat all but the last space as part of the first name.
-        if name.count(" ") > 1:
-            first_name = name[: name.rindex(" ")]
-            last_name = name[name.rindex(" ") + 1:]
-        elif name.count(" ") == 1:
-            first_name, last_name = name.split(" ")
-        else:
-            first_name = name
-            last_name = ""
-        return orm.select(c for c in Contact if c.first_name == first_name and c.last_name == last_name).first()
-
 
 class Resource(db.Entity):
     id = orm.PrimaryKey(int, auto=True)

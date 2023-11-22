@@ -151,11 +151,11 @@ class App:
 
         elif self.current_screen == Screen.ORG_VIEW:
             self.window["-ORG_VIEW-"].update(visible=True)
-            swap_to_org_viewer(self, org_name=self.stack.peek()[1], push=False)
+            swap_to_org_viewer(self, org_id=self.stack.peek()[1], push=False)
 
         elif self.current_screen == Screen.CONTACT_VIEW:
             self.window["-CONTACT_VIEW-"].update(visible=True)
-            swap_to_contact_viewer(self, contact_name=self.stack.peek()[1], push=False)
+            swap_to_contact_viewer(self, contact_id=self.stack.peek()[1], push=False)
 
     def load_settings(self) -> dict:
         self.logger.info("Loading settings...")

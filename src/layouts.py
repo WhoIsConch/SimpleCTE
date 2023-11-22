@@ -729,20 +729,16 @@ def empty_org_view_constructor():
 def swap_to_org_viewer(
         app: "App",
         org_id: int | None = None,
-        org_name: str | None = None,
         org: Organization | None = None,
         push: bool = True,
 ) -> None:
     if org_id:
         org = Organization.get(id=org_id)
 
-    elif org_name:
-        org = Organization.get(name=org_name)
-
     if not org:
-        raise ValueError("Must provide either ID, Name, or Organization.")
+        raise ValueError("Must provide either ID or Organization.")
 
-    app.switch_screen(Screen.ORG_VIEW, org.name, push=push)
+    app.switch_screen(Screen.ORG_VIEW, data=org.id, push=push)
 
     contact_table_values = []
     resource_table_values = []
@@ -782,20 +778,16 @@ def swap_to_org_viewer(
 def swap_to_contact_viewer(
         app: "App",
         contact_id: int | None = None,
-        contact_name: str | None = None,
         contact: Contact | None = None,
         push: bool = True,
 ) -> None:
     if contact_id:
         contact = Contact.get(id=contact_id)
 
-    elif contact_name:
-        contact = Contact.get_by_name(name=contact_name)
-
     if not contact:
-        raise ValueError("Must provide either ID, Name, or Contact.")
+        raise ValueError("Must provide either ID or Contact.")
 
-    app.switch_screen(Screen.CONTACT_VIEW, contact.name, push=push)
+    app.switch_screen(Screen.CONTACT_VIEW, data=contact.id, push=push)
 
     contact_info_table_values = []
     organization_table_values = []
