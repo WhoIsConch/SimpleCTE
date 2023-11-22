@@ -417,6 +417,7 @@ def empty_viewer_head_constructor(contact: bool = False):
                             element_justification="center",
                             expand_x=True,
                             background_color=sg.theme_progress_bar_color()[1],
+                            right_click_menu=["", ["Change Name"]],
                             layout=[
                                 [
                                     sg.Text(
@@ -441,6 +442,7 @@ def empty_viewer_head_constructor(contact: bool = False):
                             element_justification="center",
                             expand_x=True,
                             background_color=sg.theme_progress_bar_color()[1],
+                            right_click_menu=["", ["Change Status"]],
                             layout=[
                                 [
                                     sg.Text(
@@ -465,6 +467,7 @@ def empty_viewer_head_constructor(contact: bool = False):
                             element_justification="center",
                             expand_x=True,
                             background_color=sg.theme_progress_bar_color()[1],
+                            right_click_menu=["", ["Change Primary Phone"]],
                             layout=[
                                 [
                                     sg.Text(
@@ -489,6 +492,7 @@ def empty_viewer_head_constructor(contact: bool = False):
                             element_justification="center",
                             expand_x=True,
                             background_color=sg.theme_progress_bar_color()[1],
+                            right_click_menu=["", ["Change Primary Address"]],
                             layout=[
                                 [
                                     sg.Text(
@@ -548,7 +552,9 @@ def empty_contact_view_constructor():
                                 [
                                     sg.Table(
                                         key="-CONTACT_INFO_TABLE-",
-                                        headings=["Name", "Value"],
+                                        headings=["Title", "Value"],
+                                        right_click_menu=["", ["Add", "Edit", "Delete"]],
+                                        right_click_selects=True,
                                         expand_x=True,
                                         font=("Arial", 15),
                                         num_rows=5,
@@ -593,7 +599,11 @@ def empty_contact_view_constructor():
                                 [
                                     sg.Table(
                                         key="-CONTACT_RESOURCES_TABLE-",
-                                        headings=["Name", "Status"],
+                                        headings=["ID", "Name", "Status"],
+                                        visible_column_map=[False, True, True],
+                                        right_click_menu=["", ["Create Resource", "Link Resource", "Remove Resource",
+                                                               "Delete Resource", "Copy ID"]],
+                                        right_click_selects=True,
                                         expand_x=True,
                                         font=("Arial", 15),
                                         num_rows=5,
@@ -612,6 +622,9 @@ def empty_contact_view_constructor():
                                     sg.Table(
                                         key="-CONTACT_CUSTOM_FIELDS_TABLE-",
                                         headings=["Name", "Value"],
+                                        right_click_menu=["", ["Create Custom Field", "Edit Custom Field",
+                                                               "Delete Custom Field"]],
+                                        right_click_selects=True,
                                         expand_x=True,
                                         font=("Arial", 15),
                                         num_rows=5,
@@ -682,6 +695,9 @@ def empty_org_view_constructor():
                                         key="-ORG_RESOURCES_TABLE-",
                                         headings=["ID", "Name", "Value"],
                                         visible_column_map=[False, True, True],
+                                        right_click_menu=["", ["Create Resource", "Link Resource", "Remove Resource",
+                                                               "Delete Resource", "Copy ID"]],
+                                        right_click_selects=True,
                                         select_mode=sg.TABLE_SELECT_MODE_BROWSE,
                                         row_height=40,
                                         alternating_row_color=sg.theme_progress_bar_color()[1],
@@ -702,8 +718,10 @@ def empty_org_view_constructor():
                                 [
                                     sg.Table(
                                         key="-ORG_CUSTOM_FIELDS_TABLE-",
-                                        headings=["ID", "Name", "Value"],
-                                        visible_column_map=[False, True, True],
+                                        headings=["Name", "Value"],
+                                        right_click_menu=["", ["Create Custom Field", "Edit Custom Field",
+                                                               "Delete Custom Field"]],
+                                        right_click_selects=True,
                                         select_mode=sg.TABLE_SELECT_MODE_BROWSE,
                                         row_height=40,
                                         alternating_row_color=sg.theme_progress_bar_color()[1],
