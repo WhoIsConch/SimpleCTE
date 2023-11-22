@@ -221,7 +221,7 @@ def check_doubleclick(callback: Callable, args: tuple, check: Callable | None = 
     if (app.last_clicked_table_time is not None) and (
             (datetime.now() - app.last_clicked_table_time).total_seconds() < 0.5
     ):
-        if not (check and check()):
+        if check and check():
             callback(*args)
 
         app.last_clicked_table_time = None
@@ -287,9 +287,15 @@ while True:
     print(event, values, "\n")
 
     if isinstance(event, tuple) and event[2][0] is not None:
-        def doubleclick_check():
-            current_id = app.window[event[0]].get()[event[2][0]][0]
-            return app.last_selected_id != current_id and app.last_selected_id is not None
+        def doubleclick_check() -> bool:
+            """
+            Checks if the last selected ID is the same as the current ID.
+            """
+            try:
+                current_id = app.window[event[0]].get()[event[2][0]][0]
+            except IndexError:
+                current_id = None
+            return app.last_selected_id == current_id and app.last_selected_id is not None
 
 
         match event[0]:
@@ -306,8 +312,10 @@ while True:
                     check=doubleclick_check,
                     args=(app, app.last_selected_id)
                 )
-
-        app.last_selected_id = app.window[event[0]].get()[event[2][0]][0]
+        try:
+            app.last_selected_id = app.window[event[0]].get()[event[2][0]][0]
+        except IndexError:
+            app.last_selected_id = None
     else:
         match event:
             case "-LOGIN-":
