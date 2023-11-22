@@ -51,7 +51,6 @@ class App:
         self.window: sg.Window | None = None
         self.status = AppStatus.BUSY
         self.last_clicked_table_time = None
-        self.last_clicked_index = None
         self.last_selected_id = None
         self.logger.info("Loading database settings...")
 
@@ -289,13 +288,12 @@ while True:
 
     if isinstance(event, tuple) and event[2][0] is not None:
         def doubleclick_check():
-            return app.last_clicked_index != event[2][0] and app.last_clicked_index is not None
+            current_id = app.window[event[0]].get()[event[2][0]][0]
+            return app.last_selected_id != current_id and app.last_selected_id is not None
 
 
         match event[0]:
             case "-ORG_TABLE-" | "-CONTACT_ORGANIZATIONS_TABLE-":
-                app.last_selected_id = app.window[event[0]].get()[event[2][0]][0]
-
                 check_doubleclick(
                     swap_to_org_viewer,
                     check=doubleclick_check,
@@ -303,14 +301,13 @@ while True:
                 )
 
             case "-CONTACT_TABLE-" | "-ORG_CONTACT_INFO_TABLE-":
-                app.last_selected_id = app.window[event[0]].get()[event[2][0]][0]
-
                 check_doubleclick(
                     swap_to_contact_viewer,
                     check=doubleclick_check,
                     args=(app, app.last_selected_id)
                 )
 
+        app.last_selected_id = app.window[event[0]].get()[event[2][0]][0]
     else:
         match event:
             case "-LOGIN-":
@@ -530,50 +527,7 @@ while True:
                 swap_to_contact_viewer(app, contact_id=contact_id, push=False)
 
             case "Copy ID":
-                if app.current_screen == Screen.ORG_VIEW:
-                    try:
-                        app.last_clicked_index = values["-ORG_CONTACT_INFO_TABLE-"][0]
-                    except IndexError:
-                        sg.popup("No contact selected!")
-                        continue
-
-                    contact_id = app.window["-ORG_CONTACT_INFO_TABLE-"].get()[values["-ORG_CONTACT_INFO_TABLE-"][0]][0]
-
-                    sg.clipboard_set(contact_id)
-
-                elif app.current_screen == Screen.CONTACT_VIEW:
-                    try:
-                        app.last_clicked_index = values["-CONTACT_ORGANIZATIONS_TABLE-"][0]
-                    except IndexError:
-                        sg.popup("No organization selected!")
-                        continue
-
-                    org_id = \
-                        app.window["-CONTACT_ORGANIZATIONS_TABLE-"].get()[values["-CONTACT_ORGANIZATIONS_TABLE-"][0]][0]
-
-                    sg.clipboard_set(org_id)
-
-                elif app.current_screen == Screen.ORG_SEARCH:
-                    try:
-                        app.last_clicked_index = values["-ORG_TABLE-"][0]
-                    except IndexError:
-                        sg.popup("No organization selected!")
-                        continue
-
-                    org_id = app.window["-ORG_TABLE-"].get()[values["-ORG_TABLE-"][0]][0]
-
-                    sg.clipboard_set(org_id)
-
-                elif app.current_screen == Screen.CONTACT_SEARCH:
-                    try:
-                        app.last_clicked_index = values["-CONTACT_TABLE-"][0]
-                    except IndexError:
-                        sg.popup("No contact selected!")
-                        continue
-
-                    contact_id = app.window["-CONTACT_TABLE-"].get()[values["-CONTACT_TABLE-"][0]][0]
-
-                    sg.clipboard_set(contact_id)
+                sg.clipboard_set(app.last_selected_id)
 
             case _:
                 continue
