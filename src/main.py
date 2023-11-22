@@ -243,6 +243,10 @@ def lazy():
     app.window["-ORG_TABLE-"].update(values=org_values)
 
 
+def start_lazy():
+    threading.Thread(target=lazy).start()
+
+
 sg.theme(app.settings["theme"])
 
 if app.current_screen == Screen.LOGIN:
@@ -274,7 +278,7 @@ else:
     )
 
 app.window.Font = ("Arial", 12)
-threading.Thread(target=lazy).start()
+start_lazy()
 
 while True:
     app.status = AppStatus.READY
@@ -407,6 +411,8 @@ while True:
 
                         swap_to_org_viewer(app, org=organization)
 
+                start_lazy()
+
             case "View":
                 method = None
 
@@ -537,6 +543,31 @@ while True:
             case "Copy ID":
                 sg.clipboard_set(app.last_selected_id)
 
+            case "Delete" | "-DELETE-" | "-CONTACT_DELETE-":
+                confirmation = sg.popup_yes_no("Are you sure you want to delete this record?", title="Delete Record")
+
+                if confirmation == "Yes":
+                    match app.current_screen:
+                        case Screen.ORG_VIEW:
+                            org_id = app.window["-ORG_VIEW-"].metadata
+                            app.db.delete_organization(org_id)
+                            app.switch_to_last_screen()
+
+                        case Screen.CONTACT_VIEW:
+                            contact_id = app.window["-CONTACT_VIEW-"].metadata
+                            app.db.delete_contact(contact_id)
+                            app.switch_to_last_screen()
+
+                        case Screen.ORG_SEARCH:
+                            app.db.delete_organization(app.last_selected_id)
+                            app.window["-ORG_TABLE-"].update(get_organization_table(app, values_only=True))
+
+                        case Screen.CONTACT_SEARCH:
+                            app.db.delete_contact(app.last_selected_id)
+                            app.window["-CONTACT_TABLE-"].update(get_contact_table(app, values_only=True))
+
+                    # Reload the table values after the record is deleted
+                    start_lazy()
             case _:
                 continue
 

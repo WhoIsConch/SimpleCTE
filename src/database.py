@@ -210,6 +210,32 @@ class Database(orm.Database):
 
         return True
 
+    @orm.db_session
+    def delete_contact(self, contact: "Contact | int") -> bool:
+        if isinstance(contact, int):
+            contact = Contact.get(id=contact)
+
+        if contact is None:
+            return False
+
+        contact.delete()
+        self.commit()
+
+        return True
+
+    @orm.db_session
+    def delete_organization(self, org: "Organization | int") -> bool:
+        if isinstance(org, int):
+            org = Organization.get(id=org)
+
+        if org is None:
+            return False
+
+        org.delete()
+        self.commit()
+
+        return True
+
     def construct_database(
             self,
             provider: str,
