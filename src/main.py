@@ -52,6 +52,7 @@ class App:
         self.status = AppStatus.BUSY
         self.last_clicked_table_time = None
         self.last_clicked_index = None
+        self.last_selected_id = None
         self.logger.info("Loading database settings...")
 
         self.settings = self.load_settings()
@@ -293,21 +294,21 @@ while True:
 
         match event[0]:
             case "-ORG_TABLE-" | "-CONTACT_ORGANIZATIONS_TABLE-":
-                org_id = app.window[event[0]].get()[event[2][0]][0]
+                app.last_selected_id = app.window[event[0]].get()[event[2][0]][0]
 
                 check_doubleclick(
                     swap_to_org_viewer,
                     check=doubleclick_check,
-                    args=(app, org_id)
+                    args=(app, app.last_selected_id)
                 )
 
             case "-CONTACT_TABLE-" | "-ORG_CONTACT_INFO_TABLE-":
-                contact_id = app.window[event[0]].get()[event[2][0]][0]
+                app.last_selected_id = app.window[event[0]].get()[event[2][0]][0]
 
                 check_doubleclick(
                     swap_to_contact_viewer,
                     check=doubleclick_check,
-                    args=(app, contact_id)
+                    args=(app, app.last_selected_id)
                 )
 
     else:
@@ -402,7 +403,6 @@ while True:
                         swap_to_org_viewer(app, org=organization)
 
             case "View":
-                value = None
                 method = None
 
                 match app.current_screen:
@@ -410,32 +410,28 @@ while True:
                         if not values["-ORG_TABLE-"]:
                             continue
 
-                        value = values["-ORG_TABLE-"][0]
                         method = swap_to_org_viewer
 
                     case Screen.CONTACT_VIEW:
                         if not values["-CONTACT_ORGANIZATIONS_TABLE-"]:
                             continue
 
-                        value = values["-CONTACT_ORGANIZATIONS_TABLE-"][0]
                         method = swap_to_org_viewer
 
                     case Screen.CONTACT_SEARCH:
                         if not values["-CONTACT_TABLE-"]:
                             continue
 
-                        value = values["-CONTACT_TABLE-"][0]
                         method = swap_to_contact_viewer
 
                     case Screen.ORG_VIEW:
                         if not values["-ORG_CONTACT_INFO_TABLE-"]:
                             continue
 
-                        value = values["-ORG_CONTACT_INFO_TABLE-"][0]
                         method = swap_to_contact_viewer
 
-                if value and method:
-                    method(app, value)
+                if app.last_selected_id and method:
+                    method(app, app.last_selected_id)
 
             case "Add Contact":
                 user_input = sg.popup_get_text(
@@ -532,6 +528,52 @@ while True:
                     continue
 
                 swap_to_contact_viewer(app, contact_id=contact_id, push=False)
+
+            case "Copy ID":
+                if app.current_screen == Screen.ORG_VIEW:
+                    try:
+                        app.last_clicked_index = values["-ORG_CONTACT_INFO_TABLE-"][0]
+                    except IndexError:
+                        sg.popup("No contact selected!")
+                        continue
+
+                    contact_id = app.window["-ORG_CONTACT_INFO_TABLE-"].get()[values["-ORG_CONTACT_INFO_TABLE-"][0]][0]
+
+                    sg.clipboard_set(contact_id)
+
+                elif app.current_screen == Screen.CONTACT_VIEW:
+                    try:
+                        app.last_clicked_index = values["-CONTACT_ORGANIZATIONS_TABLE-"][0]
+                    except IndexError:
+                        sg.popup("No organization selected!")
+                        continue
+
+                    org_id = \
+                        app.window["-CONTACT_ORGANIZATIONS_TABLE-"].get()[values["-CONTACT_ORGANIZATIONS_TABLE-"][0]][0]
+
+                    sg.clipboard_set(org_id)
+
+                elif app.current_screen == Screen.ORG_SEARCH:
+                    try:
+                        app.last_clicked_index = values["-ORG_TABLE-"][0]
+                    except IndexError:
+                        sg.popup("No organization selected!")
+                        continue
+
+                    org_id = app.window["-ORG_TABLE-"].get()[values["-ORG_TABLE-"][0]][0]
+
+                    sg.clipboard_set(org_id)
+
+                elif app.current_screen == Screen.CONTACT_SEARCH:
+                    try:
+                        app.last_clicked_index = values["-CONTACT_TABLE-"][0]
+                    except IndexError:
+                        sg.popup("No contact selected!")
+                        continue
+
+                    contact_id = app.window["-CONTACT_TABLE-"].get()[values["-CONTACT_TABLE-"][0]][0]
+
+                    sg.clipboard_set(contact_id)
 
             case _:
                 continue
