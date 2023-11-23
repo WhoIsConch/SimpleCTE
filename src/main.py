@@ -451,7 +451,7 @@ while True:
 
             case "Add Contact":
                 user_input = sg.popup_get_text(
-                    "Enter the ID of the contact you would like to add.\n\nIf you don't know the ID, you can find it by"
+                    "Enter the ID of the contact you would like to add.\n\nIf you don't know the ID, you can find it by "
                     "searching\nfor the contact, then alt-clicking on it and selecting \"Copy ID\".",
                     title="Add Contact",
                 )
@@ -481,7 +481,6 @@ while True:
                     contact_name = app.window["-ORG_CONTACT_INFO_TABLE-"].get()[values["-ORG_CONTACT_INFO_TABLE-"][0]][
                         0]
                 except IndexError:
-                    sg.popup("No contact selected!")
                     continue
 
                 # Get organization name

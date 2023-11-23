@@ -172,7 +172,10 @@ class Database(orm.Database):
     def create_organization(self, **kwargs) -> "Organization":
         values = kwargs.copy()
         if phone := values.get("phone_number", None):
-            values["phone_numbers"] = [phone]
+            try:
+                values["phones"] = [int(phone)]
+            except ValueError:
+                values["phones"] = []
             del values["phone_number"]
 
         if address := values.get("address", None):
