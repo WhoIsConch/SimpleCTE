@@ -931,6 +931,68 @@ while True:
 
                 start_lazy()
 
+            case "Change Status":
+                # Change the status of a record.
+
+                # Get the ID of the record we're viewing
+                if app.current_screen == Screen.ORG_VIEW:
+                    org_id = app.window["-ORG_VIEW-"].metadata
+
+                    try:
+                        status = app.window["-STATUS-"].get()
+                    except IndexError:
+                        continue
+
+                    layout = [
+                        [sg.Text("New Status:"), sg.Input(key="-STATUS-", default_text=status)],
+                        [sg.Button("Change"), sg.Button("Cancel")]
+                    ]
+
+                elif app.current_screen == Screen.CONTACT_VIEW:
+                    contact_id = app.window["-CONTACT_VIEW-"].metadata
+                    contact = app.db.get_contact(contact_id)
+
+                    try:
+                        status = app.window["-CONTACT_STATUS-"].get()
+                    except IndexError:
+                        continue
+
+                    layout = [
+                        [sg.Text("New Status:"), sg.Input(key="-STATUS-", default_text=contact.status)],
+                        [sg.Button("Change"), sg.Button("Cancel")]
+                    ]
+
+                input_window = sg.Window("Change Status", layout, finalize=True, modal=True)
+
+                event, values = input_window.read()
+                input_window.close()
+
+                new_org_status = values.get("-STATUS-", "")
+                new_contact_status = values.get("-STATUS-", "")
+
+                if event == "Cancel" or event == sg.WIN_CLOSED:
+                    continue
+
+                if not (new_org_status or new_contact_status):
+                    sg.popup("A status is required!")
+                    continue
+
+                if len(new_org_status) > 50 or len(new_contact_status) > 50:
+                    confirmation = sg.popup_yes_no("Making a status too long may cause issues with the UI. Are you sure you want to continue?")
+
+                    if confirmation == "No" or confirmation == sg.WIN_CLOSED:
+                        continue
+
+                if app.current_screen == Screen.ORG_VIEW:
+                    app.db.update_organization(org_id, status=new_org_status)
+                    swap_to_org_viewer(app, org_id=org_id, push=False)
+                    start_lazy()
+
+                elif app.current_screen == Screen.CONTACT_VIEW:
+                    app.db.update_contact(contact_id, status=new_contact_status)
+                    swap_to_contact_viewer(app, contact_id=contact_id, push=False)
+
+
             case _:
                 continue
 
