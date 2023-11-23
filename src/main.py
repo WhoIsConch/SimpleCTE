@@ -19,7 +19,8 @@ from layouts import (
     get_contact_table,
     get_organization_table,
     create_contact,
-    create_organization
+    create_organization,
+    format_phone
 )
 
 
@@ -638,7 +639,7 @@ while True:
                 elif app.current_screen == Screen.CONTACT_VIEW:
                     try:
                         resource_id = \
-                        app.window["-CONTACT_RESOURCES_TABLE-"].get()[values["-CONTACT_RESOURCES_TABLE-"][0]][0]
+                            app.window["-CONTACT_RESOURCES_TABLE-"].get()[values["-CONTACT_RESOURCES_TABLE-"][0]][0]
                     except IndexError:
                         continue
 
@@ -702,7 +703,7 @@ while True:
                 elif app.current_screen == Screen.CONTACT_VIEW:
                     try:
                         resource_id = \
-                        app.window["-CONTACT_RESOURCES_TABLE-"].get()[values["-CONTACT_RESOURCES_TABLE-"][0]][0]
+                            app.window["-CONTACT_RESOURCES_TABLE-"].get()[values["-CONTACT_RESOURCES_TABLE-"][0]][0]
                     except IndexError:
                         continue
 
@@ -774,8 +775,10 @@ while True:
                     org_id = app.window["-ORG_VIEW-"].metadata
 
                     try:
-                        field_name = app.window["-ORG_CUSTOM_FIELDS_TABLE-"].get()[values["-ORG_CUSTOM_FIELDS_TABLE-"][0]][0]
-                        field_value = app.window["-ORG_CUSTOM_FIELDS_TABLE-"].get()[values["-ORG_CUSTOM_FIELDS_TABLE-"][0]][1]
+                        field_name = \
+                        app.window["-ORG_CUSTOM_FIELDS_TABLE-"].get()[values["-ORG_CUSTOM_FIELDS_TABLE-"][0]][0]
+                        field_value = \
+                        app.window["-ORG_CUSTOM_FIELDS_TABLE-"].get()[values["-ORG_CUSTOM_FIELDS_TABLE-"][0]][1]
                     except IndexError:
                         continue
 
@@ -783,8 +786,10 @@ while True:
                     contact_id = app.window["-CONTACT_VIEW-"].metadata
 
                     try:
-                        field_name = app.window["-CONTACT_CUSTOM_FIELDS_TABLE-"].get()[values["-CONTACT_CUSTOM_FIELDS_TABLE-"][0]][0]
-                        field_value = app.window["-CONTACT_CUSTOM_FIELDS_TABLE-"].get()[values["-CONTACT_CUSTOM_FIELDS_TABLE-"][0]][1]
+                        field_name = \
+                        app.window["-CONTACT_CUSTOM_FIELDS_TABLE-"].get()[values["-CONTACT_CUSTOM_FIELDS_TABLE-"][0]][0]
+                        field_value = \
+                        app.window["-CONTACT_CUSTOM_FIELDS_TABLE-"].get()[values["-CONTACT_CUSTOM_FIELDS_TABLE-"][0]][1]
                     except IndexError:
                         continue
 
@@ -838,7 +843,8 @@ while True:
                     org_id = app.window["-ORG_VIEW-"].metadata
 
                     try:
-                        field_name = app.window["-ORG_CUSTOM_FIELDS_TABLE-"].get()[values["-ORG_CUSTOM_FIELDS_TABLE-"][0]][0]
+                        field_name = \
+                        app.window["-ORG_CUSTOM_FIELDS_TABLE-"].get()[values["-ORG_CUSTOM_FIELDS_TABLE-"][0]][0]
                     except IndexError:
                         continue
 
@@ -846,7 +852,8 @@ while True:
                     contact_id = app.window["-CONTACT_VIEW-"].metadata
 
                     try:
-                        field_name = app.window["-CONTACT_CUSTOM_FIELDS_TABLE-"].get()[values["-CONTACT_CUSTOM_FIELDS_TABLE-"][0]][0]
+                        field_name = \
+                        app.window["-CONTACT_CUSTOM_FIELDS_TABLE-"].get()[values["-CONTACT_CUSTOM_FIELDS_TABLE-"][0]][0]
                     except IndexError:
                         continue
 
@@ -916,7 +923,8 @@ while True:
                     continue
 
                 if len(new_org_name) > 50 or len(new_first_name) > 50 or len(new_last_name) > 50:
-                    confirmation = sg.popup_yes_no("Making a name too long may cause issues with the UI. Are you sure you want to continue?")
+                    confirmation = sg.popup_yes_no(
+                        "Making a name too long may cause issues with the UI. Are you sure you want to continue?")
 
                     if confirmation == "No" or confirmation == sg.WIN_CLOSED:
                         continue
@@ -978,7 +986,8 @@ while True:
                     continue
 
                 if len(new_org_status) > 50 or len(new_contact_status) > 50:
-                    confirmation = sg.popup_yes_no("Making a status too long may cause issues with the UI. Are you sure you want to continue?")
+                    confirmation = sg.popup_yes_no(
+                        "Making a status too long may cause issues with the UI. Are you sure you want to continue?")
 
                     if confirmation == "No" or confirmation == sg.WIN_CLOSED:
                         continue
@@ -992,6 +1001,128 @@ while True:
                     app.db.update_contact(contact_id, status=new_contact_status)
                     swap_to_contact_viewer(app, contact_id=contact_id, push=False)
 
+            case "View All Phones":
+                # Get the ID of the record we're viewing
+                if app.current_screen == Screen.ORG_VIEW:
+                    org_id = app.window["-ORG_VIEW-"].metadata
+                    record = app.db.get_organization(org_id)
+
+                    phones = [format_phone(phone) for phone in record.phones]
+
+                elif app.current_screen == Screen.CONTACT_VIEW:
+                    contact_id = app.window["-CONTACT_VIEW-"].metadata
+
+                    record = app.db.get_contact(contact_id)
+                    phones = [format_phone(phone) for phone in record.phone_numbers]
+
+                layout = [
+                    [sg.Text("Phone Numbers:")],
+                    [sg.Multiline("\n".join(list(phones)), size=(30, 10), disabled=True)],
+                    [sg.Button("Close")]
+                ]
+
+                input_window = sg.Window("View All Phones", layout, finalize=True, modal=True)
+
+                event, values = input_window.read()
+                input_window.close()
+
+            case "Edit Phones":
+                # Get the ID of the record we're viewing
+                if app.current_screen == Screen.ORG_VIEW:
+                    org_id = app.window["-ORG_VIEW-"].metadata
+                    record = app.db.get_organization(org_id)
+
+                    phones = [format_phone(phone) for phone in record.phones]
+
+                elif app.current_screen == Screen.CONTACT_VIEW:
+                    contact_id = app.window["-CONTACT_VIEW-"].metadata
+
+                    record = app.db.get_contact(contact_id)
+                    phones = [format_phone(phone) for phone in record.phone_numbers]
+
+                layout = [
+                    [sg.Text("Phone Numbers, one per line\n(The first number is primary):")],
+                    [sg.Multiline("\n".join(list(phones)), size=(30, 10), key="-PHONES-")],
+                    [sg.Button("Save"), sg.Button("Cancel")]
+                ]
+
+                input_window = sg.Window("Edit Phones", layout, finalize=True, modal=True)
+
+                event, values = input_window.read()
+                input_window.close()
+
+                if event == "Cancel" or event == sg.WIN_CLOSED:
+                    continue
+
+                try:
+                    new_phones = [int(phone.replace("-", "").replace("(", "").replace(")", "").replace(" ", "")) for phone in values["-PHONES-"].split("\n")]
+                except ValueError:
+                    sg.popup("Invalid phone number! Phone number must be a continuous string of numbers, or a string "
+                             "of numbers separated by dashes or parentheses.")
+                    continue
+
+                if app.current_screen == Screen.ORG_VIEW:
+                    app.db.update_organization(org_id, phones=new_phones)
+                    swap_to_org_viewer(app, org_id=org_id, push=False)
+
+                elif app.current_screen == Screen.CONTACT_VIEW:
+                    app.db.update_contact(contact_id, phone_numbers=new_phones)
+                    swap_to_contact_viewer(app, contact_id=contact_id, push=False)
+
+            case "View All Addresses":
+                # Get the ID of the record we're viewing
+                if app.current_screen == Screen.ORG_VIEW:
+                    org_id = app.window["-ORG_VIEW-"].metadata
+                    record = app.db.get_organization(org_id)
+
+                elif app.current_screen == Screen.CONTACT_VIEW:
+                    contact_id = app.window["-CONTACT_VIEW-"].metadata
+                    record = app.db.get_contact(contact_id)
+
+                layout = [
+                    [sg.Text("Addresses:")],
+                    [sg.Multiline("\n".join(list(record.addresses)), size=(30, 10), disabled=True)],
+                    [sg.Button("Close")]
+                ]
+
+                input_window = sg.Window("View All Addresses", layout, finalize=True, modal=True)
+
+                event, values = input_window.read()
+                input_window.close()
+
+            case "Edit Addresses":
+                # Get the ID of the record we're viewing
+                if app.current_screen == Screen.ORG_VIEW:
+                    org_id = app.window["-ORG_VIEW-"].metadata
+                    record = app.db.get_organization(org_id)
+
+                elif app.current_screen == Screen.CONTACT_VIEW:
+                    contact_id = app.window["-CONTACT_VIEW-"].metadata
+                    record = app.db.get_contact(contact_id)
+
+                layout = [
+                    [sg.Text("Addresses, one per line\n(The first address is primary):")],
+                    [sg.Multiline("\n".join(list(record.addresses)), size=(30, 10), key="-ADDRESSES-")],
+                    [sg.Button("Save"), sg.Button("Cancel")]
+                ]
+
+                input_window = sg.Window("Edit Addresses", layout, finalize=True, modal=True)
+
+                event, values = input_window.read()
+                input_window.close()
+
+                if event == "Cancel" or event == sg.WIN_CLOSED:
+                    continue
+
+                new_addresses = values["-ADDRESSES-"].split("\n")
+
+                if app.current_screen == Screen.ORG_VIEW:
+                    app.db.update_organization(org_id, addresses=new_addresses)
+                    swap_to_org_viewer(app, org_id=org_id, push=False)
+
+                elif app.current_screen == Screen.CONTACT_VIEW:
+                    app.db.update_contact(contact_id, addresses=new_addresses)
+                    swap_to_contact_viewer(app, contact_id=contact_id, push=False)
 
             case _:
                 continue

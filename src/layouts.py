@@ -467,7 +467,7 @@ def empty_viewer_head_constructor(contact: bool = False):
                             element_justification="center",
                             expand_x=True,
                             background_color=sg.theme_progress_bar_color()[1],
-                            right_click_menu=["", ["Change Primary Phone"]],
+                            right_click_menu=["", ["Edit Phones", "View All Phones"]],
                             layout=[
                                 [
                                     sg.Text(
@@ -492,7 +492,7 @@ def empty_viewer_head_constructor(contact: bool = False):
                             element_justification="center",
                             expand_x=True,
                             background_color=sg.theme_progress_bar_color()[1],
-                            right_click_menu=["", ["Change Primary Address"]],
+                            right_click_menu=["", ["Edit Addresses", "View All Addresses"]],
                             layout=[
                                 [
                                     sg.Text(
