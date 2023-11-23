@@ -252,6 +252,74 @@ class Database(orm.Database):
 
         return True
 
+    @orm.db_session
+    def create_resource(self, **kwargs) -> "Resource":
+        resource = Resource(**kwargs)
+        self.commit()
+
+        return resource
+
+    @orm.db_session
+    def delete_resource(self, resource: "Resource | int") -> bool:
+        if isinstance(resource, int):
+            resource = Resource.get(id=resource)
+
+        if resource is None:
+            return False
+
+        resource.delete()
+        self.commit()
+
+        return True
+
+    @orm.db_session
+    def link_resource(self, resource: "Resource | int", org: "Organization | int" = None, contact: "Contact | int" = None) -> bool:
+        if isinstance(resource, int):
+            resource = Resource.get(id=resource)
+
+        if isinstance(org, int):
+            org = Organization.get(id=org)
+
+        if isinstance(contact, int):
+            contact = Contact.get(id=contact)
+
+        if resource is None or (org is None and contact is None):
+            return False
+
+        if org:
+            org.resources.add(resource)
+
+        if contact:
+            contact.resources.add(resource)
+
+        self.commit()
+
+        return True
+
+    @orm.db_session
+    def unlink_resource(self, resource: "Resource | int", org: "Organization | int" = None, contact: "Contact | int" = None) -> bool:
+        if isinstance(resource, int):
+            resource = Resource.get(id=resource)
+
+        if isinstance(org, int):
+            org = Organization.get(id=org)
+
+        if isinstance(contact, int):
+            contact = Contact.get(id=contact)
+
+        if resource is None or (org is None and contact is None):
+            return False
+
+        if org:
+            org.resources.remove(resource)
+
+        if contact:
+            contact.resources.remove(resource)
+
+        self.commit()
+
+        return True
+
     def construct_database(
             self,
             provider: str,
@@ -353,6 +421,7 @@ class Contact(db.Entity):
     @property
     def name(self):
         return f"{self.first_name} {self.last_name}"
+
 
 class Resource(db.Entity):
     id = orm.PrimaryKey(int, auto=True)

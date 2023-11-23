@@ -117,6 +117,8 @@ class App:
             self.window[screen].update(visible=False)
 
     def switch_screen(self, screen: Screen, data=None, push: bool = True) -> None:
+        app.last_selected_id = None
+
         if push:
             self.stack.push(screen, data)
 
@@ -552,7 +554,10 @@ while True:
                 org_id = app.window["-ORG_VIEW-"].metadata
 
                 # Get the contact ID
-                contact_id = app.window["-ORG_CONTACT_INFO_TABLE-"].get()[values["-ORG_CONTACT_INFO_TABLE-"][0]][0]
+                try:
+                    contact_id = app.window["-ORG_CONTACT_INFO_TABLE-"].get()[values["-ORG_CONTACT_INFO_TABLE-"][0]][0]
+                except IndexError:
+                    continue
 
                 title = sg.popup_get_text("Enter the new title for this contact.", title="Change Title")
 
@@ -592,6 +597,125 @@ while True:
 
                     # Reload the table values after the record is deleted
                     start_lazy()
+
+            case "Create Resource":
+                input_window = sg.Window("Create Resource", [
+                    [sg.Text("Resource Name:"), sg.Input(key="-RESOURCE_NAME-")],
+                    [sg.Text("Resource Value:"), sg.Input(key="-RESOURCE_VALUE-")],
+                    # TODO: Possibly create new Resource Viewer screen
+                    [sg.Button("Create"), sg.Button("Cancel")]
+                ], finalize=True, modal=True)
+
+                event, values = input_window.read()
+
+                input_window.close()
+
+                if event == "Cancel" or event == sg.WIN_CLOSED:
+                    continue
+
+                if not values["-RESOURCE_NAME-"] or not values["-RESOURCE_VALUE-"]:
+                    sg.popup("Resource name and value are required!")
+                    continue
+
+                resource = app.db.create_resource(name=values["-RESOURCE_NAME-"], value=values["-RESOURCE_VALUE-"])
+
+                if app.current_screen == Screen.ORG_VIEW:
+                    app.db.link_resource(org=app.window["-ORG_VIEW-"].metadata, resource=resource.id)
+                    swap_to_org_viewer(app, org_id=app.window["-ORG_VIEW-"].metadata, push=False)
+
+                elif app.current_screen == Screen.CONTACT_VIEW:
+                    app.db.link_resource(contact=app.window["-CONTACT_VIEW-"].metadata, resource=resource.id)
+                    swap_to_contact_viewer(app, contact_id=app.window["-CONTACT_VIEW-"].metadata, push=False)
+
+            case "Delete Resource":
+
+                if app.current_screen == Screen.ORG_VIEW:
+                    try:
+                        resource_id = app.window["-ORG_RESOURCES_TABLE-"].get()[values["-ORG_RESOURCES_TABLE-"][0]][0]
+                    except IndexError:
+                        continue
+
+                elif app.current_screen == Screen.CONTACT_VIEW:
+                    try:
+                        resource_id = \
+                        app.window["-CONTACT_RESOURCES_TABLE-"].get()[values["-CONTACT_RESOURCES_TABLE-"][0]][0]
+                    except IndexError:
+                        continue
+
+                confirmation = sg.popup_yes_no(
+                    "Are you sure you want to delete this resource?\nThis will remove the resource for all other "
+                    "records, too.",
+                    title="Delete Resource")
+
+                if confirmation == "No" or confirmation == sg.WIN_CLOSED:
+                    continue
+
+                if app.current_screen == Screen.ORG_VIEW:
+                    app.db.delete_resource(resource_id)
+
+                    org_id = app.window["-ORG_VIEW-"].metadata
+                    swap_to_org_viewer(app, org_id=org_id, push=False)
+
+                elif app.current_screen == Screen.CONTACT_VIEW:
+                    app.db.delete_resource(resource_id)
+
+                    contact_id = app.window["-CONTACT_VIEW-"].metadata
+                    swap_to_contact_viewer(app, contact_id=contact_id, push=False)
+
+            case "Link Resource":
+                # Get the resource ID
+                info_window = sg.Window("Link Resource", [
+                    [sg.Text("Resource ID:"), sg.Input(key="-RESOURCE_ID-")],
+                    [sg.Button("Link"), sg.Button("Cancel")]
+                ], finalize=True, modal=True)
+
+                event, values = info_window.read()
+                info_window.close()
+
+                if event == "Cancel" or event == sg.WIN_CLOSED:
+                    continue
+
+                try:
+                    resource_id = int(values["-RESOURCE_ID-"])
+                except ValueError:
+                    sg.popup("Invalid resource ID!")
+                    continue
+
+                if app.current_screen == Screen.ORG_VIEW:
+                    org_id = app.window["-ORG_VIEW-"].metadata
+                    app.db.link_resource(org=org_id, resource=resource_id)
+                    swap_to_org_viewer(app, org_id=org_id, push=False)
+
+                elif app.current_screen == Screen.CONTACT_VIEW:
+                    contact_id = app.window["-CONTACT_VIEW-"].metadata
+                    app.db.link_resource(contact=contact_id, resource=resource_id)
+                    swap_to_contact_viewer(app, contact_id=contact_id, push=False)
+
+            case "Unlink Resource":
+                # Get the resource ID
+                if app.current_screen == Screen.ORG_VIEW:
+                    try:
+                        resource_id = app.window["-ORG_RESOURCES_TABLE-"].get()[values["-ORG_RESOURCES_TABLE-"][0]][0]
+                    except IndexError:
+                        continue
+
+                elif app.current_screen == Screen.CONTACT_VIEW:
+                    try:
+                        resource_id = \
+                        app.window["-CONTACT_RESOURCES_TABLE-"].get()[values["-CONTACT_RESOURCES_TABLE-"][0]][0]
+                    except IndexError:
+                        continue
+
+                if app.current_screen == Screen.ORG_VIEW:
+                    org_id = app.window["-ORG_VIEW-"].metadata
+                    app.db.unlink_resource(org=org_id, resource=resource_id)
+                    swap_to_org_viewer(app, org_id=org_id, push=False)
+
+                elif app.current_screen == Screen.CONTACT_VIEW:
+                    contact_id = app.window["-CONTACT_VIEW-"].metadata
+                    app.db.unlink_resource(contact=contact_id, resource=resource_id)
+                    swap_to_contact_viewer(app, contact_id=contact_id, push=False)
+
             case _:
                 continue
 

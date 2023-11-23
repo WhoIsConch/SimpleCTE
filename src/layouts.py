@@ -601,9 +601,10 @@ def empty_contact_view_constructor():
                                         key="-CONTACT_RESOURCES_TABLE-",
                                         headings=["ID", "Name", "Status"],
                                         visible_column_map=[False, True, True],
-                                        right_click_menu=["", ["Create Resource", "Link Resource", "Remove Resource",
+                                        right_click_menu=["", ["Create Resource", "Link Resource", "Unlink Resource",
                                                                "Delete Resource", "Copy ID"]],
                                         right_click_selects=True,
+                                        enable_click_events=True,
                                         expand_x=True,
                                         font=("Arial", 15),
                                         num_rows=5,
@@ -695,9 +696,10 @@ def empty_org_view_constructor():
                                         key="-ORG_RESOURCES_TABLE-",
                                         headings=["ID", "Name", "Value"],
                                         visible_column_map=[False, True, True],
-                                        right_click_menu=["", ["Create Resource", "Link Resource", "Remove Resource",
+                                        right_click_menu=["", ["Create Resource", "Link Resource", "Unlink Resource",
                                                                "Delete Resource", "Copy ID"]],
                                         right_click_selects=True,
+                                        enable_click_events=True,
                                         select_mode=sg.TABLE_SELECT_MODE_BROWSE,
                                         row_height=40,
                                         alternating_row_color=sg.theme_progress_bar_color()[1],
@@ -775,9 +777,11 @@ def swap_to_org_viewer(
             ]
         )
 
+    # Add available resources to the table of organization resources
     for resource in org.resources:
-        resource_table_values.append([resource.name, resource.value])
+        resource_table_values.append([resource.id, resource.name, resource.value])
 
+    # Add the custom fields to the table of custom fields
     for key, value in org.custom_fields.items():
         custom_field_table_values.append([key, value])
 
@@ -831,7 +835,7 @@ def swap_to_contact_viewer(
         organization_table_values.append([org.id, org.name, org.status])
 
     for resource in contact.resources:
-        resource_table_values.append([resource.name, resource.value])
+        resource_table_values.append([resource.id, resource.name, resource.value])
 
     for key, value in contact.custom_fields.items():
         custom_field_table_values.append([key, value])
