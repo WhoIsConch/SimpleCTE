@@ -439,6 +439,92 @@ class Database(orm.Database):
 
         return True
 
+    @orm.db_session
+    def create_contact_info(self, name: str, value: str, contact: "Contact | int" = None, org: "Organization | int" = None) -> bool:
+        if isinstance(contact, int):
+            contact = Contact.get(id=contact)
+
+        if isinstance(org, int):
+            org = Organization.get(id=org)
+
+        if contact is None and org is None:
+            return False
+
+        if contact:
+            if contact.contact_info.get(name, None):
+                return False
+            contact.contact_info[name] = value
+
+        if org:
+            if org.contact_info.get(name, None):
+                return False
+            org.contact_info[name] = value
+
+        self.commit()
+
+        return True
+
+    @orm.db_session
+    def update_contact_info(self, name: str, value: str, contact: "Contact | int" = None, org: "Organization | int" = None) -> bool:
+        if isinstance(contact, int):
+            contact = Contact.get(id=contact)
+
+        if isinstance(org, int):
+            org = Organization.get(id=org)
+
+        if contact is None and org is None:
+            return False
+
+        if contact:
+            contact.contact_info[name] = value
+
+        if org:
+            org.contact_info[name] = value
+
+        self.commit()
+
+        return True
+
+    @orm.db_session
+    def delete_contact_info(self, name: str, value = None, contact: "Contact | int" = None, org: "Organization | int" = None) -> bool:
+        if isinstance(contact, int):
+            contact = Contact.get(id=contact)
+
+        if isinstance(org, int):
+            org = Organization.get(id=org)
+
+        if contact is None and org is None:
+            return False
+
+        contact_diff_values = {
+            "phone": "phone_numbers",
+            "address": "addresses",
+            "email": "emails",
+        }
+
+        org_diff_values = {
+            "phone": "phones",
+            "address": "addresses"
+        }
+
+        if contact:
+            if name.lower() == "availability":
+                contact.availability = ""
+
+            elif name.lower() in contact_diff_values.keys():
+                getattr(contact, contact_diff_values[name.lower()]).remove(value)
+
+            else:
+                del contact.contact_info[name]
+
+        if org:
+            if name in org_diff_values.keys():
+                getattr(org, org_diff_values[name]).remove(value)
+
+        self.commit()
+
+        return True
+
     def construct_database(
             self,
             provider: str,

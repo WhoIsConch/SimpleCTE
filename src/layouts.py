@@ -32,6 +32,21 @@ def format_phone(phone_number: int) -> str:
         return str(phone_number)
 
 
+def strip_phone(phone_number: str) -> int:
+    """
+    Convert a formatted phone number, such as (123) 456-7890 or
+    +1 (123) 456-7890, into a ten-digit or eleven-digit phone number,
+    such as 1234567890 or 11234567890.
+    """
+    phone_number = phone_number.replace("(", "")
+    phone_number = phone_number.replace(")", "")
+    phone_number = phone_number.replace("-", "")
+    phone_number = phone_number.replace(" ", "")
+    phone_number = phone_number.replace("+", "")
+
+    return int(phone_number)
+
+
 def login_constructor(
         server_address: str = "",
         server_port: str = "",
@@ -553,7 +568,8 @@ def empty_contact_view_constructor():
                                     sg.Table(
                                         key="-CONTACT_INFO_TABLE-",
                                         headings=["Title", "Value"],
-                                        right_click_menu=["", ["Add", "Edit", "Delete"]],
+                                        right_click_menu=["", ["View More::CONTACT_INFO", "Add::CONTACT_INFO",
+                                                               "Edit::CONTACT_INFO", "Delete::CONTACT_INFO"]],
                                         right_click_selects=True,
                                         expand_x=True,
                                         font=("Arial", 15),

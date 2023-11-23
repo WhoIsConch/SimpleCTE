@@ -20,7 +20,8 @@ from layouts import (
     get_organization_table,
     create_contact,
     create_organization,
-    format_phone
+    format_phone,
+    strip_phone
 )
 
 
@@ -319,6 +320,7 @@ while True:
                     check=doubleclick_check,
                     args=(app, app.last_selected_id)
                 )
+
         try:
             app.last_selected_id = app.window[event[0]].get()[event[2][0]][0]
         except IndexError:
@@ -1017,7 +1019,7 @@ while True:
 
                 layout = [
                     [sg.Text("Phone Numbers:")],
-                    [sg.Multiline("\n".join(list(phones)), size=(30, 10), disabled=True)],
+                    [sg.Multiline("\n".join(list(phones)), size=(30, 10), disabled=True, horizontal_scroll=True)],
                     [sg.Button("Close")]
                 ]
 
@@ -1042,7 +1044,7 @@ while True:
 
                 layout = [
                     [sg.Text("Phone Numbers, one per line\n(The first number is primary):")],
-                    [sg.Multiline("\n".join(list(phones)), size=(30, 10), key="-PHONES-")],
+                    [sg.Multiline("\n".join(list(phones)), size=(30, 10), key="-PHONES-", horizontal_scroll=True)],
                     [sg.Button("Save"), sg.Button("Cancel")]
                 ]
 
@@ -1055,7 +1057,7 @@ while True:
                     continue
 
                 try:
-                    new_phones = [int(phone.replace("-", "").replace("(", "").replace(")", "").replace(" ", "")) for phone in values["-PHONES-"].split("\n")]
+                    new_phones = [int(strip_phone(phone)) for phone in values["-PHONES-"].split("\n")]
                 except ValueError:
                     sg.popup("Invalid phone number! Phone number must be a continuous string of numbers, or a string "
                              "of numbers separated by dashes or parentheses.")
@@ -1081,7 +1083,7 @@ while True:
 
                 layout = [
                     [sg.Text("Addresses:")],
-                    [sg.Multiline("\n".join(list(record.addresses)), size=(30, 10), disabled=True)],
+                    [sg.Multiline("\n".join(list(record.addresses)), size=(30, 10), disabled=True, horizontal_scroll=True)],
                     [sg.Button("Close")]
                 ]
 
@@ -1102,7 +1104,7 @@ while True:
 
                 layout = [
                     [sg.Text("Addresses, one per line\n(The first address is primary):")],
-                    [sg.Multiline("\n".join(list(record.addresses)), size=(30, 10), key="-ADDRESSES-")],
+                    [sg.Multiline("\n".join(list(record.addresses)), size=(30, 10), key="-ADDRESSES-", horizontal_scroll=True)],
                     [sg.Button("Save"), sg.Button("Cancel")]
                 ]
 
@@ -1123,6 +1125,199 @@ while True:
                 elif app.current_screen == Screen.CONTACT_VIEW:
                     app.db.update_contact(contact_id, addresses=new_addresses)
                     swap_to_contact_viewer(app, contact_id=contact_id, push=False)
+
+            case "View All Emails":
+                # Get the ID of the record we're viewing
+                if app.current_screen == Screen.ORG_VIEW:
+                    org_id = app.window["-ORG_VIEW-"].metadata
+                    record = app.db.get_organization(org_id)
+
+                elif app.current_screen == Screen.CONTACT_VIEW:
+                    contact_id = app.window["-CONTACT_VIEW-"].metadata
+                    record = app.db.get_contact(contact_id)
+
+                layout = [
+                    [sg.Text("Emails:")],
+                    [sg.Multiline("\n".join(list(record.emails)), size=(30, 10), disabled=True, horizontal_scroll=True)],
+                    [sg.Button("Close")]
+                ]
+
+                input_window = sg.Window("View All Emails", layout, finalize=True, modal=True)
+
+                event, values = input_window.read()
+                input_window.close()
+
+            case "Edit Emails":
+                # Get the ID of the record we're viewing
+                if app.current_screen == Screen.ORG_VIEW:
+                    org_id = app.window["-ORG_VIEW-"].metadata
+                    record = app.db.get_organization(org_id)
+
+                elif app.current_screen == Screen.CONTACT_VIEW:
+                    contact_id = app.window["-CONTACT_VIEW-"].metadata
+                    record = app.db.get_contact(contact_id)
+
+                layout = [
+                    [sg.Text("Emails, one per line\n(The first email is primary):")],
+                    [sg.Multiline("\n".join(list(record.emails)), size=(30, 10), key="-EMAILS-")],
+                    [sg.Button("Save"), sg.Button("Cancel")]
+                ]
+
+                input_window = sg.Window("Edit Emails", layout, finalize=True, modal=True)
+
+                event, values = input_window.read()
+                input_window.close()
+
+                if event == "Cancel" or event == sg.WIN_CLOSED:
+                    continue
+
+                new_emails = values["-EMAILS-"].split("\n")
+
+                if app.current_screen == Screen.ORG_VIEW:
+                    app.db.update_organization(org_id, emails=new_emails)
+                    swap_to_org_viewer(app, org_id=org_id, push=False)
+
+                elif app.current_screen == Screen.CONTACT_VIEW:
+                    app.db.update_contact(contact_id, emails=new_emails)
+                    swap_to_contact_viewer(app, contact_id=contact_id, push=False)
+
+            case "Edit Availability":
+                # Get the ID of the record we're viewing
+                if app.current_screen == Screen.ORG_VIEW:
+                    org_id = app.window["-ORG_VIEW-"].metadata
+                    record = app.db.get_organization(org_id)
+
+                elif app.current_screen == Screen.CONTACT_VIEW:
+                    contact_id = app.window["-CONTACT_VIEW-"].metadata
+                    record = app.db.get_contact(contact_id)
+
+                layout = [
+                    [sg.Text("Availability:")],
+                    [sg.Multiline(record.availability, size=(30, 10), key="-AVAILABILITY-")],
+                    [sg.Button("Save"), sg.Button("Cancel")]
+                ]
+
+                input_window = sg.Window("Edit Availability", layout, finalize=True, modal=True)
+
+                event, values = input_window.read()
+                input_window.close()
+
+                if event == "Cancel" or event == sg.WIN_CLOSED:
+                    continue
+
+                new_availability = values["-AVAILABILITY-"]
+
+                if app.current_screen == Screen.ORG_VIEW:
+                    app.db.update_organization(org_id, availability=new_availability)
+                    swap_to_org_viewer(app, org_id=org_id, push=False)
+
+                elif app.current_screen == Screen.CONTACT_VIEW:
+                    app.db.update_contact(contact_id, availability=new_availability)
+                    swap_to_contact_viewer(app, contact_id=contact_id, push=False)
+
+            case "Edit::CONTACT_INFO":
+                # If the contact info is one of Email, Phone, or Address, trigger
+                # The appropriate event.
+                index = values["-CONTACT_INFO_TABLE-"][0]
+                title = app.window["-CONTACT_INFO_TABLE-"].get()[index][0]
+
+                if title == "Email":
+                    event = "Edit Emails"
+                elif title == "Phone":
+                    event = "Edit Phones"
+                elif title == "Address":
+                    event = "Edit Addresses"
+                elif title == "Availability":
+                    event = "Edit Availability"
+                else:
+                    continue
+
+                # Trigger the event
+                event = app.window.write_event_value(event, None)
+
+            case "View More::CONTACT_INFO":
+                # If the contact info is one of Email, Phone, or Address, trigger
+                # The appropriate event.
+                index = values["-CONTACT_INFO_TABLE-"][0]
+                title = app.window["-CONTACT_INFO_TABLE-"].get()[index][0]
+
+                if title == "Email":
+                    event = "View All Emails"
+                elif title == "Phone":
+                    event = "View All Phones"
+                elif title == "Address":
+                    event = "View All Addresses"
+                else:
+                    continue
+
+                # Trigger the event
+                event = app.window.write_event_value(event, None)
+
+            case "Add::CONTACT_INFO":
+                # Show a basic prompt for the user to enter the contact info
+
+                input_window = sg.Window("Add Contact Info", [
+                    [sg.Text("Add new contact info. If you want to add an address, email, or phone,\nconsider "
+                             "alt-clicking an entry in the table and selecting \"Edit.\"")],
+                    [sg.Text("Contact Info Type:"), sg.Input(key="-CONTACT_INFO_TYPE-")],
+                    [sg.Text("Contact Info Value:"), sg.Input(key="-CONTACT_INFO_VALUE-")],
+                    [sg.Button("Add"), sg.Button("Cancel")]
+                ], finalize=True, modal=True)
+
+                event, values = input_window.read()
+                input_window.close()
+
+                if event == "Cancel" or event == sg.WIN_CLOSED:
+                    continue
+
+                if not values["-CONTACT_INFO_TYPE-"] or not values["-CONTACT_INFO_VALUE-"]:
+                    sg.popup("Contact info type and value are required!")
+                    continue
+
+                if len(values["-CONTACT_INFO_TYPE-"]) > 50 or len(values["-CONTACT_INFO_VALUE-"]) > 50:
+                    confirmation = sg.popup_yes_no(
+                        "Making a contact info type or value too long may cause issues with the UI. Are you sure you "
+                        "want to continue?")
+
+                    if confirmation == "No" or confirmation == sg.WIN_CLOSED:
+                        continue
+
+                # Check if any other contact info has the same title
+                for title in app.window["-CONTACT_INFO_TABLE-"].get():
+                    if title[0] == values["-CONTACT_INFO_TYPE-"]:
+                        sg.popup("A contact info type with that name already exists!")
+                        continue
+
+                # Get the contact ID
+                contact_id = app.window["-CONTACT_VIEW-"].metadata
+
+                # Add the contact info
+                app.db.create_contact_info(values["-CONTACT_INFO_TYPE-"], values["-CONTACT_INFO_VALUE-"], contact=contact_id)
+
+                # Reload the table values
+                swap_to_contact_viewer(app, contact_id=contact_id, push=False)
+
+            case "Delete::CONTACT_INFO":
+                # Get the contact info ID
+                try:
+                    contact_info_name = \
+                        app.window["-CONTACT_INFO_TABLE-"].get()[values["-CONTACT_INFO_TABLE-"][0]][0]
+                    contact_info_value = \
+                        app.window["-CONTACT_INFO_TABLE-"].get()[values["-CONTACT_INFO_TABLE-"][0]][1]
+                except IndexError:
+                    continue
+
+                # Get the contact ID
+                contact_id = app.window["-CONTACT_VIEW-"].metadata
+
+                # Delete the contact info
+                if contact_info_name.lower() == "phone":
+                    contact_info_value = int(strip_phone(contact_info_value))
+
+                app.db.delete_contact_info(contact_info_name, contact_info_value, contact=contact_id)
+
+                # Reload the table values
+                swap_to_contact_viewer(app, contact_id=contact_id, push=False)
 
             case _:
                 continue
