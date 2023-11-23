@@ -378,7 +378,7 @@ while True:
                         event, values = new_window.read()
                         new_window.close()
 
-                        if event == "-CANCEL-":
+                        if event == "-CANCEL-" or event == sg.WIN_CLOSED:
                             continue
 
                         if not (values["-FIRST_NAME-"] and values["-LAST_NAME-"]):
@@ -403,7 +403,7 @@ while True:
                         event, values = new_window.read()
                         new_window.close()
 
-                        if event == "-CANCEL-":
+                        if event == "-CANCEL-" or event == sg.WIN_CLOSED:
                             continue
 
                         if not values["-NAME-"] or not values["-TYPE-"]:
