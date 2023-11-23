@@ -1,7 +1,7 @@
 from pony import orm
 from ftplib import FTP
 from enums import DBStatus
-
+import os
 
 class Database(orm.Database):
     """
@@ -14,6 +14,7 @@ class Database(orm.Database):
         self.contacts_page = 0
         self.organizations_page = 0
         self.status = DBStatus.DISCONNECTED
+        self.password = None
 
     def get_contacts(
             self,
@@ -539,16 +540,18 @@ class Database(orm.Database):
             password: str | None = None,
     ) -> "Database":
         # Perform a different operation based on what type of database is being used
+        self.password = password
         match provider:
             case "sqlite":
                 # If the provider is SQLite, we have to check if the user is storing it in an FTP server.
                 # If they are, we have to take download it and temporarily store it on our machine.
                 if server_address:
+
                     ftp = FTP(server_address)
                     ftp.login(username, password)
-                    ftp.cwd(absolute_path)
+                    ftp.cwd(absolute_path[:absolute_path.rfind("/")])
                     ftp.retrbinary(
-                        "RETR " + absolute_path, open("temp/db.db", "wb").write
+                        "RETR " + absolute_path, open("data/temp/db.db", "wb").write
                     )
                     ftp.quit()
 
@@ -581,6 +584,21 @@ class Database(orm.Database):
         self.status = DBStatus.CONNECTED
         return self
 
+    def close_database(self, app: "App") -> bool:
+        if self.status != DBStatus.CONNECTED:
+            return False
+
+        self.disconnect()
+        self.status = DBStatus.DISCONNECTED
+
+        if app.settings["database"]["provider"] == "sqlite" and app.settings["database"]["server_address"]:
+            ftp = FTP(app.settings["database"]["server_address"])
+            ftp.login(app.settings["database"]["username"], self.password)
+            ftp.cwd(app.settings["database"]["absolute_path"])
+            ftp.storbinary("STOR " + app.settings["database"]["absolute_path"], open("temp/db.db", "rb"))
+            ftp.quit()
+
+        return True
 
 db = Database()
 

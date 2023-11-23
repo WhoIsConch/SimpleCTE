@@ -77,6 +77,7 @@ class App:
                 server_address=self.settings["database"]["address"],
                 server_port=self.settings["database"]["port"],
                 username=self.settings["database"]["username"],
+                password="testpass"
             )
             self.stack.push(Screen.ORG_SEARCH)
 
@@ -1318,7 +1319,9 @@ while True:
                 # Reload the table values
                 swap_to_contact_viewer(app, contact_id=contact_id, push=False)
 
+            case "-LOGOUT-":
+                app.db.close_database(app)
+
             case _:
                 continue
 
-print("Hello, world!")
