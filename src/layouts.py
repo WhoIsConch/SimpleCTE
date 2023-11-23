@@ -161,7 +161,6 @@ def get_contact_table(app: "App", values_only: bool = False, search_info: dict[s
     if not contact_pages:
         contact_pages = app.db.get_contacts()
 
-
     for contact in contact_pages:
         org = None
         for org in contact.organizations:
@@ -210,7 +209,8 @@ def get_contact_table(app: "App", values_only: bool = False, search_info: dict[s
 
 @db_session
 def get_organization_table(app: "App", values_only: bool = False, search_info: dict[str, str, str] | None = None,
-                           lazy=False, table_values: list | None = None) -> None | list[list[str | Any]] | tuple[Table, list[str]]:
+                           lazy=False, table_values: list | None = None) -> None | list[list[str | Any]] | tuple[
+    Table, list[str]]:
     """
     Build the table that includes information of organizations.
     """
@@ -678,14 +678,15 @@ def empty_org_view_constructor():
                             element_justification="center",
                             expand_x=True,
                             layout=[
-                                [sg.Text("Organization Contacts")],
+                                [sg.Text("Organization Contacts", font=("Arial", 13))],
                                 [
                                     sg.Table(
                                         key="-ORG_CONTACT_INFO_TABLE-",
                                         headings=["ID", "Name", "Title", "Email", "Phone"],
                                         visible_column_map=[False, True, True, True, True],
+                                        font=("Arial", 15),
                                         select_mode=sg.TABLE_SELECT_MODE_BROWSE,
-                                        row_height=40,
+                                        row_height=30,
                                         alternating_row_color=sg.theme_progress_bar_color()[1],
                                         justification="center",
                                         num_rows=5,
@@ -701,47 +702,49 @@ def empty_org_view_constructor():
                                     )
                                 ],
                             ],
-                        ),
-                        sg.Column(
-                            element_justification="center",
-                            expand_x=True,
-                            layout=[
-                                [sg.Text("Associated Resources")],
-                                [
-                                    sg.Table(
-                                        key="-ORG_RESOURCES_TABLE-",
-                                        headings=["ID", "Name", "Value"],
-                                        visible_column_map=[False, True, True],
-                                        right_click_menu=["", ["Create Resource", "Link Resource", "Unlink Resource",
-                                                               "Delete Resource", "Copy ID"]],
-                                        right_click_selects=True,
-                                        enable_click_events=True,
-                                        select_mode=sg.TABLE_SELECT_MODE_BROWSE,
-                                        row_height=40,
-                                        alternating_row_color=sg.theme_progress_bar_color()[1],
-                                        justification="center",
-                                        num_rows=5,
-                                        auto_size_columns=True,
-                                        expand_x=True,
-                                        values=[[]],
-                                    )
-                                ],
+                        )],
+                    [sg.Column(
+                        element_justification="center",
+                        expand_x=True,
+                        layout=[
+                            [sg.Text("Associated Resources", font=("Arial", 13))],
+                            [
+                                sg.Table(
+                                    key="-ORG_RESOURCES_TABLE-",
+                                    headings=["ID", "Name", "Value"],
+                                    visible_column_map=[False, True, True],
+                                    font=("Arial", 15),
+                                    right_click_menu=["", ["Create Resource", "Link Resource", "Unlink Resource",
+                                                           "Delete Resource", "Copy ID"]],
+                                    right_click_selects=True,
+                                    enable_click_events=True,
+                                    select_mode=sg.TABLE_SELECT_MODE_BROWSE,
+                                    row_height=30,
+                                    alternating_row_color=sg.theme_progress_bar_color()[1],
+                                    justification="center",
+                                    num_rows=5,
+                                    auto_size_columns=True,
+                                    expand_x=True,
+                                    values=[[]],
+                                )
                             ],
-                        ),
+                        ],
+                    ),
                         sg.Column(
                             element_justification="center",
                             expand_x=True,
                             layout=[
-                                [sg.Text("Custom Fields")],
+                                [sg.Text("Custom Fields", font=("Arial", 13))],
                                 [
                                     sg.Table(
                                         key="-ORG_CUSTOM_FIELDS_TABLE-",
                                         headings=["Name", "Value"],
+                                        font=("Arial", 15),
                                         right_click_menu=["", ["Create Custom Field", "Edit Custom Field",
                                                                "Delete Custom Field"]],
                                         right_click_selects=True,
                                         select_mode=sg.TABLE_SELECT_MODE_BROWSE,
-                                        row_height=40,
+                                        row_height=30,
                                         alternating_row_color=sg.theme_progress_bar_color()[1],
                                         justification="center",
                                         num_rows=5,
