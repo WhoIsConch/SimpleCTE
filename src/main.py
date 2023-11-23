@@ -867,6 +867,70 @@ while True:
                     app.db.delete_custom_field(contact=contact_id, name=field_name)
                     swap_to_contact_viewer(app, contact_id=contact_id, push=False)
 
+            case "Change Name":
+                # Change the name of a record.
+
+                # Get the ID of the record we're viewing
+                if app.current_screen == Screen.ORG_VIEW:
+                    org_id = app.window["-ORG_VIEW-"].metadata
+
+                    try:
+                        name = app.window["-NAME-"].get()
+                    except IndexError:
+                        continue
+
+                    layout = [
+                        [sg.Text("New Name:"), sg.Input(key="-NAME-", default_text=name)],
+                        [sg.Button("Change"), sg.Button("Cancel")]
+                    ]
+
+                elif app.current_screen == Screen.CONTACT_VIEW:
+                    contact_id = app.window["-CONTACT_VIEW-"].metadata
+                    contact = app.db.get_contact(contact_id)
+
+                    try:
+                        name = app.window["-CONTACT_NAME-"].get()
+                    except IndexError:
+                        continue
+
+                    layout = [
+                        [sg.Text("New First Name:"), sg.Input(key="-FIRST_NAME-", default_text=contact.first_name)],
+                        [sg.Text("New Last Name:"), sg.Input(key="-LAST_NAME-", default_text=contact.last_name)],
+                        [sg.Button("Change"), sg.Button("Cancel")]
+                    ]
+
+                input_window = sg.Window("Change Name", layout, finalize=True, modal=True)
+
+                event, values = input_window.read()
+                input_window.close()
+
+                new_org_name = values.get("-NAME-", "")
+                new_first_name = values.get("-FIRST_NAME-", "")
+                new_last_name = values.get("-LAST_NAME-", "")
+
+                if event == "Cancel" or event == sg.WIN_CLOSED:
+                    continue
+
+                if not (new_org_name or new_first_name or new_last_name):
+                    sg.popup("A name is required!")
+                    continue
+
+                if len(new_org_name) > 50 or len(new_first_name) > 50 or len(new_last_name) > 50:
+                    confirmation = sg.popup_yes_no("Making a name too long may cause issues with the UI. Are you sure you want to continue?")
+
+                    if confirmation == "No" or confirmation == sg.WIN_CLOSED:
+                        continue
+
+                if app.current_screen == Screen.ORG_VIEW:
+                    app.db.update_organization(org_id, name=new_org_name)
+                    swap_to_org_viewer(app, org_id=org_id, push=False)
+
+                elif app.current_screen == Screen.CONTACT_VIEW:
+                    app.db.update_contact(contact_id, first_name=new_first_name, last_name=new_last_name)
+                    swap_to_contact_viewer(app, contact_id=contact_id, push=False)
+
+                start_lazy()
+
             case _:
                 continue
 

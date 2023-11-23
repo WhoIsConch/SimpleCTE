@@ -146,6 +146,12 @@ class Database(orm.Database):
         else:
             return db_query
 
+    def get_contact(self, contact_id: int) -> "Contact":
+        return Contact.get(id=contact_id)
+
+    def get_organization(self, org_id: int) -> "Organization":
+        return Organization.get(id=org_id)
+
     @orm.db_session
     def create_contact(self, **kwargs) -> "Contact":
         values = kwargs.copy()
@@ -179,6 +185,78 @@ class Database(orm.Database):
         return organization
 
     @orm.db_session
+    def update_contact(self, contact: "Contact | int", **kwargs) -> bool:
+        if isinstance(contact, int):
+            contact = Contact.get(id=contact)
+
+        if contact is None:
+            return False
+
+        for key, value in kwargs.items():
+            # Discard the value if they are empty and its field is required
+            if value == "" and key in ["first_name", "last_name"]:
+                continue
+            if key == "phone_number":
+                contact.phone_numbers = [value]
+            elif key == "address":
+                contact.addresses = [value]
+            else:
+                setattr(contact, key, value)
+
+        self.commit()
+
+        return True
+
+    def update_organization(self, org: "Organization | int", **kwargs) -> bool:
+        if isinstance(org, int):
+            org = Organization.get(id=org)
+
+        if org is None:
+            return False
+
+        for key, value in kwargs.items():
+            # Discard the value if they are empty and its field is required
+            if value == "" and key in ["name", "type"]:
+                continue
+
+            if key == "phone_number":
+                org.phone_numbers = [value]
+            elif key == "address":
+                org.addresses = [value]
+            else:
+                setattr(org, key, value)
+
+        self.commit()
+
+        return True
+
+    @orm.db_session
+    def delete_contact(self, contact: "Contact | int") -> bool:
+        if isinstance(contact, int):
+            contact = Contact.get(id=contact)
+
+        if contact is None:
+            return False
+
+        contact.delete()
+        self.commit()
+
+        return True
+
+    @orm.db_session
+    def delete_organization(self, org: "Organization | int") -> bool:
+        if isinstance(org, int):
+            org = Organization.get(id=org)
+
+        if org is None:
+            return False
+
+        org.delete()
+        self.commit()
+
+        return True
+
+    @orm.db_session
     def add_contact_to_org(self, contact: "Contact int", org: "Organization | int") -> bool:
         if isinstance(org, int):
             org = Organization.get(id=org)
@@ -206,32 +284,6 @@ class Database(orm.Database):
             return False
 
         org.contacts.remove(contact)
-        self.commit()
-
-        return True
-
-    @orm.db_session
-    def delete_contact(self, contact: "Contact | int") -> bool:
-        if isinstance(contact, int):
-            contact = Contact.get(id=contact)
-
-        if contact is None:
-            return False
-
-        contact.delete()
-        self.commit()
-
-        return True
-
-    @orm.db_session
-    def delete_organization(self, org: "Organization | int") -> bool:
-        if isinstance(org, int):
-            org = Organization.get(id=org)
-
-        if org is None:
-            return False
-
-        org.delete()
         self.commit()
 
         return True
