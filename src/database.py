@@ -320,6 +320,73 @@ class Database(orm.Database):
 
         return True
 
+    @orm.db_session
+    def create_custom_field(self, name: str, value: str, contact: "Contact | int" = None, org: "Organization | int" = None) -> bool:
+        if isinstance(contact, int):
+            contact = Contact.get(id=contact)
+
+        if isinstance(org, int):
+            org = Organization.get(id=org)
+
+        if contact is None and org is None:
+            return False
+
+        if contact:
+            if contact.custom_fields.get(name, None):
+                return False
+            contact.custom_fields[name] = value
+
+        if org:
+            if org.custom_fields.get(name, None):
+                return False
+            org.custom_fields[name] = value
+
+        self.commit()
+
+        return True
+
+    @orm.db_session
+    def update_custom_field(self, name: str, value: str, contact: "Contact | int" = None, org: "Organization | int" = None) -> bool:
+        if isinstance(contact, int):
+            contact = Contact.get(id=contact)
+
+        if isinstance(org, int):
+            org = Organization.get(id=org)
+
+        if contact is None and org is None:
+            return False
+
+        if contact:
+            contact.custom_fields[name] = value
+
+        if org:
+            org.custom_fields[name] = value
+
+        self.commit()
+
+        return True
+
+    @orm.db_session
+    def delete_custom_field(self, name: str, contact: "Contact | int" = None, org: "Organization | int" = None) -> bool:
+        if isinstance(contact, int):
+            contact = Contact.get(id=contact)
+
+        if isinstance(org, int):
+            org = Organization.get(id=org)
+
+        if contact is None and org is None:
+            return False
+
+        if contact:
+            del contact.custom_fields[name]
+
+        if org:
+            del org.custom_fields[name]
+
+        self.commit()
+
+        return True
+
     def construct_database(
             self,
             provider: str,
