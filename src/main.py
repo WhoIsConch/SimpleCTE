@@ -8,7 +8,7 @@ from typing import Callable
 import PySimpleGUI as sg
 
 from database import db
-from enums import DBStatus, Screen, AppStatus
+from enums import DBStatus, Screen, AppStatus, DBType
 from layouts import (
     login_constructor,
     search_constructor,
@@ -71,15 +71,7 @@ class App:
                 and self.settings["database"]["location"] == "remote"
         ):
             self.logger.info("Constructing remote SQLite database...")
-            self.db.construct_database(
-                "sqlite",
-                self.settings["database"]["path"],
-                server_address=self.settings["database"]["address"],
-                server_port=self.settings["database"]["port"],
-                username=self.settings["database"]["username"],
-                password="testpass"
-            )
-            self.stack.push(Screen.ORG_SEARCH)
+            self.stack.push(Screen.LOGIN)
 
         elif (
                 self.settings["database"]["system"] == "postgres"
@@ -254,10 +246,7 @@ def start_lazy():
 
 sg.theme(app.settings["theme"])
 
-if app.current_screen == Screen.LOGIN:
-    app.window = sg.Window("Log In to your SimpleCTE Database", login_constructor())
-
-else:
+def main_screen():
     app.window = sg.Window(
         "SimpleCTE",
         finalize=True,
@@ -281,9 +270,23 @@ else:
             ]
         ],
     )
+    start_lazy()
+
+if app.current_screen == Screen.LOGIN:
+    app.window = sg.Window(
+        "Log In to your SimpleCTE Database",
+        login_constructor(
+            provider=app.settings["database"]["system"],
+            server_address=app.settings["database"]["address"],
+            server_port=app.settings["database"]["port"],
+            database_name=app.settings["database"]["path"] or app.settings["database"]["name"],
+            username=app.settings["database"]["username"]
+        ))
+
+else:
+    main_screen()
 
 app.window.Font = ("Arial", 12)
-start_lazy()
 
 while True:
     app.status = AppStatus.READY
@@ -326,21 +329,9 @@ while True:
             app.last_selected_id = app.window[event[0]].get()[event[2][0]][0]
         except IndexError:
             app.last_selected_id = None
+
     else:
         match event:
-            case "-LOGIN-":
-                server_address = values["-SERVER-"]
-                server_port = values["-PORT-"]
-                database_name = values["-DBNAME-"]
-                username = values["-USERNAME-"]
-                password = values["-PASSWORD-"]
-
-                try:
-                    server_port = int(server_port)
-                except ValueError:
-                    sg.popup("Invalid port!")
-                    continue
-
             case "-SEARCHTYPE-":
                 if values["-SEARCHTYPE-"] == "Organizations":
                     app.window["-CONTACT_SCREEN-"].update(visible=False)
@@ -1320,7 +1311,44 @@ while True:
                 swap_to_contact_viewer(app, contact_id=contact_id, push=False)
 
             case "-LOGOUT-":
-                app.db.close_database(app)
+                confirmation = sg.popup_yes_no("Are you sure you want to log out?", title="Log Out")
+
+                if confirmation == "Yes":
+                    app.db.close_database()
+                    app.window.close()
+                    break
+
+            # Login Events
+            case "-LOGIN-":
+                try:
+                    system = DBType(values["-DBTYPE-"].lower())
+                except ValueError:
+                    sg.popup("Invalid database provider!")
+                    continue
+
+                address = values["-SERVER-"]
+                port = values["-PORT-"]
+                name = values["-DBNAME-"]
+                username = values["-USERNAME-"]
+                password = values["-PASSWORD-"]
+
+                try:
+                    app.db.construct_database(
+                        provider=system,
+                        database_name=name,
+                        server_address=address,
+                        server_port=port,
+                        username=username,
+                        password=password
+                    )
+                except Exception as e:
+                    sg.popup("An error occured when connecting to the database.")
+                    raise e
+
+                app.stack.push(Screen.ORG_SEARCH)
+                app.window.close()
+                main_screen()
+
 
             case _:
                 continue

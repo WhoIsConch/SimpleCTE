@@ -48,6 +48,7 @@ def strip_phone(phone_number: str) -> int:
 
 
 def login_constructor(
+        provider: str = "",
         server_address: str = "",
         server_port: str = "",
         database_name: str = "",
@@ -71,6 +72,12 @@ def login_constructor(
             sg.Column(
                 [
                     [
+                        sg.Text("Database Provider", font=("Arial", 10)),
+                        sg.Combo(
+                            ["SQLite", "MySQL", "Postgres"], k="-DBTYPE-", default_value=provider
+                        ),
+                    ],
+                    [
                         sg.Text("Server Address", font=("Arial", 10)),
                         sg.Input(
                             expand_x=True, k="-SERVER-", default_text=server_address
@@ -81,7 +88,7 @@ def login_constructor(
                         sg.Input(expand_x=True, k="-PORT-", default_text=server_port),
                     ],
                     [
-                        sg.Text("Database Name", font=("Arial", 10)),
+                        sg.Text("Database Name or Path", font=("Arial", 10)),
                         sg.Input(
                             expand_x=True, k="-DBNAME-", default_text=database_name
                         ),

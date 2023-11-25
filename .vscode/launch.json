@@ -8,9 +8,10 @@
             "name": "Python: Main",
             "type": "python",
             "request": "launch",
-            "program": "src/main.py",
+            "program": "main.py",
             "console": "integratedTerminal",
-            "justMyCode": true
+            "justMyCode": true,
+            "cwd": "${workspaceFolder}/src"
         }
     ]
 }

@@ -1,7 +1,7 @@
 from pony import orm
 from ftplib import FTP
-from enums import DBStatus
-import os
+from enums import DBStatus, DBType
+
 
 class Database(orm.Database):
     """
@@ -14,7 +14,13 @@ class Database(orm.Database):
         self.contacts_page = 0
         self.organizations_page = 0
         self.status = DBStatus.DISCONNECTED
-        self.password = None
+        self.db_provider = None
+        self.db_absolute_path = None
+        self.db_database_name = None
+        self.db_server_address = None
+        self.db_server_port = None
+        self.db_username = None
+        self.db_password = None
 
     def get_contacts(
             self,
@@ -261,7 +267,7 @@ class Database(orm.Database):
         return True
 
     @orm.db_session
-    def add_contact_to_org(self, contact: "Contact int", org: "Organization | int") -> bool:
+    def add_contact_to_org(self, contact: "Contact | int", org: "Organization | int") -> bool:
         if isinstance(org, int):
             org = Organization.get(id=org)
 
@@ -329,7 +335,8 @@ class Database(orm.Database):
         return True
 
     @orm.db_session
-    def link_resource(self, resource: "Resource | int", org: "Organization | int" = None, contact: "Contact | int" = None) -> bool:
+    def link_resource(self, resource: "Resource | int", org: "Organization | int" = None,
+                      contact: "Contact | int" = None) -> bool:
         if isinstance(resource, int):
             resource = Resource.get(id=resource)
 
@@ -353,7 +360,8 @@ class Database(orm.Database):
         return True
 
     @orm.db_session
-    def unlink_resource(self, resource: "Resource | int", org: "Organization | int" = None, contact: "Contact | int" = None) -> bool:
+    def unlink_resource(self, resource: "Resource | int", org: "Organization | int" = None,
+                        contact: "Contact | int" = None) -> bool:
         if isinstance(resource, int):
             resource = Resource.get(id=resource)
 
@@ -377,7 +385,8 @@ class Database(orm.Database):
         return True
 
     @orm.db_session
-    def create_custom_field(self, name: str, value: str, contact: "Contact | int" = None, org: "Organization | int" = None) -> bool:
+    def create_custom_field(self, name: str, value: str, contact: "Contact | int" = None,
+                            org: "Organization | int" = None) -> bool:
         if isinstance(contact, int):
             contact = Contact.get(id=contact)
 
@@ -402,7 +411,8 @@ class Database(orm.Database):
         return True
 
     @orm.db_session
-    def update_custom_field(self, name: str, value: str, contact: "Contact | int" = None, org: "Organization | int" = None) -> bool:
+    def update_custom_field(self, name: str, value: str, contact: "Contact | int" = None,
+                            org: "Organization | int" = None) -> bool:
         if isinstance(contact, int):
             contact = Contact.get(id=contact)
 
@@ -444,7 +454,8 @@ class Database(orm.Database):
         return True
 
     @orm.db_session
-    def create_contact_info(self, name: str, value: str, contact: "Contact | int" = None, org: "Organization | int" = None) -> bool:
+    def create_contact_info(self, name: str, value: str, contact: "Contact | int" = None,
+                            org: "Organization | int" = None) -> bool:
         if isinstance(contact, int):
             contact = Contact.get(id=contact)
 
@@ -469,7 +480,8 @@ class Database(orm.Database):
         return True
 
     @orm.db_session
-    def update_contact_info(self, name: str, value: str, contact: "Contact | int" = None, org: "Organization | int" = None) -> bool:
+    def update_contact_info(self, name: str, value: str, contact: "Contact | int" = None,
+                            org: "Organization | int" = None) -> bool:
         if isinstance(contact, int):
             contact = Contact.get(id=contact)
 
@@ -490,7 +502,8 @@ class Database(orm.Database):
         return True
 
     @orm.db_session
-    def delete_contact_info(self, name: str, value = None, contact: "Contact | int" = None, org: "Organization | int" = None) -> bool:
+    def delete_contact_info(self, name: str, value=None, contact: "Contact | int" = None,
+                            org: "Organization | int" = None) -> bool:
         if isinstance(contact, int):
             contact = Contact.get(id=contact)
 
@@ -531,8 +544,8 @@ class Database(orm.Database):
 
     def construct_database(
             self,
-            provider: str,
-            absolute_path: str,
+            provider: DBType,
+            absolute_path: str | None = None,
             database_name: str | None = None,
             server_address: str | None = None,
             server_port: int | None = None,
@@ -540,9 +553,16 @@ class Database(orm.Database):
             password: str | None = None,
     ) -> "Database":
         # Perform a different operation based on what type of database is being used
-        self.password = password
+        self.db_provider = provider
+        self.db_absolute_path = absolute_path
+        self.db_database_name = database_name
+        self.db_server_address = server_address
+        self.db_server_port = server_port
+        self.db_username = username
+        self.db_password = password
+
         match provider:
-            case "sqlite":
+            case DBType.SQLITE:
                 # If the provider is SQLite, we have to check if the user is storing it in an FTP server.
                 # If they are, we have to take download it and temporarily store it on our machine.
                 if server_address:
@@ -556,20 +576,20 @@ class Database(orm.Database):
                     ftp.quit()
 
                     self.bind(
-                        provider=provider, filename="data/temp/db.db", create_db=True
+                        provider=provider.value, filename="data/temp/db.db", create_db=True
                     )
                 else:
-                    self.bind(provider=provider, filename=absolute_path, create_db=True)
+                    self.bind(provider=provider.value, filename=absolute_path, create_db=True)
 
-            case ["mysql", "postgres"]:
+            case DBType.POSTGRESQL:
                 # if the provider is MySQL or PostgreSQL, we will connect to the database server.
                 self.bind(
-                    provider=provider,
+                    provider=provider.value,
                     host=server_address,
                     port=server_port,
                     user=username,
-                    passwd=password,
-                    db=database_name,
+                    password=password,
+                    database=database_name,
                 )
 
             # case "postgres":
@@ -584,21 +604,22 @@ class Database(orm.Database):
         self.status = DBStatus.CONNECTED
         return self
 
-    def close_database(self, app: "App") -> bool:
+    def close_database(self) -> bool:
         if self.status != DBStatus.CONNECTED:
             return False
 
         self.disconnect()
         self.status = DBStatus.DISCONNECTED
 
-        if app.settings["database"]["provider"] == "sqlite" and app.settings["database"]["server_address"]:
-            ftp = FTP(app.settings["database"]["server_address"])
-            ftp.login(app.settings["database"]["username"], self.password)
-            ftp.cwd(app.settings["database"]["absolute_path"])
-            ftp.storbinary("STOR " + app.settings["database"]["absolute_path"], open("temp/db.db", "rb"))
+        if self.db_provider == "sqlite" and self.db_server_address:
+            ftp = FTP(host=self.db_server_address)
+            ftp.login(self.db_username, self.db_password)
+            ftp.cwd(self.db_absolute_path[:self.db_absolute_path.rfind("/")] + "/")
+            ftp.storbinary("STOR " + self.db_absolute_path, open("data/temp/db.db", "rb"))
             ftp.quit()
 
         return True
+
 
 db = Database()
 

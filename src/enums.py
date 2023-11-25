@@ -7,6 +7,12 @@ class DBStatus(Enum):
     LOGIN_REQUIRED = 3
 
 
+class DBType(Enum):
+    SQLITE = "sqlite"
+    POSTGRESQL = "postgres"
+    MYSQL = "mysql"
+
+
 class Screen(Enum):
     ORG_SEARCH = 1
     ORG_VIEW = 2
