@@ -603,7 +603,7 @@ class Database(orm.Database):
         self.disconnect()
         self.status = DBStatus.DISCONNECTED
 
-        if app.settings["database"]["provider"] == "sqlite" and app.settings["database"]["server_address"]:
+        if app.settings["database"]["system"] == "sqlite" and app.settings["database"]["address"]:
             ftp = FTP(app.settings["database"]["server_address"])
             ftp.login(app.settings["database"]["username"], self.password)
             ftp.cwd(app.settings["database"]["absolute_path"])

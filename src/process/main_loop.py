@@ -52,6 +52,7 @@ def main_loop(app: "App"):
                 app.last_selected_id = app.window[event[0]].get()[event[2][0]][0]
             except IndexError:
                 app.last_selected_id = None
+
         else:
             match event:
                 case "-LOGIN-":
@@ -1064,6 +1065,7 @@ def main_loop(app: "App"):
 
                 case "-LOGOUT-":
                     app.db.close_database(app)
+                    app.window.close()
 
                 case "-UPDATE_TABLES-":
                     app.window["-CONTACT_TABLE-"].update(values["-UPDATE_TABLES-"][0])
