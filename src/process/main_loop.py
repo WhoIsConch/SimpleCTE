@@ -305,7 +305,7 @@ def main_loop(app: "App"):
 
                     swap_to_org_viewer(app, org_id=org_id, push=False)
 
-                case "Delete" | "-DELETE-" | "-DELETE_CONTACT":
+                case "Delete" | "-DELETE-" | "-DELETE_CONTACT-":
                     confirmation = sg.popup_yes_no("Are you sure you want to delete this record?",
                                                    title="Delete Record")
 

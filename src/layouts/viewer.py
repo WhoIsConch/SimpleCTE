@@ -24,7 +24,6 @@ def get_viewer_head(contact: bool = False) -> list:
                 element_justification="right",
                 layout=[
                     [
-                        sg.Button("Edit", k="-EDIT-"),
                         sg.Button("Delete", k="-DELETE-" if not contact else "-DELETE_CONTACT-"),
                         sg.Button("Exit", k="-EXIT-" if not contact else "-EXIT_CONTACT-"),
                     ]
