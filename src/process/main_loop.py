@@ -79,7 +79,7 @@ def main_loop(app: "App"):
 
                         app.stack.push(Screen.CONTACT_SEARCH)
 
-                case "-EXIT-" | "-EXIT_1-" | "-EXIT_CONTACT-" | "--":
+                case "-EXIT-" | "-EXIT_1-" | "-EXIT_CONTACT-" | "-EXIT_1_CONTACT-":
                     app.switch_to_last_screen()
 
                 case "-SEARCH_BUTTON-":

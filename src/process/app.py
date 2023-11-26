@@ -3,7 +3,6 @@ import os
 import json
 from typing import Callable
 from datetime import datetime
-from threading import Thread
 import PySimpleGUI as sg
 
 from ..utils.enums import Screen, AppStatus, DBStatus

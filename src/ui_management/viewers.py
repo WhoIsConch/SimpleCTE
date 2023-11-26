@@ -1,16 +1,19 @@
-from pony.orm import db_session
-from ..database.database import Organization, Contact
 from typing import TYPE_CHECKING
+
+from pony.orm import db_session
+
+from ..database.database import Organization, Contact
+from ..utils.enums import Screen
 from ..utils.helpers import format_phone
 
 if TYPE_CHECKING:
-    from ..utils.enums import Screen
     from ..process.app import App
 
 __all__ = (
     "swap_to_org_viewer",
     "swap_to_contact_viewer",
 )
+
 
 @db_session
 def swap_to_org_viewer(
