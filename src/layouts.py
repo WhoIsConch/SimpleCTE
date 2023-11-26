@@ -2,6 +2,7 @@ from typing import List, Any, Tuple
 
 import PySimpleGUI as sg
 import typing
+import os
 
 from PySimpleGUI import Table
 
@@ -101,6 +102,46 @@ def login_constructor(
         [sg.Button("Exit"), sg.Button("Connect & Open", k="-LOGIN-")],
     ]
     return login
+
+
+def settings_layout(settings: dict):
+    """
+    Return the layout for the settings screen.
+    """
+    # Overcomplicate the formatting of SQL Titles
+    # TODO: Make this support more than local SQLite
+    current_path = os.path.abspath(settings["database"]["path"])
+
+    dbsys = []
+
+    for char in settings["database"]["system"]:
+        if len(dbsys) == 1:
+            dbsys[0].upper()
+
+        if len(dbsys) > 0 and dbsys[-1].lower() == "s" and char == "q":
+            dbsys[-1] = "S"
+            dbsys.append("Q")
+
+        elif len(dbsys) > 1 and dbsys[-2] == "S" and dbsys[-1] == "Q" and char == "l":
+            dbsys.append("L")
+
+        else:
+            dbsys.append(char)
+
+    dbsys = "".join(dbsys)
+
+    layout = [
+        [sg.Text(f"Current Theme:"), sg.Combo(values=["dark", "systemDefault"], default_value=settings["theme"])],
+        [sg.VPush()],
+        [sg.Text("Current Database System:"), sg.Combo(values=["SQLite", "PostgreSQL"], default_value=dbsys)],
+        [sg.Text("SQLite Location Type:"), sg.Combo(values=["Remote", "Local"], default_value=settings["database"]["location"].title(), key="-SET_DBLOCATION-")],
+        [sg.VPush()],
+        [sg.Text(f"Database Path: {current_path}"), sg.FileBrowse("Change", key="-SET_DBPATH-")],
+        [sg.VPush()],
+        [sg.Button("Discard", key="-DISCARD-"), sg.Push(), sg.Button("Save", key="-SETTINGS_SAVE-")]
+    ]
+
+    return layout
 
 
 def get_action_bar(screen: Screen) -> list[list[sg.Button]]:

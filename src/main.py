@@ -20,6 +20,7 @@ from layouts import (
     get_organization_table,
     create_contact,
     create_organization,
+    settings_layout,
     format_phone,
     strip_phone
 )
@@ -340,6 +341,14 @@ while True:
                 except ValueError:
                     sg.popup("Invalid port!")
                     continue
+
+            case "-SETTINGS-":
+                settings_window = sg.Window("SimpleCTE Settings", layout=settings_layout(app.settings), finalize=True, modal=True)
+
+                event, value = settings_window.read()
+
+                if event == "-DISCARD-" or event == sg.WIN_CLOSED:
+                    settings_window.close()
 
             case "-SEARCHTYPE-":
                 if values["-SEARCHTYPE-"] == "Organizations":
