@@ -1,7 +1,12 @@
 from pony import orm
 from ftplib import FTP
-from enums import DBStatus
-import os
+from ..utils.enums import DBStatus
+from ..utils.helpers import format_phone
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ..process.app import App
+
 
 class Database(orm.Database):
     """
@@ -329,7 +334,8 @@ class Database(orm.Database):
         return True
 
     @orm.db_session
-    def link_resource(self, resource: "Resource | int", org: "Organization | int" = None, contact: "Contact | int" = None) -> bool:
+    def link_resource(self, resource: "Resource | int", org: "Organization | int" = None,
+                      contact: "Contact | int" = None) -> bool:
         if isinstance(resource, int):
             resource = Resource.get(id=resource)
 
@@ -353,7 +359,8 @@ class Database(orm.Database):
         return True
 
     @orm.db_session
-    def unlink_resource(self, resource: "Resource | int", org: "Organization | int" = None, contact: "Contact | int" = None) -> bool:
+    def unlink_resource(self, resource: "Resource | int", org: "Organization | int" = None,
+                        contact: "Contact | int" = None) -> bool:
         if isinstance(resource, int):
             resource = Resource.get(id=resource)
 
@@ -377,7 +384,8 @@ class Database(orm.Database):
         return True
 
     @orm.db_session
-    def create_custom_field(self, name: str, value: str, contact: "Contact | int" = None, org: "Organization | int" = None) -> bool:
+    def create_custom_field(self, name: str, value: str, contact: "Contact | int" = None,
+                            org: "Organization | int" = None) -> bool:
         if isinstance(contact, int):
             contact = Contact.get(id=contact)
 
@@ -402,7 +410,8 @@ class Database(orm.Database):
         return True
 
     @orm.db_session
-    def update_custom_field(self, name: str, value: str, contact: "Contact | int" = None, org: "Organization | int" = None) -> bool:
+    def update_custom_field(self, name: str, value: str, contact: "Contact | int" = None,
+                            org: "Organization | int" = None) -> bool:
         if isinstance(contact, int):
             contact = Contact.get(id=contact)
 
@@ -444,7 +453,8 @@ class Database(orm.Database):
         return True
 
     @orm.db_session
-    def create_contact_info(self, name: str, value: str, contact: "Contact | int" = None, org: "Organization | int" = None) -> bool:
+    def create_contact_info(self, name: str, value: str, contact: "Contact | int" = None,
+                            org: "Organization | int" = None) -> bool:
         if isinstance(contact, int):
             contact = Contact.get(id=contact)
 
@@ -469,7 +479,8 @@ class Database(orm.Database):
         return True
 
     @orm.db_session
-    def update_contact_info(self, name: str, value: str, contact: "Contact | int" = None, org: "Organization | int" = None) -> bool:
+    def update_contact_info(self, name: str, value: str, contact: "Contact | int" = None,
+                            org: "Organization | int" = None) -> bool:
         if isinstance(contact, int):
             contact = Contact.get(id=contact)
 
@@ -490,7 +501,8 @@ class Database(orm.Database):
         return True
 
     @orm.db_session
-    def delete_contact_info(self, name: str, value = None, contact: "Contact | int" = None, org: "Organization | int" = None) -> bool:
+    def delete_contact_info(self, name: str, value=None, contact: "Contact | int" = None,
+                            org: "Organization | int" = None) -> bool:
         if isinstance(contact, int):
             contact = Contact.get(id=contact)
 
@@ -551,12 +563,12 @@ class Database(orm.Database):
                     ftp.login(username, password)
                     ftp.cwd(absolute_path[:absolute_path.rfind("/")])
                     ftp.retrbinary(
-                        "RETR " + absolute_path, open("data/temp/db.db", "wb").write
+                        "RETR " + absolute_path, open("../data/temp/db.db", "wb").write
                     )
                     ftp.quit()
 
                     self.bind(
-                        provider=provider, filename="data/temp/db.db", create_db=True
+                        provider=provider, filename="../data/temp/db.db", create_db=True
                     )
                 else:
                     self.bind(provider=provider, filename=absolute_path, create_db=True)
@@ -599,6 +611,7 @@ class Database(orm.Database):
             ftp.quit()
 
         return True
+
 
 db = Database()
 
@@ -656,3 +669,75 @@ class Resource(db.Entity):
 
     organizations = orm.Set(Organization)
     contacts = orm.Set(Contact)
+
+
+@orm.db_session
+def get_org_table_values(
+        app: "App",
+        search_info: dict[str, str, str] | None = None,
+        paginated: bool = True,
+        table_values: list | None = None,
+):
+    """
+    Get the necessary information from the database to populate the search table's organization info.
+    """
+    if table_values is None:
+        table_values = []
+
+    if search_info:
+        org_pages = app.db.get_organizations(**search_info, paginated=paginated)
+
+    else:
+        org_pages = app.db.get_organizations(paginated=paginated)
+
+    for org in org_pages:
+        contact = org.primary_contact
+        contact_name = contact.name if contact else "No Primary Contact"
+        table_values.append([org.id, org.name, org.type, contact_name, org.status])
+
+    return table_values
+
+
+@orm.db_session
+def get_contact_table_values(
+        app: "App",
+        search_info: dict[str, str, str] | None = None,
+        paginated: bool = True,
+        table_values: list | None = None,
+):
+    """
+    Get the necessary information from the database to populate the search table's contact info.
+    """
+    if table_values is None:
+        table_values = []
+
+    if search_info:
+        contact_pages = app.db.get_contacts(**search_info, paginated=paginated)
+
+    else:
+        contact_pages = app.db.get_contacts(paginated=paginated)
+
+    for contact in contact_pages:
+        org = None
+        for org in contact.organizations:
+            if org.primary_contact == contact:
+                break
+
+        if org:
+            org_name = org.name
+
+        else:
+            org_name = "No Organization"
+
+        table_values.append(
+            [
+                contact.id,
+                contact.name,
+                org_name,
+                format_phone(contact.phone_numbers[0])
+                if contact.phone_numbers
+                else "No Phone Number",
+            ]
+        )
+
+    return table_values
