@@ -35,7 +35,7 @@ def update_settings_window(window: sg.Window, app: "App"):
         window["-SET_DB_SYSTEM-"].update(value="PostgreSQL")
 
     if app.settings.database_location == "local":
-        window["-DB_PATH-"].update(value=app.settings.database_path)
+        window["-SET_DB_PATH-"].update(value=app.settings.database_path)
 
     else:
         window["-SET_DB_URL-"].update(value=app.settings.database_address)
