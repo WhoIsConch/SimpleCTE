@@ -38,7 +38,7 @@ def get_postgresql_layout():
 def get_database_layout():
     layout = [
         # Always enabled
-        [sg.Text("Current Database System:"), sg.Combo(["MySQL", "PostgreSQL", "SQLite"], key="-SET_DB_SYSTEM-", enable_events=True)],
+        [sg.Text("Current Database System:"), sg.Combo(["PostgreSQL", "SQLite"], key="-SET_DB_SYSTEM-", enable_events=True)],
         [sg.HorizontalSeparator()],
         # Disabled if SQLite is not selected
         [sg.TabGroup(
