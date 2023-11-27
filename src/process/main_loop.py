@@ -17,9 +17,6 @@ def main_loop(app: "App"):
         event, values = app.window.read()
         app.status = AppStatus.BUSY
 
-        if event == sg.WIN_CLOSED or event == "Exit":
-            break
-
         print(event, values, "\n")
 
         if isinstance(event, tuple) and event[2][0] is not None:
@@ -1063,7 +1060,7 @@ def main_loop(app: "App"):
                     # Reload the table values
                     swap_to_contact_viewer(app, contact_id=contact_id, push=False)
 
-                case "-LOGOUT-":
+                case "-LOGOUT-" | sg.WIN_CLOSED | "Exit":
                     app.db.close_database(app)
                     app.window.close()
 
@@ -1078,7 +1075,27 @@ def main_loop(app: "App"):
                     backup_handler(app)
 
                 case "-EXPORT_ALL-":
+                    # Export all records in the database
                     export_handler(app)
+
+                case "-EXPORT-":
+                    # Export the selected record
+                    if app.current_screen == Screen.ORG_VIEW:
+                        org_id = app.window["-ORG_VIEW-"].metadata
+                        export_handler(app, org_id=org_id)
+                    elif app.current_screen == Screen.CONTACT_VIEW:
+                        contact_id = app.window["-CONTACT_VIEW-"].metadata
+                        export_handler(app, contact_id=contact_id)
+
+                case "-EXPORT_FILTER-":
+                    # Export based on the current search parameters
+                    export_handler(
+                        app, search_info={
+                            "query": app.window["-SEARCH_QUERY-"].get(),
+                            "field": app.window["-SEARCH_FIELDS-"].get(),
+                            "sort": app.window["-SORT_TYPE-"].get(),
+                        }
+                    )
 
                 case _:
                     continue

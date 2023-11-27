@@ -27,6 +27,7 @@ class Database(orm.Database):
             field: str = "",
             sort: str = "",
             paginated: bool = True,
+            descending: bool = False,
     ):
 
         """
@@ -69,13 +70,13 @@ class Database(orm.Database):
             db_query = orm.select(c for c in Contact)
 
         if sort == "status":
-            db_query = db_query.sort_by(Contact.status)
+            db_query = db_query.sort_by(Contact.status, reverse=descending)
 
         elif sort == "alphabetical":
-            db_query = db_query.sort_by(Contact.last_name)
+            db_query = db_query.sort_by(Contact.last_name, reverse=descending)
 
         elif sort == "type":
-            db_query = db_query.sort_by(Contact.availability)
+            db_query = db_query.sort_by(Contact.availability, reverse=descending)
 
         elif sort == "resource":
             # Query has the ID of the resource to sort by. So, search for all of the 
