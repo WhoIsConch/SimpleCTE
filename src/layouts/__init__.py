@@ -4,3 +4,4 @@ from .create_record import *
 from .viewer import *
 from .login import *
 from .settings import *
+from .backup import *
