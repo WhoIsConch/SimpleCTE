@@ -1,11 +1,22 @@
 import json
 import os
 
+
 class Settings:
     def __init__(self, settings_path: str):
         self.settings_path = settings_path
 
         self.settings = self.load_settings()
+
+    def __eq__(self, other):
+        if isinstance(other, Settings):
+            return self.settings == other.settings
+
+        elif isinstance(other, dict):
+            return self.settings == other
+
+        else:
+            return False
 
     def load_settings(self) -> dict:
         """
@@ -24,7 +35,8 @@ class Settings:
                 "database": {
                     "system": "sqlite",
                     "location": "local",
-                    "path": "",
+                    "path": "data/database.db",
+                    "name": "",
                     "address": "",
                     "port": "",
                     "username": "",
@@ -36,15 +48,24 @@ class Settings:
 
         return settings
 
-    def save_settings(self, settings: dict | None = None) -> None:
+    def save_settings(self, settings: "dict | Settings | None" = None) -> None:
         """
         Save the settings to the settings file.
         """
         if settings is None:
             settings = self.settings
 
+        elif isinstance(settings, Settings):
+            settings = settings.settings
+
         with open(self.settings_path, "w") as settings_file:
             json.dump(settings, settings_file, indent=4)
+
+    def copy(self) -> "Settings":
+        """
+        Return a copy of the settings.
+        """
+        return Settings(self.settings_path)
 
     @property
     def theme(self) -> str:
@@ -212,7 +233,7 @@ class Settings:
         """
         Get the current password.
         """
-        return self.settings["password"]
+        return self.settings["database"]["password"]
 
     @password.setter
     def password(self, password: str) -> None:

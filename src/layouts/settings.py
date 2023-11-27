@@ -14,7 +14,7 @@ def get_general_layout():
 def get_sqlite_layout():
     layout = [
         [sg.Text("SQLite Location Type:"), sg.Combo(["Local", "Remote"], key="-SET_SQLITE_LOCATION_TYPE-", enable_events=True)],
-        [sg.Text("Database Path: "), sg.FileBrowse(key="-SET_DB_PATH-")],  # Disabled if remote
+        [sg.Text("Database Path: ", key="-DB_PATH-"), sg.FileBrowse(key="-SET_DB_PATH-")],  # Disabled if remote
         [sg.Text("Database URL: "), sg.Input(key="-SET_DB_URL-")],
     ]
 

@@ -22,3 +22,6 @@ class Stack:
 
     def peek(self) -> tuple["Screen", dict | None]:
         return self.stack[-1]
+
+    def clear(self) -> None:
+        self.stack.clear()

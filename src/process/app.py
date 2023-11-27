@@ -2,6 +2,8 @@ import logging
 from typing import Callable
 from datetime import datetime
 import PySimpleGUI as sg
+import os
+import sys
 
 from ..utils.enums import Screen, AppStatus, DBStatus
 from ..process.stack import Stack
@@ -219,3 +221,13 @@ class App:
                     ]
                 ],
             )
+
+    def restart(self):
+        """
+        Restart the app. Due to database stuff, this will need
+        to restart the entire program and re-run the file.
+        """
+        self.logger.info("Restarting...")
+        self.window.close()
+        os.execv(sys.executable, ["python"] + sys.argv)
+

@@ -11,8 +11,12 @@ __all__ = (
 )
 
 
-def settings_handler(app: "App"):
-    window = sg.Window("Settings", get_settings_layout(), finalize=True, modal=True)
+def update_settings_window(window: sg.Window, app: "App"):
+    """
+    Updates the settings window with the current settings values, to decide
+    what is disabled and what to display.
+    """
+    window["-SET_THEME-"].update(value=app.settings.theme)
 
     if app.settings.database_system == "sqlite":
         window["-SET_POSTGRESQL_TAB-"].update(disabled=True)
@@ -30,6 +34,25 @@ def settings_handler(app: "App"):
         window["-SET_SQLITE_TAB-"].update(disabled=True)
         window["-SET_DB_SYSTEM-"].update(value="PostgreSQL")
 
+    if app.settings.database_location == "local":
+        window["-DB_PATH-"].update(value=app.settings.database_path)
+
+    else:
+        window["-SET_DB_URL-"].update(value=app.settings.database_address)
+
+    window["-SET_POSTGRESQL_DB_NAME-"].update(value=app.settings.database_name)
+    window["-SET_POSTGRESQL_ADDRESS-"].update(value=app.settings.database_address)
+    window["-SET_POSTGRESQL_PORT-"].update(value=app.settings.database_port)
+    window["-SET_POSTGRESQL_USERNAME-"].update(value=app.settings.database_username)
+    window["-SET_POSTGRESQL_PASSWORD-"].update(value=app.settings.password)
+
+
+def settings_handler(app: "App"):
+    window = sg.Window("Settings", get_settings_layout(), finalize=True, modal=True)
+    settings = app.settings.copy()
+
+    update_settings_window(window, app)
+
     while True:
         event, values = window.read()
 
@@ -39,36 +62,53 @@ def settings_handler(app: "App"):
                 break
 
             case "-SET_SAVE_SETTINGS-":
-                app.settings.theme = values["-SET_THEME-"]
+                settings.theme = values["-SET_THEME-"]
 
-                app.settings.database_system = values["-SET_DB_SYSTEM-"]
+                settings.database_system = values["-SET_DB_SYSTEM-"].lower()
 
-                if app.settings.database_system == "sqlite":
-                    if app.settings.database_location == "local":
-                        app.settings.database_path = values["-SET_DB_PATH-"]
+                if settings.database_system == "sqlite":
+                    if settings.database_location.lower() == "local":
+                        settings.database_path = values["-SET_DB_PATH-"]
+
+                        if settings.database_path == "":
+                            settings.database_path = app.settings.database_path
 
                     else:
-                        app.settings.database_address = values["-SET_DB_URL-"]
+                        settings.database_address = values["-SET_DB_URL-"]
 
                 else:
-                    app.settings.database_name = values["-SET_POSTGRESQL_DB_NAME-"]
-                    app.settings.database_address = values["-SET_POSTGRESQL_ADDRESS-"]
-                    app.settings.database_port = values["-SET_POSTGRESQL_PORT-"]
-                    app.settings.database_username = values["-SET_POSTGRESQL_USERNAME-"]
+                    settings.database_name = values["-SET_POSTGRESQL_DB_NAME-"]
+                    settings.database_address = values["-SET_POSTGRESQL_ADDRESS-"]
+                    settings.database_port = values["-SET_POSTGRESQL_PORT-"]
+                    settings.database_username = values["-SET_POSTGRESQL_USERNAME-"]
+                    settings.database_system = "postgres"
 
                     if values["-SET_POSTGRESQL_SAVE_PASSWORD-"]:
-                        app.settings.password = values["-SET_POSTGRESQL_PASSWORD-"]
+                        settings.password = values["-SET_POSTGRESQL_PASSWORD-"]
 
                     else:
-                        app.settings.password = ""
+                        settings.password = ""
 
-                app.settings.save_settings()
+                if settings == app.settings:
+                    window.close()
+                    break
+
+                restart_win = sg.popup_yes_no(
+                    "You must restart the application for the changes to take effect. Would you like to restart now?"
+                )
+
+                if restart_win == "Yes":
+                    app.settings.save_settings(settings)
+                    app.restart()
+
+                app.settings.save_settings(settings)
 
                 window.close()
                 break
 
             case "-SET_DB_SYSTEM-":
-                if values["-SET_DB_SYSTEM-"] == "SQLite":
+                settings.database_system = values["-SET_DB_SYSTEM-"].lower()
+                if settings.database_system == "sqlite":
                     window["-SET_SQLITE_TAB-"].update(disabled=False)
                     window["-SET_POSTGRESQL_TAB-"].update(disabled=True)
 
@@ -77,7 +117,8 @@ def settings_handler(app: "App"):
                     window["-SET_POSTGRESQL_TAB-"].update(disabled=False)
 
             case "-SET_SQLITE_LOCATION_TYPE-":
-                if values["-SET_SQLITE_LOCATION_TYPE-"] == "local":
+                settings.database_location = values["-SET_SQLITE_LOCATION_TYPE-"].lower()
+                if settings.database_location == "local":
                     window["-SET_DB_PATH-"].update(disabled=False)
                     window["-SET_DB_URL-"].update(disabled=True)
 
