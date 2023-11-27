@@ -4,21 +4,71 @@ from ..layouts import get_action_bar
 
 __all__ = (
     "get_search_layout",
+    "get_field_keys",
+    "get_sort_keys",
 )
+
+
+def get_field_keys(
+        screen: Screen = None,
+        record: str = None,
+) -> dict:
+    if screen == Screen.ORG_SEARCH or record == "organization":
+        return {
+            "id": "id",
+            "name": "name",
+            "type": "type",
+            "status": "status",
+            "phone": "phones",
+            "address": "addresses",
+            # Added so False is not returned when searching for custom fields
+            "custom field name": "custom_fields",
+            "custom field value": "custom_fields",
+            "associated with resource...": "resources",
+        }
+    else:
+        return {
+            "id": "id",
+            "first name": "first_name",
+            "last name": "last_name",
+            "address": "addresses",
+            "phone": "phone_numbers",
+            "email": "emails",
+            "availability": "availability",
+            "status": "status",
+            # Added so False is not returned when searching for custom fields
+            "custom field name": "custom_fields",
+            "custom field value": "custom_fields",
+            "contact info name": "contact_info",
+            "contact info value": "contact_info",
+            "associated with resource...": "resources",
+        }
+
+
+def get_sort_keys(screen: Screen = None, record: str = None) -> dict:
+    fields = get_field_keys(screen)
+    if screen == Screen.ORG_SEARCH or record == "organization":
+        del fields["custom field name"]
+        del fields["custom field value"]
+        del fields["associated with resource..."]
+
+        return fields
+
+    else:
+        del fields["custom field name"]
+        del fields["custom field value"]
+        del fields["contact info name"]
+        del fields["contact info value"]
+        del fields["associated with resource..."]
+
+        return fields
 
 
 def get_search_layout(
         screen: Screen,
 ) -> list:
-    fields = [
-        "Name",
-        "Status",
-        "Primary Phone",
-        "Address",
-        "Custom Field Name",
-        "Custom Field Value",
-    ]
-    filters = ["Status", "Alphabetical", "Type", "Associated with resource..."]
+    fields = [s.title() for s in get_field_keys(screen).keys()]
+    sort_fields = [s.title() for s in get_sort_keys(screen).keys()]
 
     layout = [
         [
@@ -75,10 +125,11 @@ def get_search_layout(
                         sg.Input(k="-SEARCH_QUERY-", expand_x=True),
                     ],
                     [
-                        sg.Text("Search Fields:"),
+                        sg.Text("Search in:"),
                         sg.Combo(fields, k="-SEARCH_FIELDS-", expand_x=True),
-                        sg.Text("Search Filters:"),
-                        sg.Combo(filters, k="-SORT_TYPE-", expand_x=True),
+                        sg.Text("Sort by:"),
+                        sg.Combo(sort_fields, k="-SORT_TYPE-", expand_x=True),
+                        sg.Checkbox("Descending", k="-SORT_DESCENDING-"),
                     ],
                 ],
             )

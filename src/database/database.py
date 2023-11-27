@@ -1,8 +1,11 @@
-from pony import orm
 from ftplib import FTP
-from ..utils.enums import DBStatus
-from ..utils.helpers import format_phone
 from typing import TYPE_CHECKING
+
+from pony import orm
+
+from ..utils.enums import DBStatus, Screen
+from ..utils.helpers import format_phone
+from ..layouts import get_field_keys, get_sort_keys
 
 if TYPE_CHECKING:
     from ..process.app import App
@@ -21,135 +24,93 @@ class Database(orm.Database):
         self.status = DBStatus.DISCONNECTED
         self.password = None
 
-    def get_contacts(
+    def get_records(
             self,
+            record_type: "Organization | Contact | str",
             query: str = "",
             field: str = "",
             sort: str = "",
             paginated: bool = True,
             descending: bool = False,
-    ):
+    ) -> orm.core.Query | bool:
 
         """
-        Get a list of contacts from the database.
+        Get a list of records from the database.
         Field can include, based on the GUI implementation,
         name, status, primary phone, address, custom field name and
         custom field value.
         Sort can be by status, alphabetical, type (commercial/community/other), or 
         association with a resource. 
         """
-
-        field = field.lower()
-        query = query.lower()
-        sort = sort.lower()
-        db_query = None
-
-        if field == "name":
-            db_query = orm.select(c for c in Contact if query in c.name.lower())
-
-        elif field == "status":
-            db_query = orm.select(c for c in Contact if query in c.status.lower())
-
-        elif field == "primary phone":
-            try:
-                query = int(query)
-            except ValueError:
-                return False
-            db_query = orm.select(c for c in Contact if query in c.phone_numbers)
-
-        elif field == "address":
-            db_query = orm.select(c for c in Contact if query in c.addresses)
-
-        elif field == "custom field name":
-            db_query = orm.select(c for c in Contact if query in c.custom_fields.keys())
-
-        elif field == "custom field value":
-            db_query = orm.select(c for c in Contact if query in c.custom_fields.values())
-
-        else:
-            db_query = orm.select(c for c in Contact)
-
-        if sort == "status":
-            db_query = db_query.sort_by(Contact.status, reverse=descending)
-
-        elif sort == "alphabetical":
-            db_query = db_query.sort_by(Contact.last_name, reverse=descending)
-
-        elif sort == "type":
-            db_query = db_query.sort_by(Contact.availability, reverse=descending)
-
-        elif sort == "resource":
-            # Query has the ID of the resource to sort by. So, search for all of the 
-            # contacts that are associated with the resource.
-            # TODO: Filter by Resource
-            db_query = orm.select(c for c in Contact if query in c.resources)
-
-        if paginated:
-            return db_query.page(self.contacts_page, 10)
-        else:
-            return db_query
-
-    def get_organizations(
-            self,
-            query: str = "",
-            field: str = "",
-            sort: str = "",
-            paginated: bool = True,
-    ):
-        """
-        Get a list of organizations from the database.
-        Field can include, based on the GUI implementation,
-        name, status, primary phone, address, custom field name and
-        custom field value.
-        Sort can be by status, alphabetical, type (commercial/community/other), or 
-        primary contact. 
-        """
-
         field = field.lower()
         query = query.lower()
         sort = sort.lower()
 
-        db_query = None
+        # Convert the record type from a string to a class,
+        # to save from importing the classes in some files.
+        if isinstance(record_type, str):
+            if record_type.lower() == "contact":
+                record_type = Contact
 
-        if field == "name":
-            db_query = orm.select(o for o in Organization if query in o.name.lower())
+            elif record_type.lower() == "organization":
+                record_type = Organization
 
-        elif field == "status":
-            db_query = orm.select(o for o in Organization if query in o.status.lower())
-
-        elif field == "primary phone":
-            try:
-                query = int(query)
-            except ValueError:
+            else:
                 return False
-            db_query = orm.select(o for o in Organization if query in o.phones)
 
-        elif field == "address":
-            db_query = orm.select(o for o in Organization if query in o.addresses)
+        field_key = get_field_keys(record=record_type)
 
-        elif field == "custom field name":
-            db_query = orm.select(o for o in Organization if query in o.custom_fields.keys())
+        if field == "phone" or field == "id" or field == "associated with resource..." and not query.isdigit():
+            return False
 
-        elif field == "custom field value":
-            db_query = orm.select(o for o in Organization if query in o.custom_fields.values())
+        if not field or field not in field_key.keys():
+            db_query = orm.select(r for r in record_type)
+
+        elif (field == "custom field name" or
+              field == "custom field value" or
+              field == "contact info name" or
+              field == "contact info value"
+        ):
+            db_query = orm.select(r for r in record_type)
+
+            # Horrible, horrible hack to get around the fact that PonyORM doesn't support
+            # querying JSON fields by keys or values.
+            for record in db_query:
+                for key in (
+                        getattr(record, field_key[field]).keys()
+                        if field == "custom field name" or field == "contact info name"
+                        else getattr(record, field_key[field]).values()):
+                    if query in key.lower():
+                        break
+                else:
+                    db_query = db_query.filter(lambda r: r.id != record.id)
+
+        elif field == "id":
+            db_query = orm.select(r for r in record_type if getattr(r, field_key[field]) == int(query))
+
+        elif field == "associated with resource...":
+            resource = Resource.get(id=int(query))
+
+            if resource is None:
+                return False
+
+            db_query = orm.select(r for r in record_type if resource in getattr(r, field_key[field]))
+
+        elif not isinstance(field_key[field], str):
+            db_query = orm.select(r for r in record_type if query in getattr(r, field_key[field]))
 
         else:
-            db_query = orm.select(o for o in Organization)
+            db_query = orm.select(r for r in record_type if query in getattr(r, field_key[field]).lower())
 
-        if sort == "status":
-            db_query = db_query.sort_by(Organization.status)
-
-        elif sort == "alphabetical":
-            db_query = db_query.sort_by(Organization.name)
-
-        elif sort == "type":
-            db_query = db_query.sort_by(Organization.type)
-
-        elif sort == "primary contact":
-            db_query = db_query.sort_by(Organization.contacts.first().last_name)
+        # Sort the results
+        if sort:
+            # order the results by the specified field
+            db_query = db_query.order_by(
+                orm.desc(getattr(record_type, field_key[sort])) if descending else getattr(record_type, field_key[sort])
+            )
 
         if paginated:
-            return db_query.page(self.organizations_page, 10)
+            return db_query.page(self.contacts_page if record_type == Contact else self.organizations_page, 10)
         else:
             return db_query
 
@@ -572,7 +533,7 @@ class Database(orm.Database):
                         provider=provider, filename="../data/temp/db.db", create_db=True
                     )
                 else:
-                     self.bind(provider=provider, filename=absolute_path, create_db=True)
+                    self.bind(provider=provider, filename=absolute_path, create_db=True)
 
             case ["mysql", "postgres"]:
                 # if the provider is MySQL or PostgreSQL, we will connect to the database server.
@@ -678,6 +639,7 @@ def get_org_table_values(
         search_info: dict[str, str, str] | None = None,
         paginated: bool = True,
         table_values: list | None = None,
+        descending: bool = False,
 ):
     """
     Get the necessary information from the database to populate the search table's organization info.
@@ -685,11 +647,21 @@ def get_org_table_values(
     if table_values is None:
         table_values = []
 
-    if search_info:
-        org_pages = app.db.get_organizations(**search_info, paginated=paginated)
+    if search_info is None:
+        search_info = {}
 
-    else:
-        org_pages = app.db.get_organizations(paginated=paginated)
+    org_pages = app.db.get_records(
+        Organization,
+        **search_info,
+        paginated=paginated,
+        descending=descending
+    )
+
+    if not org_pages:
+        org_pages = app.db.get_records(
+            Organization,
+            paginated=paginated
+        )
 
     for org in org_pages:
         contact = org.primary_contact
@@ -705,6 +677,7 @@ def get_contact_table_values(
         search_info: dict[str, str, str] | None = None,
         paginated: bool = True,
         table_values: list | None = None,
+        descending: bool = False,
 ):
     """
     Get the necessary information from the database to populate the search table's contact info.
@@ -712,11 +685,21 @@ def get_contact_table_values(
     if table_values is None:
         table_values = []
 
-    if search_info:
-        contact_pages = app.db.get_contacts(**search_info, paginated=paginated)
+    if search_info is None:
+        search_info = {}
 
-    else:
-        contact_pages = app.db.get_contacts(paginated=paginated)
+    contact_pages = app.db.get_records(
+        Contact,
+        **search_info,
+        paginated=paginated,
+        descending=descending
+    )
+
+    if not contact_pages:
+        contact_pages = app.db.get_records(
+            Contact,
+            paginated=paginated
+        )
 
     for contact in contact_pages:
         org = None

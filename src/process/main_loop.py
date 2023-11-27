@@ -4,7 +4,7 @@ import PySimpleGUI as sg
 from ..utils.enums import AppStatus, Screen
 from ..ui_management import swap_to_org_viewer, swap_to_contact_viewer, settings_handler, backup_handler, export_handler
 from ..database.database import get_org_table_values, get_contact_table_values
-from ..layouts import get_create_contact_layout, get_create_org_layout
+from ..layouts import get_create_contact_layout, get_create_org_layout, get_field_keys, get_sort_keys
 from ..utils.helpers import format_phone, strip_phone
 
 if TYPE_CHECKING:
@@ -67,13 +67,23 @@ def main_loop(app: "App"):
 
                 case "-SEARCHTYPE-":
                     if values["-SEARCHTYPE-"] == "Organizations":
+                        sort_fields = [s.title() for s in get_sort_keys(screen=Screen.ORG_SEARCH).keys()]
+                        search_fields = [s.title() for s in get_field_keys(screen=Screen.ORG_SEARCH)]
+
                         app.window["-CONTACT_SCREEN-"].update(visible=False)
                         app.window["-ORG_SCREEN-"].update(visible=True)
+                        app.window["-SEARCH_FIELDS-"].update(values=search_fields)
+                        app.window["-SORT_TYPE-"].update(values=sort_fields)
                         app.stack.push(Screen.ORG_SEARCH)
 
                     elif values["-SEARCHTYPE-"] == "Contacts":
+                        sort_fields = [s.title() for s in get_sort_keys(screen=Screen.CONTACT_SEARCH).keys()]
+                        search_fields = [s.title() for s in get_field_keys(screen=Screen.CONTACT_SEARCH)]
+
                         app.window["-ORG_SCREEN-"].update(visible=False)
                         app.window["-CONTACT_SCREEN-"].update(visible=True)
+                        app.window["-SEARCH_FIELDS-"].update(values=search_fields)
+                        app.window["-SORT_TYPE-"].update(values=sort_fields)
 
                         app.stack.push(Screen.CONTACT_SEARCH)
 
@@ -90,11 +100,13 @@ def main_loop(app: "App"):
                     match app.current_screen:
                         case Screen.ORG_SEARCH:
                             app.window["-ORG_TABLE-"].update(
-                                get_org_table_values(app, search_info=search_info))
+                                get_org_table_values(app, search_info=search_info, descending=values["-SORT_DESCENDING-"])
+                            )
 
                         case Screen.CONTACT_SEARCH:
                             app.window["-CONTACT_TABLE-"].update(
-                                get_contact_table_values(app, search_info=search_info))
+                                get_contact_table_values(app, search_info=search_info, descending=values["-SORT_DESCENDING-"])
+                            )
 
                 case "-ADD_RECORD-":
                     match app.current_screen:

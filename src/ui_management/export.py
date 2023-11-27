@@ -106,7 +106,11 @@ def export_handler(
             exporting_window = sg.Window("Exporting...", [[sg.Text("Exporting...")]], finalize=True, modal=True)
 
             if export_orgs:
-                orgs = app.db.get_organizations(paginated=False, **search_info if search_info else {})
+                orgs = app.db.get_records(
+                    "Organizations",
+                    paginated=False,
+                    **search_info if search_info else {}
+                )
                 org_data = [_get_org_data(org) for org in orgs]
 
                 org_df = pd.DataFrame(org_data,
@@ -115,7 +119,11 @@ def export_handler(
                 export_items.append((org_df, "orgs"))
 
             if export_contacts:
-                contacts = app.db.get_contacts(paginated=False, **search_info if search_info else {})
+                contacts = app.db.get_records(
+                    "Contacts",
+                    paginated=False,
+                    **search_info if search_info else {}
+                )
                 contact_data = [_get_contact_data(contact) for contact in contacts]
 
                 contact_df = pd.DataFrame(contact_data,
