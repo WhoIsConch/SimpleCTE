@@ -1,3 +1,6 @@
+import os
+
+
 def format_phone(phone_number: int) -> str:
     """
     Convert a ten-digit or eleven-digit phone number, such as
@@ -27,4 +30,3 @@ def strip_phone(phone_number: str) -> int:
         .replace("+", "")
 
     return int(phone_number)
-

@@ -2,9 +2,9 @@ from typing import TYPE_CHECKING
 import PySimpleGUI as sg
 
 from ..utils.enums import AppStatus, Screen
-from ..ui_management import swap_to_org_viewer, swap_to_contact_viewer
+from ..ui_management import swap_to_org_viewer, swap_to_contact_viewer, settings_handler
 from ..database.database import get_org_table_values, get_contact_table_values
-from ..layouts import get_create_contact_layout, get_create_org_layout
+from ..layouts import get_create_contact_layout, get_create_org_layout, get_settings_layout
 from ..utils.helpers import format_phone, strip_phone
 
 if TYPE_CHECKING:
@@ -1071,6 +1071,8 @@ def main_loop(app: "App"):
                     app.window["-CONTACT_TABLE-"].update(values["-UPDATE_TABLES-"][0])
                     app.window["-ORG_TABLE-"].update(values["-UPDATE_TABLES-"][1])
 
+                case "-SETTINGS-":
+                    settings_handler(app)
 
                 case _:
                     continue

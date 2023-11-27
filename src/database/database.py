@@ -571,7 +571,7 @@ class Database(orm.Database):
                         provider=provider, filename="../data/temp/db.db", create_db=True
                     )
                 else:
-                    self.bind(provider=provider, filename=absolute_path, create_db=True)
+                     self.bind(provider=provider, filename=absolute_path, create_db=True)
 
             case ["mysql", "postgres"]:
                 # if the provider is MySQL or PostgreSQL, we will connect to the database server.
@@ -603,11 +603,11 @@ class Database(orm.Database):
         self.disconnect()
         self.status = DBStatus.DISCONNECTED
 
-        if app.settings["database"]["system"] == "sqlite" and app.settings["database"]["address"]:
-            ftp = FTP(app.settings["database"]["server_address"])
-            ftp.login(app.settings["database"]["username"], self.password)
-            ftp.cwd(app.settings["database"]["absolute_path"])
-            ftp.storbinary("STOR " + app.settings["database"]["absolute_path"], open("temp/db.db", "rb"))
+        if app.settings.database_system == "sqlite" and app.settings.database_address:
+            ftp = FTP(app.settings.database_address)
+            ftp.login(app.settings.database_username, self.password)
+            ftp.cwd(app.settings.absolute_database_path[:app.settings.absolute_database_path.rfind("/")] + "/")
+            ftp.storbinary("STOR " + app.settings.absolute_database_path, open("temp/db.db", "rb"))
             ftp.quit()
 
         return True

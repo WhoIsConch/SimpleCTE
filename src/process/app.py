@@ -1,12 +1,11 @@
 import logging
-import os
-import json
 from typing import Callable
 from datetime import datetime
 import PySimpleGUI as sg
 
 from ..utils.enums import Screen, AppStatus, DBStatus
 from ..process.stack import Stack
+from ..process.settings import Settings
 from ..database.database import db, get_org_table_values, get_contact_table_values
 from ..layouts import get_search_layout, get_contact_view_layout, get_org_view_layout, get_login_layout
 from ..ui_management.viewers import swap_to_org_viewer, swap_to_contact_viewer
@@ -28,45 +27,45 @@ class App:
         self.last_clicked_table_time = None
         self.last_selected_id = None
         self.logger.info("Loading database settings...")
-        self.settings = self.load_settings()
+        self.settings: Settings = Settings("data/settings.json")
+        self.settings.load_settings()
 
         # Decide which database configuration to use
         if (
-                self.settings["database"]["system"] == "sqlite"
-                and self.settings["database"]["location"] == "local"
+                self.settings.database_system == "sqlite"
+                and self.settings.database_location == "local"
         ):
             self.logger.info("Constructing SQLite database...")
-            self.db.construct_database("sqlite", self.settings["database"]["path"])
+            self.db.construct_database("sqlite", self.settings.absolute_database_path)
             self.stack.push(Screen.ORG_SEARCH)
 
         elif (
-                self.settings["database"]["system"] == "sqlite"
-                and self.settings["database"]["location"] == "remote"
+                self.settings.database_system == "sqlite"
+                and self.settings.database_location == "remote"
         ):
             self.logger.info("Constructing remote SQLite database...")
             self.db.construct_database(
                 "sqlite",
-                self.settings["database"]["path"],
-                server_address=self.settings["database"]["address"],
-                server_port=self.settings["database"]["port"],
-                username=self.settings["database"]["username"],
-                password="testpass"
+                self.settings.absolute_database_path,
+                server_address=self.settings.database_address,
+                server_port=self.settings.database_port,
+                username=self.settings.database_username,
             )
             self.stack.push(Screen.ORG_SEARCH)
 
         elif (
-                self.settings["database"]["system"] == "postgres"
-                or self.settings["database"]["system"] == "mysql"
+                self.settings.database_system == "postgres"
+                or self.settings.database_system == "mysql"
         ):
             self.logger.info("Constructing remote database...")
             try:
                 self.db.construct_database(
-                    self.settings["database"]["system"],
-                    self.settings["database"]["name"],
-                    server_address=self.settings["database"]["address"],
-                    server_port=self.settings["database"]["port"],
-                    username=self.settings["database"]["username"],
-                    password=self.settings["database"]["password"],
+                    self.settings.database_system,
+                    self.settings.database_name,
+                    server_address=self.settings.database_address,
+                    server_port=self.settings.database_port,
+                    username=self.settings.database_username,
+                    password=self.settings.database_password,
                 )
             except Exception:
                 self.db.status = (
@@ -79,12 +78,11 @@ class App:
             raise ValueError("Invalid database system!")
 
         # Configure GUI-related settings
-        sg.theme(self.settings["theme"])
+        sg.theme(self.settings.theme)
 
         self.show_start_screen()
         self.lazy_load_table_values()
         self.window.Font = ("Arial", 12)
-
 
     @property
     def current_screen(self) -> Screen:
@@ -159,69 +157,6 @@ class App:
             self.window["-CONTACT_VIEW-"].update(visible=True)
             swap_to_contact_viewer(self, contact_id=self.stack.peek()[1], push=False)
 
-    def load_settings(self) -> dict:
-        """
-        Load the app's settings from the settings.json file.
-        """
-        self.logger.info("Loading settings...")
-        try:
-            with open(
-                    os.path.dirname(os.path.realpath(__file__)) + "\\data\\settings.json",
-                    "r",
-            ) as f:
-                settings: dict = json.load(f)  # Load our settings file
-
-        except FileNotFoundError:
-            self.logger.info("No settings found. Creating settings...")
-            settings = {
-                "database": {
-                    "system": "sqlite",
-                    "location": "local",
-                    "path": "data/db.db",
-                    "name": "db.db",
-                    "address": "",
-                    "port": 0,
-                    "username": "",
-                },
-                "theme": "dark",
-            }
-
-            self.save_settings(settings)
-            return settings
-
-        db_info = settings.get("database")
-
-        if not (db_info and db_info.get("system")):
-            self.logger.info("No database info found. Creating settings...")
-            settings["database"] = {
-                "system": "sqlite",
-                "location": "local",
-                "path": "data/database.db",
-                "name": "database.db",
-                "address": "",
-                "port": 0,
-                "username": "",
-            }
-
-            self.save_settings()
-
-        self.logger.info("Settings loaded!")
-        return settings
-
-    def save_settings(self, settings: dict | None = None) -> None:
-        """
-        Save the app's settings to the settings.json file.
-        """
-        self.logger.info("Saving settings...")
-
-        with open(
-                os.path.dirname(os.path.realpath("src")) + "\\data\\settings.json", "w"
-        ) as f:
-            settings["database"]["path"] = os.path.dirname(os.path.realpath("src")) + "\\" + settings["database"]["path"]
-            json.dump(settings or self.settings, f, indent=4)
-
-        self.logger.info("Settings saved!")
-
     def check_doubleclick(self, callback: Callable, args: tuple, check: "Callable | None" = None) -> None:
         """
         Check if a table was double-clicked. If it was, run the callback.
@@ -241,6 +176,7 @@ class App:
         Load the values for the search tables, in the case there is a
         lot of info in the database to decrease load times.
         """
+
         # Use empty lists to retrieve the information from the threads.
         def get_values():
             values = [get_contact_table_values(self, paginated=False), get_org_table_values(self, paginated=False)]
