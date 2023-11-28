@@ -46,7 +46,12 @@ def get_field_keys(
 
 
 def get_sort_keys(screen: Screen = None, record: str = None) -> dict:
-    fields = get_field_keys(screen)
+    if screen:
+        fields = get_field_keys(screen)
+
+    else:
+        fields = get_field_keys(record=record)
+
     if screen == Screen.ORG_SEARCH or record == "organization":
         del fields["custom field name"]
         del fields["custom field value"]

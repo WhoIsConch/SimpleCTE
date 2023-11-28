@@ -58,10 +58,15 @@ class Database(orm.Database):
             else:
                 return False
 
-        field_key = get_field_keys(record=record_type)
+        record_type_str = "organization" if record_type == Organization else "contact"
+        field_key = get_field_keys(record=record_type_str)
+        sort_key = get_sort_keys(record=record_type_str)
 
-        if field == "phone" or field == "id" or field == "associated with resource..." and not query.isdigit():
+        if (field == "phone" or field == "id" or field == "associated with resource...") and not query.isdigit():
             return False
+
+        if field == "phone" or field == "id":
+            query = int(query)
 
         if not field or field not in field_key.keys():
             db_query = orm.select(r for r in record_type)
@@ -96,7 +101,19 @@ class Database(orm.Database):
 
             db_query = orm.select(r for r in record_type if resource in getattr(r, field_key[field]))
 
-        elif not isinstance(field_key[field], str):
+        elif field == "address" or field == "phone" or field == "email":
+            # Search through each item in the array, making each item lowercase if its a string
+            # using the same hacky method as above, unfortunately.
+            db_query = orm.select(r for r in record_type)
+
+            for record in db_query:
+                for f in getattr(record, field_key[field]):
+                    if str(query) in (f.lower() if isinstance(f, str) else str(f)):
+                        break
+                else:
+                    db_query = db_query.filter(lambda r: r.id != record.id)
+
+        elif not getattr(record_type, field_key[field]).is_string:
             db_query = orm.select(r for r in record_type if query in getattr(r, field_key[field]))
 
         else:
@@ -106,7 +123,7 @@ class Database(orm.Database):
         if sort:
             # order the results by the specified field
             db_query = db_query.order_by(
-                orm.desc(getattr(record_type, field_key[sort])) if descending else getattr(record_type, field_key[sort])
+                orm.desc(getattr(record_type, sort_key[sort])) if descending else getattr(record_type, sort_key[sort])
             )
 
         if paginated:
