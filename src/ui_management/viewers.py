@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 
 from pony.orm import db_session
 
-from ..database.database import Organization, Contact
+from ..database.database import Organization, Contact, Resource
 from ..utils.enums import Screen
 from ..utils.helpers import format_phone
 
@@ -12,6 +12,7 @@ if TYPE_CHECKING:
 __all__ = (
     "swap_to_org_viewer",
     "swap_to_contact_viewer",
+    "swap_to_resource_viewer",
 )
 
 
@@ -131,3 +132,57 @@ def swap_to_contact_viewer(
     app.window["-CONTACT_ADDRESS-"].update(contact.addresses[0] if contact.addresses else "No address")
 
     app.switch_screen(Screen.CONTACT_VIEW, data=contact.id, push=push)  # Switch to the contact viewer screen
+
+
+@db_session
+def swap_to_resource_viewer(
+        app: "App",
+        resource_id: int | None = None,
+        resource: Resource | None = None,
+        push: bool = True,
+) -> None:
+    """
+    Get ready to swap the UI to the resource viewer screen.
+    """
+    if resource_id:
+        resource = Resource.get(id=resource_id)
+
+    if not resource:
+        raise ValueError("Must provide either ID or Resource.")
+
+    contacts_values = [] # ID, Name, Email, and phone
+    organizations_values = [] # ID, Name, Status, and Primary Contact
+
+    # Compile the information of each resource-related contact into a table
+    for contact in resource.contacts:
+        contacts_values.append(
+            [
+                contact.id,
+                contact.name,
+                contact.emails[0] if contact.emails else "No Email",
+                format_phone(contact.phone_numbers[0])
+                if contact.phone_numbers
+                else "No Phone Number",
+            ]
+        )
+
+    # Compile the information of each resource-related organization into a table
+    for org in resource.organizations:
+        organizations_values.append(
+            [
+                org.id,
+                org.name,
+                org.status,
+                org.primary_contact or "No Primary Contact",
+            ]
+        )
+
+    # Update all the data in the screen to the new resource
+    app.window["-RESOURCE_VIEW-"].metadata = resource.id
+    app.window["-RESOURCE_NAME-"].update(resource.name)
+    app.window["-RESOURCE_VALUE-"].update(resource.value)
+
+    app.window["-RESOURCE_CONTACTS_TABLE-"].update(values=contacts_values)
+    app.window["-RESOURCE_ORGANIZATIONS_TABLE-"].update(values=organizations_values)
+
+    app.switch_screen(Screen.RESOURCE_VIEW, data=resource.id, push=push)

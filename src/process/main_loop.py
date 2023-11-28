@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 import PySimpleGUI as sg
 
 from ..utils.enums import AppStatus, Screen
-from ..ui_management import swap_to_org_viewer, swap_to_contact_viewer, settings_handler, backup_handler, export_handler
+from ..ui_management import swap_to_org_viewer, swap_to_contact_viewer, swap_to_resource_viewer, settings_handler, backup_handler, export_handler
 from ..database.database import get_org_table_values, get_contact_table_values
 from ..layouts import get_create_contact_layout, get_create_org_layout, get_field_keys, get_sort_keys
 from ..utils.helpers import format_phone, strip_phone
@@ -87,7 +87,7 @@ def main_loop(app: "App"):
 
                         app.stack.push(Screen.CONTACT_SEARCH)
 
-                case "-EXIT-" | "-EXIT_1-" | "-EXIT_CONTACT-" | "-EXIT_1_CONTACT-":
+                case "-EXIT-" | "-EXIT_1-" | "-EXIT_CONTACT-" | "-EXIT_1_CONTACT-" | "-EXIT_RESOURCE-":
                     app.switch_to_last_screen()
 
                 case "-SEARCH_BUTTON-":
@@ -656,6 +656,20 @@ def main_loop(app: "App"):
                             [sg.Button("Change"), sg.Button("Cancel")]
                         ]
 
+                    elif app.current_screen == Screen.RESOURCE_VIEW:
+                        resource_id = app.window["-RESOURCE_VIEW-"].metadata
+                        resource = app.db.get_resource(resource_id)
+
+                        try:
+                            name = app.window["-RESOURCE_NAME-"].get()
+                        except IndexError:
+                            continue
+
+                        layout = [
+                            [sg.Text("New Name:"), sg.Input(key="-NAME-", default_text=resource.name)],
+                            [sg.Button("Change"), sg.Button("Cancel")]
+                        ]
+
                     input_window = sg.Window("Change Name", layout, finalize=True, modal=True)
 
                     event, values = input_window.read()
@@ -686,6 +700,10 @@ def main_loop(app: "App"):
                     elif app.current_screen == Screen.CONTACT_VIEW:
                         app.db.update_contact(contact_id, first_name=new_first_name, last_name=new_last_name)
                         swap_to_contact_viewer(app, contact_id=contact_id, push=False)
+
+                    elif app.current_screen == Screen.RESOURCE_VIEW:
+                        app.db.update_resource(resource_id, name=new_org_name)
+                        swap_to_resource_viewer(app, resource_id=resource_id, push=False)
 
                     app.lazy_load_table_values()
 
@@ -1108,6 +1126,10 @@ def main_loop(app: "App"):
                             "sort": app.window["-SORT_TYPE-"].get(),
                         }
                     )
+
+                case "-VIEW_RESOURCE-" | "View Resource":
+                    # View the resource
+                    swap_to_resource_viewer(app, resource_id=app.last_selected_id)
 
                 case _:
                     continue

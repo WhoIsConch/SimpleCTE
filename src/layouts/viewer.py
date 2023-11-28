@@ -7,6 +7,7 @@ __all__ = (
     "get_contact_view_layout",
     "get_org_view_layout",
     "get_viewer_head",
+    "get_resource_view_layout",
 )
 
 
@@ -219,7 +220,8 @@ def get_contact_view_layout():
                                         key="-CONTACT_RESOURCES_TABLE-",
                                         headings=["ID", "Name", "Status"],
                                         visible_column_map=[False, True, True],
-                                        right_click_menu=["", ["Create Resource", "Link Resource", "Unlink Resource",
+                                        right_click_menu=["", ["View Resource", "Create Resource", "Link Resource",
+                                                               "Unlink Resource",
                                                                "Delete Resource", "Copy ID"]],
                                         right_click_selects=True,
                                         enable_click_events=True,
@@ -313,7 +315,8 @@ def get_org_view_layout():
                                     headings=["ID", "Name", "Value"],
                                     visible_column_map=[False, True, True],
                                     font=("Arial", 15),
-                                    right_click_menu=["", ["Create Resource", "Link Resource", "Unlink Resource",
+                                    right_click_menu=["", ["View Resource", "Create Resource", "Link Resource",
+                                                           "Unlink Resource",
                                                            "Delete Resource", "Copy ID"]],
                                     right_click_selects=True,
                                     enable_click_events=True,
@@ -349,6 +352,116 @@ def get_org_view_layout():
                                         num_rows=5,
                                         auto_size_columns=True,
                                         expand_x=True,
+                                        values=[[]],
+                                    )
+                                ],
+                            ],
+                        ),
+                    ]
+                ],
+            )
+        ],
+    ]
+
+
+def get_resource_view_layout():
+    return [
+        [
+            sg.Column(
+                expand_x=True,
+                layout=[[
+                    sg.Column(
+                        layout=get_action_bar(Screen.ORG_VIEW),
+                        background_color=sg.theme_progress_bar_color()[1],
+                        element_justification="left",
+                    ),
+                    sg.Push(),
+                    sg.Column(
+                        background_color=sg.theme_progress_bar_color()[1],
+                        element_justification="right",
+                        layout=[
+                            [
+                                sg.Button("Delete", k="-DELETE_RESOURCE-"),
+                                sg.Button("Exit", k="-EXIT_RESOURCE-"),
+                            ]
+                        ],
+                    ),
+                ],
+                    [
+                        sg.Button("Exit", k="-EXIT_1_RESOURCE-", expand_y=True, expand_x=True),
+                        sg.Column(
+                            element_justification="center",
+                            expand_x=True,
+                            right_click_menu=["", ["Change Name"]],
+                            background_color=sg.theme_progress_bar_color()[1],
+                            layout=[
+                                [sg.Text("Resource Name", font=("Arial", 13), background_color=sg.theme_progress_bar_color()[1])],
+                                [sg.Text("", key="-RESOURCE_NAME-", font=("Arial", 15), background_color=sg.theme_progress_bar_color()[1])],
+                            ],
+                        ),
+                        sg.Column(
+                            element_justification="center",
+                            justification="left",
+                            right_click_menu=["", ["Change Value", "View Full Value"]],
+                            background_color=sg.theme_progress_bar_color()[1],
+                            expand_x=True,
+                            layout=[
+                                [sg.Text("Resource Value", font=("Arial", 13), background_color=sg.theme_progress_bar_color()[1])],
+                                [sg.Text("", key="-RESOURCE_VALUE-", font=("Arial", 15), background_color=sg.theme_progress_bar_color()[1])],
+                            ],
+                        )
+                    ]
+                ],
+            )
+        ],
+        [
+            sg.Column(
+                background_color=sg.theme_progress_bar_color()[1],
+                expand_x=True,
+                layout=[
+                    [
+                        sg.Column(
+                            element_justification="center",
+                            expand_x=True,
+                            layout=[
+                                [sg.Text("Associated Organizations", font=("Arial", 13))],
+                                [
+                                    sg.Table(
+                                        key="-RESOURCE_ORGANIZATIONS_TABLE-",
+                                        headings=["ID", "Name", "Status", "Primary Contact"],
+                                        visible_column_map=[False, True, True, True],
+                                        expand_x=True,
+                                        font=("Arial", 15),
+                                        num_rows=5,
+                                        enable_click_events=True,
+                                        right_click_menu=[
+                                            "&Right",
+                                            ["View", "Copy ID", "Link Organization", "Unlink Organization"],
+                                        ],
+                                        right_click_selects=True,
+                                        values=[[]],
+                                    )
+                                ],
+                            ],
+                        ),
+                    ],
+                    [
+                        sg.Column(
+                            element_justification="center",
+                            expand_x=True,
+                            layout=[
+                                [sg.Text("Associated Contacts", font=("Arial", 13))],
+                                [
+                                    sg.Table(
+                                        key="-RESOURCE_CONTACTS_TABLE-",
+                                        headings=["ID", "Name", "Email", "Phone"],
+                                        visible_column_map=[False, True, True, True],
+                                        right_click_menu=["", ["View", "Copy ID", "Link Contact", "Unlink Contact"]],
+                                        right_click_selects=True,
+                                        enable_click_events=True,
+                                        expand_x=True,
+                                        font=("Arial", 15),
+                                        num_rows=5,
                                         values=[[]],
                                     )
                                 ],

@@ -21,6 +21,8 @@ class Screen(Enum):
     BACKUP_SERVER = 11
     EXPORT = 12
     RESOURCE_CREATE = 13
+    RESOURCE_VIEW = 14
+
 
 class AppStatus(Enum):
     READY = 1

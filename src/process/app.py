@@ -9,7 +9,7 @@ from ..utils.enums import Screen, AppStatus, DBStatus
 from ..process.stack import Stack
 from ..process.settings import Settings
 from ..database.database import db, get_org_table_values, get_contact_table_values
-from ..layouts import get_search_layout, get_contact_view_layout, get_org_view_layout, get_login_layout
+from ..layouts import get_search_layout, get_contact_view_layout, get_org_view_layout, get_resource_view_layout, get_login_layout
 from ..ui_management.viewers import swap_to_org_viewer, swap_to_contact_viewer
 
 
@@ -105,7 +105,7 @@ class App:
         Hide all major screens.
         Major screens include the search screens, the org/contact view screens, and the create screens.
         """
-        screens = ["-SEARCH_SCREEN-", "-ORG_VIEW-", "-CONTACT_VIEW-", "-ORG_SCREEN-", "-CONTACT_SCREEN-"]
+        screens = ["-SEARCH_SCREEN-", "-ORG_VIEW-", "-CONTACT_VIEW-", "-ORG_SCREEN-", "-CONTACT_SCREEN-" ,"-RESOURCE_VIEW-"]
 
         for screen in screens:
             self.window[screen].update(visible=False)
@@ -134,6 +134,9 @@ class App:
 
         elif screen == Screen.CONTACT_VIEW:
             self.window["-CONTACT_VIEW-"].update(visible=True)
+
+        elif screen == Screen.RESOURCE_VIEW:
+            self.window["-RESOURCE_VIEW-"].update(visible=True)
 
     def switch_to_last_screen(self) -> None:
         """
@@ -218,6 +221,11 @@ class App:
                             key="-CONTACT_VIEW-",
                             visible=False,
                         ),
+                        sg.Column(
+                            layout=get_resource_view_layout(),
+                            key="-RESOURCE_VIEW-",
+                            visible=False,
+                        )
                     ]
                 ],
             )
@@ -230,4 +238,3 @@ class App:
         self.logger.info("Restarting...")
         self.window.close()
         os.execv(sys.executable, ["python"] + sys.argv)
-
