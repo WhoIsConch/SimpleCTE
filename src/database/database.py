@@ -80,6 +80,8 @@ class Database(orm.Database):
 
             # Horrible, horrible hack to get around the fact that PonyORM doesn't support
             # querying JSON fields by keys or values.
+            exclude_ids = []
+
             for record in db_query:
                 for key in (
                         getattr(record, field_key[field]).keys()
@@ -88,7 +90,9 @@ class Database(orm.Database):
                     if query in key.lower():
                         break
                 else:
-                    db_query = db_query.filter(lambda r: r.id != record.id)
+                    exclude_ids.append(record.id)
+
+            db_query = db_query.filter(lambda r: r.id not in exclude_ids)
 
         elif field == "id":
             db_query = orm.select(r for r in record_type if getattr(r, field_key[field]) == int(query))
@@ -106,12 +110,16 @@ class Database(orm.Database):
             # using the same hacky method as above, unfortunately.
             db_query = orm.select(r for r in record_type)
 
+            exclude_ids = []
+
             for record in db_query:
                 for f in getattr(record, field_key[field]):
                     if str(query) in (f.lower() if isinstance(f, str) else str(f)):
                         break
                 else:
-                    db_query = db_query.filter(lambda r: r.id != record.id)
+                    exclude_ids.append(record.id)
+
+            db_query = db_query.filter(lambda r: r.id not in exclude_ids)
 
         elif not getattr(record_type, field_key[field]).is_string:
             db_query = orm.select(r for r in record_type if query in getattr(r, field_key[field]))
