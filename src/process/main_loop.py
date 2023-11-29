@@ -2,7 +2,8 @@ from typing import TYPE_CHECKING
 import PySimpleGUI as sg
 
 from ..utils.enums import AppStatus, Screen
-from ..ui_management import swap_to_org_viewer, swap_to_contact_viewer, swap_to_resource_viewer, settings_handler, backup_handler, export_handler
+from ..ui_management import swap_to_org_viewer, swap_to_contact_viewer, swap_to_resource_viewer, settings_handler, \
+    backup_handler, export_handler
 from ..database.database import get_org_table_values, get_contact_table_values
 from ..layouts import get_create_contact_layout, get_create_org_layout, get_field_keys, get_sort_keys
 from ..utils.helpers import format_phone, strip_phone
@@ -31,16 +32,23 @@ def main_loop(app: "App"):
                 return app.last_selected_id == current_id and app.last_selected_id is not None
 
             match event[0]:
-                case "-ORG_TABLE-" | "-CONTACT_ORGANIZATIONS_TABLE-":
+                case "-ORG_TABLE-" | "-CONTACT_ORGANIZATIONS_TABLE-" | "-RESOURCE_ORGANIZATIONS_TABLE-":
                     app.check_doubleclick(
                         swap_to_org_viewer,
                         check=doubleclick_check,
                         args=(app, app.last_selected_id)
                     )
 
-                case "-CONTACT_TABLE-" | "-ORG_CONTACT_INFO_TABLE-":
+                case "-CONTACT_TABLE-" | "-ORG_CONTACT_INFO_TABLE-" | "-RESOURCE_CONTACTS_TABLE-":
                     app.check_doubleclick(
                         swap_to_contact_viewer,
+                        check=doubleclick_check,
+                        args=(app, app.last_selected_id)
+                    )
+
+                case "-ORG_RESOURCES_TABLE-" | "-CONTACT_RESOURCES_TABLE-":
+                    app.check_doubleclick(
+                        swap_to_resource_viewer,
                         check=doubleclick_check,
                         args=(app, app.last_selected_id)
                     )
@@ -87,7 +95,7 @@ def main_loop(app: "App"):
 
                         app.stack.push(Screen.CONTACT_SEARCH)
 
-                case "-EXIT-" | "-EXIT_1-" | "-EXIT_CONTACT-" | "-EXIT_1_CONTACT-" | "-EXIT_RESOURCE-":
+                case "-EXIT-" | "-EXIT_1-" | "-EXIT_CONTACT-" | "-EXIT_1_CONTACT-" | "-EXIT_RESOURCE-" | "-EXIT_1_RESOURCE-":
                     app.switch_to_last_screen()
 
                 case "-SEARCH_BUTTON-":
@@ -100,18 +108,21 @@ def main_loop(app: "App"):
                     match app.current_screen:
                         case Screen.ORG_SEARCH:
                             app.window["-ORG_TABLE-"].update(
-                                get_org_table_values(app, search_info=search_info, descending=values["-SORT_DESCENDING-"])
+                                get_org_table_values(app, search_info=search_info,
+                                                     descending=values["-SORT_DESCENDING-"])
                             )
 
                         case Screen.CONTACT_SEARCH:
                             app.window["-CONTACT_TABLE-"].update(
-                                get_contact_table_values(app, search_info=search_info, descending=values["-SORT_DESCENDING-"])
+                                get_contact_table_values(app, search_info=search_info,
+                                                         descending=values["-SORT_DESCENDING-"])
                             )
 
                 case "-ADD_RECORD-":
                     match app.current_screen:
                         case Screen.CONTACT_SEARCH:
-                            new_window = sg.Window("Add Contact", get_create_contact_layout(), modal=True, finalize=True)
+                            new_window = sg.Window("Add Contact", get_create_contact_layout(), modal=True,
+                                                   finalize=True)
                             event, values = new_window.read()
                             new_window.close()
 
@@ -137,7 +148,8 @@ def main_loop(app: "App"):
                             swap_to_contact_viewer(app, contact=contact)
 
                         case Screen.ORG_SEARCH:
-                            new_window = sg.Window("Add Organization", get_create_org_layout(), modal=True, finalize=True)
+                            new_window = sg.Window("Add Organization", get_create_org_layout(), modal=True,
+                                                   finalize=True)
                             event, values = new_window.read()
                             new_window.close()
 
@@ -186,6 +198,34 @@ def main_loop(app: "App"):
 
                     if app.last_selected_id and method:
                         method(app, app.last_selected_id)
+
+                case "View::RESOURCE_ORG":
+                    if not values["-RESOURCE_ORGANIZATIONS_TABLE-"]:
+                        continue
+
+                    if app.last_selected_id:
+                        swap_to_org_viewer(app, org_id=app.last_selected_id)
+
+                case "View::RESOURCE_CONTACT":
+                    if not values["-RESOURCE_CONTACTS_TABLE-"]:
+                        continue
+
+                    if app.last_selected_id:
+                        swap_to_contact_viewer(app, contact_id=app.last_selected_id)
+
+                case "View Full Value":
+                    resource = app.db.get_resource(app.window["-RESOURCE_VIEW-"].metadata)
+
+                    layout = [
+                        [sg.Text("Full Resource Value:")],
+                        [sg.Multiline(resource.value, size=(30, 10), horizontal_scroll=True, disabled=True)],
+                        [sg.Button("Close")]
+                    ]
+
+                    view_window = sg.Window("Full Resource Value", layout, finalize=True, modal=True)
+
+                    _ = view_window.read()
+                    view_window.close()
 
                 case "Add Contact":
                     user_input = sg.popup_get_text(
@@ -670,6 +710,9 @@ def main_loop(app: "App"):
                             [sg.Button("Change"), sg.Button("Cancel")]
                         ]
 
+                    else:
+                        continue
+
                     input_window = sg.Window("Change Name", layout, finalize=True, modal=True)
 
                     event, values = input_window.read()
@@ -1089,6 +1132,79 @@ def main_loop(app: "App"):
 
                     # Reload the table values
                     swap_to_contact_viewer(app, contact_id=contact_id, push=False)
+
+                case "Change Value":
+                    # Change the value of a resource
+                    resource_id = app.window["-RESOURCE_VIEW-"].metadata
+                    resource = app.db.get_resource(resource_id)
+
+                    layout = [
+                        [sg.Text("Full Resource Value:")],
+                        [sg.Multiline(resource.value, size=(30, 10), horizontal_scroll=True, key="-NEW_VALUE-")],
+                        [sg.Button("Close")]
+                    ]
+
+                    input_window = sg.Window("Change Value", layout, finalize=True, modal=True)
+
+                    event, values = input_window.read()
+                    input_window.close()
+
+                    if event == "Cancel" or event == sg.WIN_CLOSED:
+                        continue
+
+                    new_value = values["-NEW_VALUE-"]
+
+                    if new_value == resource.value:
+                        continue
+
+                    app.db.update_resource(resource_id, value=new_value)
+                    swap_to_resource_viewer(app, resource_id=resource_id, push=False)
+
+                case "Link Organization" | "Link Contact":
+                    # Link an organization to a contact via the Contact View screen
+                    selected_item = event.split(" ")[-1]
+
+                    input_window = sg.Window(f"Link {selected_item}", layout=[
+                        [sg.Text(f"{selected_item} ID:"), sg.Input(key="-RECORD_ID-", size=(10, 20))
+                         ],
+                        [sg.Button("Link"), sg.Button("Cancel")]
+                    ], finalize=True, modal=True)
+
+                    event, values = input_window.read()
+                    input_window.close()
+
+                    if event == "Cancel" or event == sg.WIN_CLOSED:
+                        continue
+
+                    try:
+                        record_id = int(values["-RECORD_ID-"])
+                    except ValueError:
+                        sg.popup(f"Invalid {record} ID!")
+                        continue
+
+                    resource_id = app.window["-RESOURCE_VIEW-"].metadata
+
+                    if selected_item.lower() == "organization":
+                        app.db.link_resource(org=record_id, resource=resource_id)
+                    elif selected_item.lower() == "contact":
+                        app.db.link_resource(contact=record_id, resource=resource_id)
+
+                    swap_to_resource_viewer(app, resource_id=resource_id, push=False)
+
+                case "Unlink Contact" | "Unlink Organization":
+                    # Unlink an organization or contact from a resource
+                    selected_item = event.split(" ")[-1]
+                    resource_id = app.window["-RESOURCE_VIEW-"].metadata
+
+                    if selected_item.lower() == "organization":
+                        record_id = app.window["-RESOURCE_ORGANIZATIONS_TABLE-"].get()[values["-RESOURCE_ORGANIZATIONS_TABLE-"][0]][0]
+                        app.db.unlink_resource(resource=resource_id, org=record_id)
+
+                    elif selected_item.lower() == "contact":
+                        record_id = app.window["-RESOURCE_CONTACTS_TABLE-"].get()[values["-RESOURCE_CONTACTS_TABLE-"][0]][0]
+                        app.db.unlink_resource(resource=resource_id, contact=record_id)
+
+                    swap_to_resource_viewer(app, resource_id=resource_id, push=False)
 
                 case "-LOGOUT-" | sg.WIN_CLOSED | "Exit":
                     app.db.close_database(app)

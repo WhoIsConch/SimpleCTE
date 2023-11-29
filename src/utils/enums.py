@@ -9,10 +9,10 @@ class DBStatus(Enum):
 
 class Screen(Enum):
     ORG_SEARCH = 1
-    ORG_VIEW = 2
+    ORG_VIEW = "-ORG_VIEW-"
     ORG_CREATE = 3
     CONTACT_SEARCH = 4
-    CONTACT_VIEW = 5
+    CONTACT_VIEW = "-CONTACT_VIEW-"
     CONTACT_CREATE = 6
     LOGIN = 7
     SETTINGS = 8
@@ -21,7 +21,7 @@ class Screen(Enum):
     BACKUP_SERVER = 11
     EXPORT = 12
     RESOURCE_CREATE = 13
-    RESOURCE_VIEW = 14
+    RESOURCE_VIEW = "-RESOURCE_VIEW-"
 
 
 class AppStatus(Enum):

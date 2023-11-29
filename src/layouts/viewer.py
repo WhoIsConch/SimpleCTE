@@ -371,11 +371,10 @@ def get_resource_view_layout():
                 expand_x=True,
                 layout=[[
                     sg.Column(
-                        layout=get_action_bar(Screen.ORG_VIEW),
+                        layout=get_action_bar(Screen.RESOURCE_VIEW),
                         background_color=sg.theme_progress_bar_color()[1],
                         element_justification="left",
                     ),
-                    sg.Push(),
                     sg.Column(
                         background_color=sg.theme_progress_bar_color()[1],
                         element_justification="right",
@@ -436,7 +435,7 @@ def get_resource_view_layout():
                                         enable_click_events=True,
                                         right_click_menu=[
                                             "&Right",
-                                            ["View", "Copy ID", "Link Organization", "Unlink Organization"],
+                                            ["View::RESOURCE_ORG", "Copy ID", "Link Organization", "Unlink Organization"],
                                         ],
                                         right_click_selects=True,
                                         values=[[]],
@@ -456,12 +455,13 @@ def get_resource_view_layout():
                                         key="-RESOURCE_CONTACTS_TABLE-",
                                         headings=["ID", "Name", "Email", "Phone"],
                                         visible_column_map=[False, True, True, True],
-                                        right_click_menu=["", ["View", "Copy ID", "Link Contact", "Unlink Contact"]],
+                                        right_click_menu=["", ["View::RESOURCE_CONTACT", "Copy ID", "Link Contact", "Unlink Contact"]],
                                         right_click_selects=True,
                                         enable_click_events=True,
                                         expand_x=True,
                                         font=("Arial", 15),
                                         num_rows=5,
+                                        size=(500, 200),
                                         values=[[]],
                                     )
                                 ],

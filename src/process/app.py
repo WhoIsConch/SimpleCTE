@@ -10,7 +10,7 @@ from ..process.stack import Stack
 from ..process.settings import Settings
 from ..database.database import db, get_org_table_values, get_contact_table_values
 from ..layouts import get_search_layout, get_contact_view_layout, get_org_view_layout, get_resource_view_layout, get_login_layout
-from ..ui_management.viewers import swap_to_org_viewer, swap_to_contact_viewer
+from ..ui_management.viewers import swap_to_org_viewer, swap_to_contact_viewer, swap_to_resource_viewer
 
 
 class App:
@@ -146,6 +146,9 @@ class App:
 
         self.hide_major_screens()
 
+        record_id = self.stack.peek()[1]
+        screen = self.current_screen.value
+
         if self.current_screen == Screen.ORG_SEARCH:
             self.window["-SEARCH_SCREEN-"].update(visible=True)
             self.window["-ORG_SCREEN-"].update(visible=True)
@@ -154,13 +157,17 @@ class App:
             self.window["-SEARCH_SCREEN-"].update(visible=True)
             self.window["-CONTACT_SCREEN-"].update(visible=True)
 
-        elif self.current_screen == Screen.ORG_VIEW:
-            self.window["-ORG_VIEW-"].update(visible=True)
-            swap_to_org_viewer(self, org_id=self.stack.peek()[1], push=False)
+        else:
+            self.window[screen].update(visible=True)
 
-        elif self.current_screen == Screen.CONTACT_VIEW:
-            self.window["-CONTACT_VIEW-"].update(visible=True)
-            swap_to_contact_viewer(self, contact_id=self.stack.peek()[1], push=False)
+            if self.current_screen == Screen.ORG_VIEW:
+                swap_to_org_viewer(self, org_id=record_id, push=False)
+
+            elif self.current_screen == Screen.CONTACT_VIEW:
+                swap_to_contact_viewer(self, contact_id=record_id, push=False)
+
+            elif self.current_screen == Screen.RESOURCE_VIEW:
+                swap_to_resource_viewer(self, resource_id=record_id, push=False)
 
     def check_doubleclick(self, callback: Callable, args: tuple, check: "Callable | None" = None) -> None:
         """

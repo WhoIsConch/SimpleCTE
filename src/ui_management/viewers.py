@@ -150,8 +150,8 @@ def swap_to_resource_viewer(
     if not resource:
         raise ValueError("Must provide either ID or Resource.")
 
-    contacts_values = [] # ID, Name, Email, and phone
-    organizations_values = [] # ID, Name, Status, and Primary Contact
+    contacts_values = []  # ID, Name, Email, and phone
+    organizations_values = []  # ID, Name, Status, and Primary Contact
 
     # Compile the information of each resource-related contact into a table
     for contact in resource.contacts:
@@ -177,10 +177,23 @@ def swap_to_resource_viewer(
             ]
         )
 
+    # Deprecate the displayed values in case they are above desired length
+    if len(resource.name) > 20:
+        name = resource.name[:20] + "..."
+
+    else:
+        name = resource.name
+
+    if len(resource.value) > 20:
+        value = resource.value[:20] + "..."
+
+    else:
+        value = resource.value
+
     # Update all the data in the screen to the new resource
     app.window["-RESOURCE_VIEW-"].metadata = resource.id
-    app.window["-RESOURCE_NAME-"].update(resource.name)
-    app.window["-RESOURCE_VALUE-"].update(resource.value)
+    app.window["-RESOURCE_NAME-"].update(name)
+    app.window["-RESOURCE_VALUE-"].update(value)
 
     app.window["-RESOURCE_CONTACTS_TABLE-"].update(values=contacts_values)
     app.window["-RESOURCE_ORGANIZATIONS_TABLE-"].update(values=organizations_values)
