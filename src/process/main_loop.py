@@ -365,33 +365,6 @@ def main_loop(app: "App"):
 
             swap_to_org_viewer(app, org_id=org_id, push=False)
 
-        elif event.lower().strip("-").startswith("delete"):
-            confirmation = sg.popup_yes_no("Are you sure you want to delete this record?",
-                                           title="Delete Record")
-
-            if confirmation == "Yes":
-                match app.current_screen:
-                    case Screen.ORG_VIEW:
-                        org_id = app.window["-ORG_VIEW-"].metadata
-                        app.db.delete_organization(org_id)
-                        app.switch_to_last_screen()
-
-                    case Screen.CONTACT_VIEW:
-                        contact_id = app.window["-CONTACT_VIEW-"].metadata
-                        app.db.delete_contact(contact_id)
-                        app.switch_to_last_screen()
-
-                    case Screen.ORG_SEARCH:
-                        app.db.delete_organization(app.last_selected_id)
-                        app.window["-ORG_TABLE-"].update(get_org_table_values(app))
-
-                    case Screen.CONTACT_SEARCH:
-                        app.db.delete_contact(app.last_selected_id)
-                        app.window["-CONTACT_TABLE-"].update(get_contact_table_values(app))
-
-                # Reload the table values after the record is deleted
-                app.lazy_load_table_values()
-
         elif event == "Create Resource":
             input_window = sg.Window("Create Resource", [
                 [sg.Text("Resource Name:"), sg.Input(key="-RESOURCE_NAME-")],
@@ -1213,6 +1186,33 @@ def main_loop(app: "App"):
                 app.db.unlink_resource(resource=resource_id, contact=record_id)
 
             swap_to_resource_viewer(app, resource_id=resource_id, push=False)
+
+        elif event.lower().strip("-").startswith("delete"):
+            confirmation = sg.popup_yes_no("Are you sure you want to delete this record?",
+                                           title="Delete Record")
+
+            if confirmation == "Yes":
+                match app.current_screen:
+                    case Screen.ORG_VIEW:
+                        org_id = app.window["-ORG_VIEW-"].metadata
+                        app.db.delete_organization(org_id)
+                        app.switch_to_last_screen()
+
+                    case Screen.CONTACT_VIEW:
+                        contact_id = app.window["-CONTACT_VIEW-"].metadata
+                        app.db.delete_contact(contact_id)
+                        app.switch_to_last_screen()
+
+                    case Screen.ORG_SEARCH:
+                        app.db.delete_organization(app.last_selected_id)
+                        app.window["-ORG_TABLE-"].update(get_org_table_values(app))
+
+                    case Screen.CONTACT_SEARCH:
+                        app.db.delete_contact(app.last_selected_id)
+                        app.window["-CONTACT_TABLE-"].update(get_contact_table_values(app))
+
+                # Reload the table values after the record is deleted
+                app.lazy_load_table_values()
 
         elif event == "-UPDATE_TABLES-":
             app.window["-CONTACT_TABLE-"].update(values["-UPDATE_TABLES-"][0])
