@@ -49,7 +49,6 @@ def export_handler(
         app: "App",
         org_id: int | None = None,
         contact_id: int | None = None,
-        resource_id: int | None = None,
         search_info: dict | None = None,
 ):
     """

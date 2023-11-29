@@ -26,7 +26,7 @@ def get_export_layout():
                 ]
             )
         ],
-            [sg.Column(visible=False, justification="left", key="-EXPORT_FILTER_COL-", layout=[
+            [sg.pin(sg.Column(visible=False, justification="left", key="-EXPORT_FILTER_COL-", layout=[
                 [
                     sg.Text("Search Query:", size=(15, 1)),
                     sg.InputText(key="-EXPORT_SEARCH_QUERY-", size=(30, 1)),
@@ -42,7 +42,7 @@ def get_export_layout():
                               "Resource"], key="-EXPORT_SORT_TYPE-", size=(10, 1)),
                     sg.Checkbox("Descending", key="-EXPORT_SORT_DESCENDING-")
                 ],
-            ]),
+            ])),
         ],
         [
          sg.Column(layout=[[
