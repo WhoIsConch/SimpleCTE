@@ -308,6 +308,21 @@ class Database(orm.Database):
         return resource
 
     @orm.db_session
+    def update_resource(self, resource: "Resource | int", **kwargs) -> "Resource":
+        if isinstance(resource, int):
+            resource = Resource.get(id=resource)
+
+        for key, value in kwargs.items():
+            setattr(resource, key, value)
+
+        self.commit()
+        return resource
+
+    @orm.db_session
+    def get_resource(self, resource_id: int) -> "Resource":
+        return Resource.get(id=resource_id)
+
+    @orm.db_session
     def delete_resource(self, resource: "Resource | int") -> bool:
         if isinstance(resource, int):
             resource = Resource.get(id=resource)
