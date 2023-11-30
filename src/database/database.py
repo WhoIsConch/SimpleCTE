@@ -1,5 +1,5 @@
 from ftplib import FTP
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from pony import orm
 
@@ -676,7 +676,7 @@ class Resource(db.Entity):
 @orm.db_session
 def get_org_table_values(
         app: "App",
-        search_info: dict[str, str, str] | None = None,
+        search_info: dict[str, Any] | None = None,
         paginated: bool = True,
         table_values: list | None = None,
         descending: bool = False,
@@ -714,7 +714,7 @@ def get_org_table_values(
 @orm.db_session
 def get_contact_table_values(
         app: "App",
-        search_info: dict[str, str, str] | None = None,
+        search_info: dict[str, Any] | None = None,
         paginated: bool = True,
         table_values: list | None = None,
         descending: bool = False,

@@ -206,6 +206,8 @@ def main_loop(app: "App"):
                                                  descending=values["-SORT_DESCENDING-"])
                     )
 
+            app.lazy_load_table_values(search_info)
+
         elif event.startswith("-ADD_RECORD-"):
             if app.current_screen in [Screen.CONTACT_SEARCH, Screen.CONTACT_VIEW]:
                 new_window = sg.Window("Add Contact", get_create_contact_layout(), modal=True,

@@ -185,7 +185,7 @@ class App:
         else:
             self.last_clicked_table_time = datetime.now()
 
-    def lazy_load_table_values(self):
+    def lazy_load_table_values(self, search_info: dict = None):
         """
         Load the values for the search tables, in the case there is a
         lot of info in the database to decrease load times.
@@ -193,7 +193,7 @@ class App:
 
         # Use empty lists to retrieve the information from the threads.
         def get_values():
-            values = [get_contact_table_values(self, paginated=False), get_org_table_values(self, paginated=False)]
+            values = [get_contact_table_values(self, paginated=False, search_info=search_info), get_org_table_values(self, paginated=False, search_info=search_info)]
 
             return values
 
