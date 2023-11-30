@@ -81,6 +81,9 @@ class Database(orm.Database):
         field_key = get_field_keys(record=record_type_str)
         sort_key = get_sort_keys(record=record_type_str)
 
+        if sort and sort not in sort_key:
+            return False
+
         if (field == "phone" or field == "id" or field == "associated with resource...") and not query.isdigit():
             return False
 
@@ -149,9 +152,14 @@ class Database(orm.Database):
         # Sort the results
         if sort:
             # order the results by the specified field
-            db_query = db_query.order_by(
-                orm.desc(getattr(record_type, sort_key[sort])) if descending else getattr(record_type, sort_key[sort])
-            )
+            if descending:
+                db_query = db_query.order_by(
+                    orm.desc(getattr(record_type, sort_key[sort]))
+                )
+            else:
+                db_query = db_query.order_by(
+                    getattr(record_type, sort_key[sort])
+                )
 
         if paginated:
             return db_query.page(self.contacts_page if record_type == Contact else self.organizations_page, 10)
