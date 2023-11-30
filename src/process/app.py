@@ -149,9 +149,6 @@ class App:
 
         self.hide_major_screens()
 
-        record_id = self.stack.peek()[1]
-        screen = self.current_screen.value
-
         if self.current_screen == Screen.ORG_SEARCH:
             self.window["-SEARCH_SCREEN-"].update(visible=True)
             self.window["-ORG_SCREEN-"].update(visible=True)
@@ -161,6 +158,9 @@ class App:
             self.window["-CONTACT_SCREEN-"].update(visible=True)
 
         else:
+            record_id = self.stack.peek()[1]
+            screen = self.current_screen.value
+
             self.window[screen].update(visible=True)
 
             if self.current_screen == Screen.ORG_VIEW:

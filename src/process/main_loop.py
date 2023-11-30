@@ -3,9 +3,9 @@ import PySimpleGUI as sg
 
 from ..utils.enums import AppStatus, Screen
 from ..ui_management import swap_to_org_viewer, swap_to_contact_viewer, swap_to_resource_viewer, settings_handler, \
-    backup_handler, export_handler
+    backup_handler, export_handler, add_record_handler
 from ..database.database import get_org_table_values, get_contact_table_values
-from ..layouts import get_create_contact_layout, get_create_org_layout, get_field_keys, get_sort_keys
+from ..layouts import get_field_keys, get_sort_keys
 from ..utils.helpers import format_phone, strip_phone
 
 if TYPE_CHECKING:
@@ -209,56 +209,7 @@ def main_loop(app: "App"):
             app.lazy_load_table_values(search_info, descending=values["-SORT_DESCENDING-"])
 
         elif event.startswith("-ADD_RECORD-"):
-            if app.current_screen in [Screen.CONTACT_SEARCH, Screen.CONTACT_VIEW]:
-                new_window = sg.Window("Add Contact", get_create_contact_layout(), modal=True,
-                                       finalize=True)
-                event, values = new_window.read()
-                new_window.close()
-
-                if event == "-CANCEL-" or event == sg.WIN_CLOSED:
-                    continue
-
-                if not (values["-FIRST_NAME-"] and values["-LAST_NAME-"]):
-                    sg.popup("First and last name are required to create a contact.")
-                    continue
-
-                elif values["-PHONE_NUMBER-"]:
-                    try:
-                        values["-PHONE_NUMBER-"] = int(values["-PHONE_NUMBER-"])
-                    except ValueError:
-                        sg.popup(
-                            "Invalid phone number! Phone number must be a continuous string of numbers.")
-                        continue
-
-                db_values = {k.lower().replace("-", ""): v for k, v in values.items() if v}
-
-                contact = app.db.create_contact(**db_values)
-
-                swap_to_contact_viewer(app, contact=contact)
-
-            elif app.current_screen in [Screen.ORG_SEARCH, Screen.ORG_VIEW]:
-                new_window = sg.Window("Add Organization", get_create_org_layout(), modal=True,
-                                       finalize=True)
-                event, values = new_window.read()
-                new_window.close()
-
-                if event == "-CANCEL-" or event == sg.WIN_CLOSED:
-                    continue
-
-                if not values["-NAME-"] or not values["-TYPE-"]:
-                    sg.popup("Name and type are required to create an organization.")
-                    continue
-
-                db_values = {k.lower().replace("-", ""): v for k, v in values.items() if v}
-
-                organization = app.db.create_organization(**db_values)
-
-                swap_to_org_viewer(app, org=organization)
-
-            else:
-                continue
-
-            app.lazy_load_table_values()
+            add_record_handler(app)
 
         elif event == "View":
             method = None
