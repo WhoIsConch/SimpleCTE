@@ -102,6 +102,7 @@ def get_search_layout(
                                             1
                                         ],
                                         pad=((0, 0), (0, 0)),
+                                        tooltip=" The type of record you are searching for. ",
                                     ),
                                     sg.Combo(
                                         ["Contacts", "Organizations"],
@@ -111,6 +112,7 @@ def get_search_layout(
                                         else "Organizations",
                                         enable_events=True,
                                         pad=((0, 5), (0, 0)),
+                                        tooltip=" The type of record you are searching for. ",
                                     ),
                                 ]
                             ],
@@ -126,15 +128,16 @@ def get_search_layout(
                 layout=[
                     [
                         sg.Button("Search", k="-SEARCH_BUTTON-"),
-                        sg.Text("Search Query:"),
-                        sg.Input(k="-SEARCH_QUERY-", expand_x=True),
+                        sg.Text("Search Query:", tooltip=" The text to search in a field for. "),
+                        sg.Input(k="-SEARCH_QUERY-", expand_x=True, tooltip=" The text to search in a field for. "),
                     ],
                     [
-                        sg.Text("Search in:"),
-                        sg.Combo(fields, k="-SEARCH_FIELDS-", expand_x=True),
-                        sg.Text("Sort by:"),
-                        sg.Combo(sort_fields, k="-SORT_TYPE-", expand_x=True),
-                        sg.Checkbox("Descending", k="-SORT_DESCENDING-"),
+                        sg.Text("Search in:", tooltip=" The field to search in. "),
+                        sg.Combo(fields, k="-SEARCH_FIELDS-", expand_x=True, tooltip=" The field to search in. "),
+                        sg.Text("Sort by:", tooltip=" The field to sort by. "),
+                        sg.Combo(sort_fields, k="-SORT_TYPE-", expand_x=True, tooltip=" The field to sort by. "),
+                        sg.Checkbox("Descending", k="-SORT_DESCENDING-", tooltip="Whether to sort in descending "
+                                                                                 "order. "),
                     ],
                 ],
             )

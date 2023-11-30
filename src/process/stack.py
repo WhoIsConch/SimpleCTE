@@ -25,3 +25,12 @@ class Stack:
 
     def clear(self) -> None:
         self.stack.clear()
+
+    def search_and_pop(self, data: any) -> None:
+        """
+        Search for a specific screen in the stack and pop it.
+        """
+        for i, (screen, value) in enumerate(self.stack):
+            if value == data:
+                self.stack.pop(i)
+                break

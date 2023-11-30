@@ -13,11 +13,16 @@ def get_create_contact_layout():
                 expand_x=True,
                 layout=[
                     [
-                        sg.Text("First Name: "),
+                        sg.Text("Create a new contact!\nFields marked with an asterisk (*) are required.",
+                                font=("Arial", 15), justification="center"),
+                    ],
+                    [sg.HorizontalSeparator()],
+                    [
+                        sg.Text("*First Name: "),
                         sg.Input(k="-FIRST_NAME-", tooltip="The contact's first name."),
                     ],
                     [
-                        sg.Text("Last Name: "),
+                        sg.Text("*Last Name: "),
                         sg.Input(k="-LAST_NAME-", tooltip="The contact's last name."),
                     ],
                     [
@@ -54,11 +59,16 @@ def get_create_org_layout():
                 expand_x=True,
                 layout=[
                     [
-                        sg.Text("Name: "),
+                        sg.Text("Create a new organization!\nFields marked with an asterisk (*) are required.",
+                                font=("Arial", 15), justification="center"),
+                    ],
+                    [sg.HorizontalSeparator()],
+                    [
+                        sg.Text("*Name: "),
                         sg.Input(k="-NAME-", tooltip="The organization's name."),
                     ],
                     [
-                        sg.Text("Type: "),
+                        sg.Text("*Type: "),
                         sg.Input(k="-TYPE-", tooltip="The organization's type, e.g. 'Food Bank' or 'Shelter'."),
                     ],
                     [

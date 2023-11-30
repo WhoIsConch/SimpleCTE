@@ -23,6 +23,7 @@ class App:
 
     def __init__(self):
         self.db = db
+        self.db.app = self
         self.logger = logging.getLogger("app")
         self.stack = Stack()
         self.window: sg.Window | None = None
@@ -73,7 +74,7 @@ class App:
             except Exception:
                 self.db.status = (
                     DBStatus.LOGIN_REQUIRED
-                )  # TODO: Handle this via Database instead of in App
+                )
                 self.stack.push(Screen.LOGIN)
 
         else:
