@@ -26,7 +26,7 @@ def get_field_keys(
             "custom field value": "custom_fields",
             "associated with resource...": "resources",
         }
-    else:
+    elif screen == Screen.CONTACT_SEARCH or record == "contact":
         return {
             "id": "id",
             "first name": "first_name",
@@ -43,6 +43,8 @@ def get_field_keys(
             "contact info value": "contact_info",
             "associated with resource...": "resources",
         }
+    else:
+        return {}
 
 
 def get_sort_keys(screen: Screen = None, record: str = None) -> dict:
@@ -59,7 +61,7 @@ def get_sort_keys(screen: Screen = None, record: str = None) -> dict:
 
         return fields
 
-    else:
+    elif screen == Screen.CONTACT_SEARCH or record == "contact":
         del fields["custom field name"]
         del fields["custom field value"]
         del fields["contact info name"]
@@ -67,6 +69,9 @@ def get_sort_keys(screen: Screen = None, record: str = None) -> dict:
         del fields["associated with resource..."]
 
         return fields
+
+    else:
+        return {}
 
 
 def get_search_layout(

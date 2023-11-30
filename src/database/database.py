@@ -74,15 +74,19 @@ class Database(orm.Database):
             elif record_type.lower() == "organization":
                 record_type = Organization
 
+            elif record_type.lower() == "resource":
+                record_type = Resource
+
             else:
                 return False
 
-        record_type_str = "organization" if record_type == Organization else "contact"
+        record_type_str = "organization" if record_type == Organization else \
+            ("contact" if record_type == Contact else "resource")
         field_key = get_field_keys(record=record_type_str)
         sort_key = get_sort_keys(record=record_type_str)
 
         if sort and sort not in sort_key:
-            return False
+            sort = ""
 
         if (field == "phone" or field == "id" or field == "associated with resource...") and not query.isdigit():
             return False
@@ -162,7 +166,8 @@ class Database(orm.Database):
                 )
 
         if paginated:
-            return db_query.page(self.contacts_page if record_type == Contact else self.organizations_page, 10)
+            return db_query.page(self.contacts_page if record_type == Contact else
+                                 (self.organizations_page if record_type == Organization else 1), 10)
         else:
             return db_query
 

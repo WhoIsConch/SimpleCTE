@@ -56,18 +56,27 @@ def export_handler(
     """
     # Create the window
     window = sg.Window("Export", get_export_layout(), finalize=True, modal=True)
-    if search_info:
-        window["-EXPORT_FILTER_COL-"].update(visible=True)
-        window["-EXPORT_FILTER-"].update(value=True)
-        window["-EXPORT_SEARCH_QUERY-"].update(search_info["query"])
-        window["-EXPORT_FILTER_TYPE-"].update(search_info["field"])
-        window["-EXPORT_SORT_TYPE-"].update(search_info["sort"])
+    # if search_info:
+    #     window["-EXPORT_FILTER_COL-"].update(visible=True)
+    #     window["-EXPORT_FILTER-"].update(value=True)
+    #     # window["-EXPORT_SEARCH_QUERY-"].update(search_info["query"])
+    #     # window["-EXPORT_FILTER_TYPE-"].update(search_info["field"])
+    #     # window["-EXPORT_SORT_TYPE-"].update(search_info["sort"])
+    # else:
+    contact_search_info = {}
+    org_search_info = {}
 
     # Create the event loop
     while True:
         event, values = window.read()
 
         print(event, values)
+
+        for d, r in zip([contact_search_info, org_search_info], ["Contact", "Organization"]):
+            d["field"] = values[f"-EXPORT_FILTER_TYPE_{r}-"]
+            d["query"] = values[f"-EXPORT_SEARCH_QUERY_{r}-"]
+            d["sort"] = values[f"-EXPORT_SORT_TYPE_{r}-"]
+            d["descending"] = values[f"-EXPORT_SORT_DESCENDING_{r}-"]
 
         if event == sg.WIN_CLOSED or event == "-EXPORT_CANCEL-":
             window.close()
@@ -83,8 +92,12 @@ def export_handler(
             export_name = values["-EXPORT_NAME-"]
             export_orgs = values["-EXPORT_ORGS-"]
             export_contacts = values["-EXPORT_CONTACTS-"]
-            descending = values["-EXPORT_SORT_DESCENDING-"]
+            export_resources = values["-EXPORT_RESOURCES-"]
             export_items = []
+
+            if not export_contacts and not export_orgs:
+                sg.popup("You must select a type of record to export.")
+                continue
 
             # Deny invalid export formats
             if export_format.lower() not in [f.lower() for f in available_export_formats]:
@@ -106,9 +119,9 @@ def export_handler(
 
             if export_orgs:
                 orgs = app.db.get_records(
-                    "Organizations",
+                    "Organization",
                     paginated=False,
-                    **search_info if search_info else {}
+                    **org_search_info,
                 )
                 org_data = [_get_org_data(org) for org in orgs]
 
@@ -119,9 +132,9 @@ def export_handler(
 
             if export_contacts:
                 contacts = app.db.get_records(
-                    "Contacts",
+                    "Contact",
                     paginated=False,
-                    **search_info if search_info else {}
+                    **contact_search_info,
                 )
                 contact_data = [_get_contact_data(contact) for contact in contacts]
 
@@ -132,6 +145,21 @@ def export_handler(
                                                    "Org Titles",
                                                    "Resources", "Organizations"])
                 export_items.append((contact_df, "contacts"))
+
+            if export_resources:
+                resources = app.db.get_records(
+                    "Resource",
+                    paginated=False,
+                )
+                resource_data = [[resource.id, resource.name, resource.value,
+                                  ", ".join([str(c.id) for c in resource.contacts]),
+                                  ", ".join([str(o.id) for o in resource.organizations])
+                                  ]
+                                 for resource in resources]
+
+                resource_df = pd.DataFrame(resource_data,
+                                           columns=["ID", "Name", "Value", "Contacts", "Organizations"])
+                export_items.append((resource_df, "resources"))
 
             if org_id:
                 org = _get_org_data(app.db.get_organization(org_id))
