@@ -1,5 +1,5 @@
 from ftplib import FTP
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Callable
 
 from pony import orm
 
@@ -9,6 +9,24 @@ from ..layouts import get_field_keys, get_sort_keys
 
 if TYPE_CHECKING:
     from ..process.app import App
+
+
+def search_and_destroy(func: "Callable") -> "Callable":
+    """
+    Decorator for functions that delete an object, so they can
+    go through the app's stack and remove the deleted object
+    using the app.stack.search_and_pop() function, referencing
+    app from the subclass's self.app variable.
+    """
+    def wrapper(*args, **kwargs):
+        app = args[0].app
+        func(*args, **kwargs)
+        if not isinstance(args[1], int):
+            app.stack.search_and_pop(args[1].id)
+        else:
+            app.stack.search_and_pop(args[1])
+
+    return wrapper
 
 
 class Database(orm.Database):
@@ -23,6 +41,7 @@ class Database(orm.Database):
         self.organizations_page = 0
         self.status = DBStatus.DISCONNECTED
         self.password = None
+        self.app = None
 
     def get_records(
             self,
@@ -226,6 +245,7 @@ class Database(orm.Database):
 
         return True
 
+    @search_and_destroy
     @orm.db_session
     def delete_contact(self, contact: "Contact | int") -> bool:
         if isinstance(contact, int):
@@ -239,6 +259,7 @@ class Database(orm.Database):
 
         return True
 
+    @search_and_destroy
     @orm.db_session
     def delete_organization(self, org: "Organization | int") -> bool:
         if isinstance(org, int):
@@ -253,7 +274,7 @@ class Database(orm.Database):
         return True
 
     @orm.db_session
-    def add_contact_to_org(self, contact: "Contact int", org: "Organization | int") -> bool:
+    def add_contact_to_org(self, contact: "Contact | int", org: "Organization | int") -> bool:
         if isinstance(org, int):
             org = Organization.get(id=org)
 
@@ -322,6 +343,7 @@ class Database(orm.Database):
     def get_resource(self, resource_id: int) -> "Resource":
         return Resource.get(id=resource_id)
 
+    @search_and_destroy
     @orm.db_session
     def delete_resource(self, resource: "Resource | int") -> bool:
         if isinstance(resource, int):
