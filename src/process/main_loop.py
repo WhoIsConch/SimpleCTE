@@ -12,6 +12,86 @@ if TYPE_CHECKING:
     from ..process.app import App
 
 
+def manage_custom_field(app: 'App', values: dict, edit=False) -> None:
+    try:
+        record_id = app.window[app.current_screen.value].metadata
+    except IndexError:
+        return
+
+    method = [
+        {
+            "app": app,
+            "push": False
+        }
+    ]
+
+    if app.current_screen == Screen.ORG_VIEW:
+        record = app.db.get_organization(record_id)
+        record_type = "org"
+        method.insert(0, swap_to_org_viewer)
+        method[1]["org_id"] = record.id
+
+        try:
+            field_name = \
+                app.window["-ORG_CUSTOM_FIELDS_TABLE-"].get()[values["-ORG_CUSTOM_FIELDS_TABLE-"][0]][0]
+
+        except IndexError:
+            return
+
+    elif app.current_screen == Screen.CONTACT_VIEW:
+        record = app.db.get_contact(record_id)
+        record_type = "contact"
+        method.insert(0, swap_to_contact_viewer)
+        method[1]["contact_id"] = record.id
+
+        try:
+            field_name = \
+                app.window["-CONTACT_CUSTOM_FIELDS_TABLE-"].get()[
+                    values["-CONTACT_CUSTOM_FIELDS_TABLE-"][0]][0]
+        except IndexError:
+            return
+
+    else:
+        return
+
+    name_tooltip = "The names of custom fields cannot be changed. Consider creating a new custom field instead."
+
+    layout = [
+        [sg.Text("Custom Field Name: ", tooltip=name_tooltip), sg.Text(field_name, tooltip=name_tooltip)],
+        [sg.Multiline(
+            record.custom_fields[field_name],
+            expand_x=True,
+            size=(30, 10),
+            horizontal_scroll=True,
+            disabled=not edit,
+            key="-CUSTOM_FIELD_VALUE-",
+        )],
+        [sg.Button("Close", key="-CLOSE-")]
+    ]
+
+    if edit:
+        layout[2].insert(0, sg.Button("Edit", key="-EDIT-"))
+
+    window = sg.Window("Custom Field Content", finalize=True, modal=True, layout=layout)
+
+    event, values = window.read()
+    window.close()
+
+    if event == sg.WIN_CLOSED or event == "-CLOSE-":
+        return
+
+    elif event != "-EDIT-":
+        return
+
+    app.db.update_custom_field(
+        name=values["-CUSTOM_FIELD_NAME-"],
+        value=values["-CUSTOM_FIELD_VALUE-"],
+        **{record_type: record_id}
+    )
+
+    method[0](**method[1])
+
+
 def main_loop(app: "App"):
     while True:
         app.status = AppStatus.READY
@@ -59,14 +139,14 @@ def main_loop(app: "App"):
 
             continue
 
+        # To not use methods such as startswith on other types
+        if not isinstance(event, str) and event != sg.WIN_CLOSED:
+            continue
+
         if event == sg.WIN_CLOSED or event.startswith("-LOGOUT-"):
             app.db.close_database(app)
             app.window.close()
             break
-
-        # To not use methods such as startswith on other types
-        if not isinstance(event, str):
-            continue
 
         if event == "-LOGIN-":
             server_address = values["-SERVER-"]
@@ -504,108 +584,43 @@ def main_loop(app: "App"):
                 sg.popup("Field name and value are required!")
                 continue
 
-            # Get the ID of the record we're viewing
+            create_kwargs = {
+                "name": values["-FIELD_NAME-"],
+                "value": values["-FIELD_VALUE-"]
+            }
+
+            swap_args = [
+                {
+                    "app": app,
+                    "push": False
+                }
+            ]
+
             if app.current_screen == Screen.ORG_VIEW:
-                org_id = app.window["-ORG_VIEW-"].metadata
-
-                field = app.db.create_custom_field(
-                    name=values["-FIELD_NAME-"],
-                    value=values["-FIELD_VALUE-"],
-                    org=org_id
-                )
-
-                if not field:
-                    sg.popup(
-                        "Error creating custom field.\nPerhaps you used the same name as an existing field?")
-                    continue
-
-                swap_to_org_viewer(app, org_id=org_id, push=False)
+                create_kwargs["org"] = swap_args[0]["org_id"] = app.window["-ORG_VIEW-"].metadata
+                swap_args.append(swap_to_org_viewer)
 
             elif app.current_screen == Screen.CONTACT_VIEW:
-                contact_id = app.window["-CONTACT_VIEW-"].metadata
+                create_kwargs["contact"] = swap_args[0]["contact_id"] = app.window["-CONTACT_VIEW-"].metadata
 
-                field = app.db.create_custom_field(
-                    name=values["-FIELD_NAME-"],
-                    value=values["-FIELD_VALUE-"],
-                    contact=contact_id
-                )
+                swap_args.append(swap_to_contact_viewer)
 
-                if not field:
-                    sg.popup(
-                        "Error creating custom field.\nPerhaps you used the same name as an existing field?")
-                    continue
+            else:
+                continue
 
-                swap_to_contact_viewer(app, contact_id=contact_id, push=False)
+            # Get the ID of the record we're viewing
+
+            field = app.db.create_custom_field(**create_kwargs)
+
+            if not field:
+                sg.popup(
+                    "Error creating custom field.\nPerhaps you used the same name as an existing field?")
+                continue
+
+            (swap_args[1])(**(swap_args[0]))
 
         elif event == "Edit Custom Field":
-            # Get the ID of the record we're viewing
-            if app.current_screen == Screen.ORG_VIEW:
-                org_id = app.window["-ORG_VIEW-"].metadata
-
-                try:
-                    field_name = \
-                        app.window["-ORG_CUSTOM_FIELDS_TABLE-"].get()[values["-ORG_CUSTOM_FIELDS_TABLE-"][0]][0]
-                    field_value = \
-                        app.window["-ORG_CUSTOM_FIELDS_TABLE-"].get()[values["-ORG_CUSTOM_FIELDS_TABLE-"][0]][1]
-                except IndexError:
-                    continue
-
-            elif app.current_screen == Screen.CONTACT_VIEW:
-                contact_id = app.window["-CONTACT_VIEW-"].metadata
-
-                try:
-                    field_name = \
-                        app.window["-CONTACT_CUSTOM_FIELDS_TABLE-"].get()[
-                            values["-CONTACT_CUSTOM_FIELDS_TABLE-"][0]][0]
-                    field_value = \
-                        app.window["-CONTACT_CUSTOM_FIELDS_TABLE-"].get()[
-                            values["-CONTACT_CUSTOM_FIELDS_TABLE-"][0]][1]
-                except IndexError:
-                    continue
-
-            # Create a new window to get the field name and value
-            input_window = sg.Window("Edit Custom Field", [
-                [sg.Text("Field Name:"), sg.Input(
-                    key="-FIELD_NAME-", default_text=field_name, disabled=True, tooltip="Field names cannot be "
-                                                                                        "edited. Consider "
-                                                                                        "deleting the field and "
-                                                                                        "creating a new one "
-                                                                                        "instead.")],
-                [sg.Text("Field Value:"), sg.Input(key="-FIELD_VALUE-", default_text=field_value)],
-                [sg.Button("Edit"), sg.Button("Cancel")]
-            ], finalize=True, modal=True)
-
-            # Read the window and close it
-            event, values = input_window.read()
-            input_window.close()
-
-            # Check if the user clicked cancel
-            if event == "Cancel" or event == sg.WIN_CLOSED:
-                continue
-
-            # Check if the user entered a name and value
-            if not values["-FIELD_VALUE-"]:
-                sg.popup("A field value is required! Consider deleting the record instead.")
-                continue
-
-            # Reload the table values
-            if app.current_screen == Screen.ORG_VIEW:
-                # Update the field
-                app.db.update_custom_field(
-                    org=org_id,
-                    name=values["-FIELD_NAME-"],
-                    value=values["-FIELD_VALUE-"]
-                )
-                swap_to_org_viewer(app, org_id=org_id, push=False)
-
-            elif app.current_screen == Screen.CONTACT_VIEW:
-                # Update the field
-                app.db.update_custom_field(
-                    contact=contact_id,
-                    name=values["-FIELD_NAME-"],
-                    value=values["-FIELD_VALUE-"]
-                )
-                swap_to_contact_viewer(app, contact_id=contact_id, push=False)
+            manage_custom_field(app, values, edit=True)
 
         elif event == "Delete Custom Field":
             # Get the ID of the record we're viewing
@@ -629,8 +644,7 @@ def main_loop(app: "App"):
                     continue
 
             confirmation = sg.popup_yes_no(
-                "Are you sure you want to delete this field?\nThis will remove the field for all other "
-                "records, too.",
+                "Are you sure you want to delete this field?",
                 title="Delete Field")
 
             if confirmation == "No" or confirmation == sg.WIN_CLOSED:
@@ -644,6 +658,10 @@ def main_loop(app: "App"):
             elif app.current_screen == Screen.CONTACT_VIEW:
                 app.db.delete_custom_field(contact=contact_id, name=field_name)
                 swap_to_contact_viewer(app, contact_id=contact_id, push=False)
+
+        elif event == "View Full Content":
+            # For custom fields
+            manage_custom_field(app, values)
 
         elif event == "Change Name":
             # Change the name of a record.
@@ -1178,7 +1196,8 @@ def main_loop(app: "App"):
             resource_id = app.window["-RESOURCE_VIEW-"].metadata
 
             if selected_item.lower() == "organization":
-                record_id = app.window["-RESOURCE_ORGANIZATIONS_TABLE-"].get()[values["-RESOURCE_ORGANIZATIONS_TABLE-"][0]][0]
+                record_id = \
+                app.window["-RESOURCE_ORGANIZATIONS_TABLE-"].get()[values["-RESOURCE_ORGANIZATIONS_TABLE-"][0]][0]
                 app.db.unlink_resource(resource=resource_id, org=record_id)
 
             elif selected_item.lower() == "contact":
@@ -1191,28 +1210,34 @@ def main_loop(app: "App"):
             confirmation = sg.popup_yes_no("Are you sure you want to delete this record?",
                                            title="Delete Record")
 
-            if confirmation == "Yes":
-                match app.current_screen:
-                    case Screen.ORG_VIEW:
-                        org_id = app.window["-ORG_VIEW-"].metadata
-                        app.db.delete_organization(org_id)
-                        app.switch_to_last_screen()
+            if confirmation != "Yes":
+                continue
 
-                    case Screen.CONTACT_VIEW:
-                        contact_id = app.window["-CONTACT_VIEW-"].metadata
-                        app.db.delete_contact(contact_id)
-                        app.switch_to_last_screen()
+            match app.current_screen:
+                case Screen.ORG_VIEW:
+                    org_id = app.window["-ORG_VIEW-"].metadata
+                    app.db.delete_organization(org_id)
+                    app.switch_to_last_screen()
 
-                    case Screen.ORG_SEARCH:
-                        app.db.delete_organization(app.last_selected_id)
-                        app.window["-ORG_TABLE-"].update(get_org_table_values(app))
+                case Screen.CONTACT_VIEW:
+                    contact_id = app.window["-CONTACT_VIEW-"].metadata
+                    app.db.delete_contact(contact_id)
+                    app.switch_to_last_screen()
 
-                    case Screen.CONTACT_SEARCH:
-                        app.db.delete_contact(app.last_selected_id)
-                        app.window["-CONTACT_TABLE-"].update(get_contact_table_values(app))
+                case Screen.RESOURCE_VIEW:
+                    app.db.delete_resource(app.window["-RESOURCE_VIEW-"].metadata)
+                    app.switch_to_last_screen()
 
-                # Reload the table values after the record is deleted
-                app.lazy_load_table_values()
+                case Screen.ORG_SEARCH:
+                    app.db.delete_organization(app.last_selected_id)
+                    app.window["-ORG_TABLE-"].update(get_org_table_values(app))
+
+                case Screen.CONTACT_SEARCH:
+                    app.db.delete_contact(app.last_selected_id)
+                    app.window["-CONTACT_TABLE-"].update(get_contact_table_values(app))
+
+            # Reload the table values after the record is deleted
+            app.lazy_load_table_values()
 
         elif event == "-UPDATE_TABLES-":
             app.window["-CONTACT_TABLE-"].update(values["-UPDATE_TABLES-"][0])
