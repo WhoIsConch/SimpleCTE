@@ -14,6 +14,9 @@ def format_phone(phone_number: int) -> str:
     elif len(phone_number) == 11:
         return f"+{phone_number[0]} ({phone_number[1:4]}) {phone_number[4:7]}-{phone_number[7:]}"
     else:
+        if len(phone_number) > 15:
+            return str(phone_number)[:15] + "..."
+
         return str(phone_number)
 
 

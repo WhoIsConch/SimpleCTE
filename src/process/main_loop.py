@@ -84,7 +84,7 @@ def manage_custom_field(app: 'App', values: dict, edit=False) -> None:
         return
 
     app.db.update_custom_field(
-        name=values["-CUSTOM_FIELD_NAME-"],
+        name=field_name,
         value=values["-CUSTOM_FIELD_VALUE-"],
         **{record_type: record_id}
     )
