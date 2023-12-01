@@ -29,3 +29,5 @@ linked. While viewing a resource, a variety of options are displayed. Of a resou
 To managed linked Organizations or Contacts, the `Linked Organizations` and `Linked Contacts` tables can be edited.
 Alt-clicking a record on a table in an Organization or Contact view screen, or alt-clicking any white space in the table will open a variety of options used to manage
 records, including "Create Resource", "Link Resource", "Unlink Resource", and "Delete Resource".
+
+In a Resource View table, alt-clicking the `Linked Organizations` or `Linked Contacts` table will display options such as "Link Organization", "Link Contact", and "Unlink Record". These options can be used to link or unlink records to the resource.
