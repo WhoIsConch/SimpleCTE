@@ -138,6 +138,31 @@ def get_viewer_head(contact: bool = False) -> list:
                                 ],
                             ],
                         ),
+                        sg.Column(
+                            element_justification="center",
+                            expand_x=True,
+                            background_color=sg.theme_progress_bar_color()[1],
+                            right_click_menu=["", ["Edit Emails", "View All Emails"]],
+                            layout=[
+                                [
+                                    sg.Text(
+                                        "Primary Email: ",
+                                        background_color=sg.theme_progress_bar_color()[
+                                            1
+                                        ],
+                                    )
+                                ],
+                                [
+                                    sg.Text(
+                                        "",
+                                        key="-EMAIL-" if not contact else "-CONTACT_EMAIL-",
+                                        background_color=sg.theme_progress_bar_color()[
+                                            1
+                                        ],
+                                    ),
+                                ],
+                            ],
+                        ),
                     ]
                 ],
             )

@@ -35,8 +35,7 @@ def add_record_handler(app: "App"):
                              title="Invalid phone number.")
                     continue
 
-            else:
-                break
+            break
 
         db_values = {k.lower().replace("-", ""): v for k, v in values.items() if v}
         contact = app.db.create_contact(**db_values)
@@ -66,8 +65,7 @@ def add_record_handler(app: "App"):
                              title="Invalid phone number.")
                     continue
 
-            else:
-                break
+            break
 
         db_values = {k.lower().replace("-", ""): v for k, v in values.items() if v}
         organization = app.db.create_organization(**db_values)

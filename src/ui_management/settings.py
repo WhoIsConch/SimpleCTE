@@ -97,11 +97,10 @@ def settings_handler(app: "App"):
                     "You must restart the application for the changes to take effect. Would you like to restart now?"
                 )
 
-                if restart_win == "Yes":
-                    app.settings.save_settings(settings)
-                    app.restart()
-
                 app.settings.save_settings(settings)
+
+                if restart_win == "Yes":
+                    app.restart()
 
                 window.close()
                 break

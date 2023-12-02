@@ -79,9 +79,9 @@ Using SimpleCTE, this school's CTE department has an easy and reliable way to tr
 
 The local Chamber of Commerce has recently reached out to the CTE department of the local high school. They have offered to provide the school with a variety of resources, including a list of local businesses that are willing to provide internships to students, a list of local businesses that are willing to provide donations to the school, and a list of local businesses that are willing to provide guest speakers to the school.
 
-To manage this relationship, the CTE department has decided to use SimpleCTE. They have created an Organization for the Chamber of Commerce `[O1]`, and have added the Chamber of Commerce as a Contact `[C1]`. They have also created three Resources associated with the Chamber of Commerce, one for the internship program `[R1]`, one for the donations `[R2]`, and one for the guest speakers `[R3]`.
+To manage this relationship, the CTE department has decided to use SimpleCTE. They have created an Organization for the Chamber of Commerce `[O1]`, and have added Delilah Lillith from the Chamber of Commerce as a Contact `[C1]`. They have also created three Resources associated with the Chamber of Commerce, one for the community service program `[R1]`, one for the donations `[R2]`, and one for the guest speakers `[R3]`.
 
-The Internship Resource `[R1]` has been linked to the Organization `[O1]`, and has room for any number of students. The CTE department will create new Contacts to hold information about the students in the internship program and link them to the Internship Resource `[R1]` and the school's own Organization [O2].
+The Community Service Resource `[R1]` has been linked to the Organization `[O1]`, and has room for any number of students. The CTE department will create new Contacts to hold information about the students in the community service program and link them to the Community Service Resource `[R1]` and the school's own Organization `[O2]`.
 
 The Donations Resource `[R2]` has been linked to the Organization `[O1]`, and has a value of "$1,000/year."
 

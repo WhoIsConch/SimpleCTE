@@ -640,7 +640,7 @@ class Database(orm.Database):
         self.disconnect()
         self.status = DBStatus.DISCONNECTED
 
-        if app.settings.database_system == "sqlite" and app.settings.database_address:
+        if app.settings.database_system == "sqlite" and app.settings.database_location == "remote":
             ftp = FTP(app.settings.database_address)
             ftp.login(app.settings.database_username, self.password)
             ftp.cwd(app.settings.absolute_database_path[:app.settings.absolute_database_path.rfind("/")] + "/")
@@ -661,6 +661,7 @@ class Organization(db.Entity):
     status = orm.Optional(str)
     addresses = orm.Optional(orm.StrArray)
     phones = orm.Optional(orm.IntArray)
+    emails = orm.Optional(orm.StrArray)
     custom_fields = orm.Optional(orm.Json)
 
     contacts = orm.Set("Contact")

@@ -900,6 +900,9 @@ def main_loop(app: "App"):
                 contact_id = app.window["-CONTACT_VIEW-"].metadata
                 record = app.db.get_contact(contact_id)
 
+            if record.emails is None:
+                record.emails = []
+
             layout = [
                 [sg.Text("Emails:")],
                 [sg.Multiline("\n".join(list(record.emails)), size=(30, 10), disabled=True,
@@ -921,6 +924,9 @@ def main_loop(app: "App"):
             elif app.current_screen == Screen.CONTACT_VIEW:
                 contact_id = app.window["-CONTACT_VIEW-"].metadata
                 record = app.db.get_contact(contact_id)
+
+            if record.emails is None:
+                record.emails = []
 
             layout = [
                 [sg.Text("Emails, one per line\n(The first email is primary):")],
