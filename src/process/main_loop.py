@@ -62,7 +62,6 @@ def manage_custom_field(app: 'App', values: dict, edit=False) -> None:
             record.custom_fields[field_name],
             expand_x=True,
             size=(30, 10),
-            horizontal_scroll=True,
             disabled=not edit,
             key="-CUSTOM_FIELD_VALUE-",
         )],
@@ -261,7 +260,7 @@ def main_loop(app: "App"):
 
             layout = [
                 [sg.Text("Full Resource Value:")],
-                [sg.Multiline(resource.value, size=(30, 10), horizontal_scroll=True, disabled=True)],
+                [sg.Multiline(resource.value, size=(30, 10), disabled=True)],
                 [sg.Button("Close")]
             ]
 
@@ -930,7 +929,7 @@ def main_loop(app: "App"):
             layout = [
                 [sg.Text("Emails:")],
                 [sg.Multiline("\n".join(list(record.emails or [])), size=(30, 10), disabled=True,
-                              horizontal_scroll=True)],
+                              )],
                 [sg.Button("Close")]
             ]
 
@@ -1119,7 +1118,7 @@ def main_loop(app: "App"):
 
             layout = [
                 [sg.Text("Full Resource Value:")],
-                [sg.Multiline(resource.value, size=(30, 10), horizontal_scroll=True, key="-NEW_VALUE-")],
+                [sg.Multiline(resource.value, size=(30, 10), key="-NEW_VALUE-")],
                 [sg.Button("Close")]
             ]
 
