@@ -7,6 +7,19 @@ class Settings:
         self.settings_path = settings_path
 
         self.settings = self.load_settings()
+        self.template = {
+                "theme": "dark",
+                "database": {
+                    "system": "sqlite",
+                    "location": "local",
+                    "path": "data/database.db",
+                    "name": "",
+                    "address": "",
+                    "port": "",
+                    "username": "",
+                    "password": "",
+                },
+            }
 
     def __eq__(self, other):
         if isinstance(other, Settings):
@@ -30,21 +43,7 @@ class Settings:
             # Create the directory relative to the top-level of this project
             os.makedirs(os.path.dirname(self.settings_path), exist_ok=True)
 
-            settings = {
-                "theme": "dark",
-                "database": {
-                    "system": "sqlite",
-                    "location": "local",
-                    "path": "data/database.db",
-                    "name": "",
-                    "address": "",
-                    "port": "",
-                    "username": "",
-                    "password": "",
-                },
-            }
-
-            self.save_settings(settings)
+            self.save_settings(self.template)
 
         return settings
 
@@ -57,6 +56,17 @@ class Settings:
 
         elif isinstance(settings, Settings):
             settings = settings.settings
+
+        # Verify that all the required keys are in the settings to save.
+        # If not, create them.
+        for key, value in self.template.items():
+            if key not in settings:
+                settings[key] = value
+
+            if isinstance(value, dict):
+                for sub_key, sub_value in value.items():
+                    if sub_key not in settings[key]:
+                        settings[key][sub_key] = sub_value
 
         with open(self.settings_path, "w") as settings_file:
             json.dump(settings, settings_file, indent=4)

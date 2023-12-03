@@ -3,5 +3,5 @@ venv/
 ..venv/
 settings.json
 __pycache__/
-dist/
 build/
+dist/

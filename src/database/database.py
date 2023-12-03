@@ -74,12 +74,19 @@ class Database(orm.Database):
             elif record_type.lower() == "organization":
                 record_type = Organization
 
+            elif record_type.lower() == "resource":
+                record_type = Resource
+
             else:
                 return False
 
-        record_type_str = "organization" if record_type == Organization else "contact"
+        record_type_str = "organization" if record_type == Organization else \
+            ("contact" if record_type == Contact else "resource")
         field_key = get_field_keys(record=record_type_str)
         sort_key = get_sort_keys(record=record_type_str)
+
+        if sort and sort not in sort_key:
+            sort = ""
 
         if (field == "phone" or field == "id" or field == "associated with resource...") and not query.isdigit():
             return False
@@ -149,12 +156,18 @@ class Database(orm.Database):
         # Sort the results
         if sort:
             # order the results by the specified field
-            db_query = db_query.order_by(
-                orm.desc(getattr(record_type, sort_key[sort])) if descending else getattr(record_type, sort_key[sort])
-            )
+            if descending:
+                db_query = db_query.order_by(
+                    orm.desc(getattr(record_type, sort_key[sort]))
+                )
+            else:
+                db_query = db_query.order_by(
+                    getattr(record_type, sort_key[sort])
+                )
 
         if paginated:
-            return db_query.page(self.contacts_page if record_type == Contact else self.organizations_page, 10)
+            return db_query.page(self.contacts_page if record_type == Contact else
+                                 (self.organizations_page if record_type == Organization else 1), 10)
         else:
             return db_query
 
@@ -627,7 +640,7 @@ class Database(orm.Database):
         self.disconnect()
         self.status = DBStatus.DISCONNECTED
 
-        if app.settings.database_system == "sqlite" and app.settings.database_address:
+        if app.settings.database_system == "sqlite" and app.settings.database_location == "remote":
             ftp = FTP(app.settings.database_address)
             ftp.login(app.settings.database_username, self.password)
             ftp.cwd(app.settings.absolute_database_path[:app.settings.absolute_database_path.rfind("/")] + "/")
@@ -648,6 +661,7 @@ class Organization(db.Entity):
     status = orm.Optional(str)
     addresses = orm.Optional(orm.StrArray)
     phones = orm.Optional(orm.IntArray)
+    emails = orm.Optional(orm.StrArray)
     custom_fields = orm.Optional(orm.Json)
 
     contacts = orm.Set("Contact")

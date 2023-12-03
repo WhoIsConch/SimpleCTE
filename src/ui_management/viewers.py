@@ -16,6 +16,30 @@ __all__ = (
 )
 
 
+def sanitize(string: str | int, max_length: int = 10) -> str:
+    if "\n" in string:
+        string = string.split("\n")[0]
+        if len(string) > max_length:
+            string = string[:max_length]
+
+        string += "..."
+
+    elif len(string) > max_length:
+        string = string[:max_length] + "..."
+
+    return string
+
+
+def get_custom_field_info(custom_fields: dict) -> list:
+    return_values = []
+    for key, value in custom_fields.items():
+        value = sanitize(value)
+
+        return_values.append([key, value])
+
+    return return_values
+
+
 @db_session
 def swap_to_org_viewer(
         app: "App",
@@ -34,7 +58,6 @@ def swap_to_org_viewer(
 
     contact_table_values = []
     resource_table_values = []
-    custom_field_table_values = []
 
     # Compile the information of each org-related contact into a table
     for contact in org.contacts:
@@ -42,7 +65,7 @@ def swap_to_org_viewer(
             [
                 contact.id,
                 contact.name,
-                contact.org_titles.get(str(org.id), "No Title") if contact.org_titles else "No Title",
+                sanitize(contact.org_titles.get(str(org.id), "No Title"), 20) if contact.org_titles else "No Title",
                 contact.emails[0] if contact.emails else "No Email",
                 format_phone(contact.phone_numbers[0])
                 if contact.phone_numbers
@@ -52,11 +75,10 @@ def swap_to_org_viewer(
 
     # Add available resources to the table of organization resources
     for resource in org.resources:
-        resource_table_values.append([resource.id, resource.name, resource.value])
+        resource_table_values.append([resource.id, resource.name, sanitize(resource.value, 20)])
 
     # Add the custom fields to the table of custom fields
-    for key, value in org.custom_fields.items():
-        custom_field_table_values.append([key, value])
+    custom_field_table_values = get_custom_field_info(org.custom_fields)
 
     # Update all the data in the screen to the new organization
     app.window["-ORG_VIEW-"].metadata = org.id
@@ -68,6 +90,7 @@ def swap_to_org_viewer(
     app.window["-STATUS-"].update(org.status)
     app.window["-PHONE-"].update(format_phone(org.phones[0]) if org.phones else "No phone number")
     app.window["-ADDRESS-"].update(org.addresses[0] if org.addresses else "No address")
+    app.window["-EMAIL-"].update(org.emails[0] if org.emails else "No email")
 
     app.switch_screen(Screen.ORG_VIEW, data=org.id, push=push)  # Switch to the organization viewer screen
 
@@ -91,32 +114,30 @@ def swap_to_contact_viewer(
     contact_info_table_values = []
     organization_table_values = []
     resource_table_values = []
-    custom_field_table_values = []
 
     # An ungodly amount of loops to compile all the information into tables
     for number in contact.phone_numbers:
         contact_info_table_values.append(["Phone", format_phone(number)])
 
     for addresses in contact.addresses:
-        contact_info_table_values.append(["Address", addresses])
+        contact_info_table_values.append(["Address", sanitize(addresses, 20)])
 
     for email in contact.emails:
-        contact_info_table_values.append(["Email", email])
+        contact_info_table_values.append(["Email", sanitize(email, 20)])
 
     contact_info_table_values.append(
-        ["Availability", contact.availability if contact.availability else "No Recorded Availability"])
+        ["Availability", sanitize(contact.availability) if contact.availability else "No Recorded Availability"])
 
     for key, value in contact.contact_info.items():
-        contact_info_table_values.append([key, value])
+        contact_info_table_values.append([key, sanitize(value, 20)])
 
     for org in contact.organizations:
         organization_table_values.append([org.id, org.name, org.status])
 
     for resource in contact.resources:
-        resource_table_values.append([resource.id, resource.name, resource.value])
+        resource_table_values.append([resource.id, resource.name, sanitize(resource.value, 20)])
 
-    for key, value in contact.custom_fields.items():
-        custom_field_table_values.append([key, value])
+    custom_field_table_values = get_custom_field_info(contact.custom_fields)
 
     # Update all the data in the screen to the new contact
     app.window["-CONTACT_VIEW-"].metadata = contact.id
@@ -130,6 +151,7 @@ def swap_to_contact_viewer(
     app.window["-CONTACT_PHONE-"].update(
         format_phone(contact.phone_numbers[0]) if contact.phone_numbers else "No phone number")
     app.window["-CONTACT_ADDRESS-"].update(contact.addresses[0] if contact.addresses else "No address")
+    app.window["-CONTACT_EMAIL-"].update(contact.emails[0] if contact.emails else "No email")
 
     app.switch_screen(Screen.CONTACT_VIEW, data=contact.id, push=push)  # Switch to the contact viewer screen
 
@@ -173,7 +195,7 @@ def swap_to_resource_viewer(
                 org.id,
                 org.name,
                 org.status,
-                org.primary_contact or "No Primary Contact",
+                org.primary_contact.name or "No Primary Contact",
             ]
         )
 
