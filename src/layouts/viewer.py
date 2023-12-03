@@ -18,6 +18,7 @@ def get_viewer_head(contact: bool = False) -> list:
                 layout=get_action_bar(Screen.ORG_VIEW),
                 background_color=sg.theme_progress_bar_color()[1],
                 element_justification="left",
+                right_click_menu=["", ["Help::ACTION_BAR"]],
             ),
             sg.Push(),
             sg.Column(
@@ -186,6 +187,7 @@ def get_contact_view_layout():
             sg.Column(
                 expand_x=True,
                 background_color=sg.theme_progress_bar_color()[1],
+                right_click_menu=["", ["Help::CONTACT_VIEWER"]],
                 layout=[
                     [
                         sg.Column(
@@ -199,7 +201,7 @@ def get_contact_view_layout():
                                         key="-CONTACT_INFO_TABLE-",
                                         headings=["Title", "Value"],
                                         right_click_menu=["", ["View More::CONTACT_INFO", "Add::CONTACT_INFO",
-                                                               "Edit::CONTACT_INFO", "Delete::CONTACT_INFO"]],
+                                                               "Edit::CONTACT_INFO", "Delete::CONTACT_INFO", "Help::CONTACT_VIEWER"]],
                                         right_click_selects=True,
                                         expand_x=True,
                                         font=("Arial", 15),
@@ -226,7 +228,7 @@ def get_contact_view_layout():
                                         enable_click_events=True,
                                         right_click_menu=[
                                             "&Right",
-                                            ["View", "Copy ID", "Add Organization", "Remove Organization"],
+                                            ["View", "Copy ID", "Add Organization", "Remove Organization", "Help::CONTACT_VIEWER"],
                                         ],
                                         right_click_selects=True,
                                         values=[[]],
@@ -249,7 +251,7 @@ def get_contact_view_layout():
                                         visible_column_map=[False, True, True],
                                         right_click_menu=["", ["View Resource", "Create Resource", "Link Resource",
                                                                "Unlink Resource",
-                                                               "Delete Resource", "Copy ID"]],
+                                                               "Delete Resource", "Copy ID"], "Help::CONTACT_VIEWER"],
                                         right_click_selects=True,
                                         enable_click_events=True,
                                         expand_x=True,
@@ -271,7 +273,7 @@ def get_contact_view_layout():
                                         key="-CONTACT_CUSTOM_FIELDS_TABLE-",
                                         headings=["Name", "Value"],
                                         right_click_menu=["", ["View Full Content", "Create Custom Field",
-                                                               "Edit Custom Field", "Delete Custom Field"]],
+                                                               "Edit Custom Field", "Delete Custom Field", "Help::CONTACT_VIEWER"]],
                                         right_click_selects=True,
                                         expand_x=True,
                                         font=("Arial", 15),
@@ -300,6 +302,7 @@ def get_org_view_layout():
             sg.Column(
                 background_color=sg.theme_progress_bar_color()[1],
                 expand_x=True,
+                right_click_menu=["", ["Help::ORG_VIEWER"]],
                 layout=[
                     [
                         sg.Column(
@@ -323,7 +326,7 @@ def get_org_view_layout():
                                         enable_click_events=True,
                                         right_click_menu=[
                                             "&Right",
-                                            ["View", "Copy ID", "Change Title", "Add Contact", "Remove Contact"],
+                                            ["View", "Copy ID", "Change Title", "Add Contact", "Remove Contact", "Help::ORG_VIEWER"],
                                         ],
                                         right_click_selects=True,
                                         values=[[]],
@@ -344,7 +347,7 @@ def get_org_view_layout():
                                     font=("Arial", 15),
                                     right_click_menu=["", ["View Resource", "Create Resource", "Link Resource",
                                                            "Unlink Resource",
-                                                           "Delete Resource", "Copy ID"]],
+                                                           "Delete Resource", "Copy ID", "Help::ORG_VIEWER"]],
                                     right_click_selects=True,
                                     enable_click_events=True,
                                     select_mode=sg.TABLE_SELECT_MODE_BROWSE,
@@ -370,7 +373,7 @@ def get_org_view_layout():
                                         headings=["Name", "Value"],
                                         font=("Arial", 15),
                                         right_click_menu=["", ["View Full Content", "Create Custom Field",
-                                                           "Edit Custom Field", "Delete Custom Field"]],
+                                                           "Edit Custom Field", "Delete Custom Field", "Help::ORG_VIEWER"]],
                                         right_click_selects=True,
                                         select_mode=sg.TABLE_SELECT_MODE_BROWSE,
                                         row_height=30,
@@ -396,6 +399,7 @@ def get_resource_view_layout():
         [
             sg.Column(
                 expand_x=True,
+                right_click_menu=["", ["Help::RESOURCE_VIEW"]],
                 layout=[[
                     sg.Column(
                         layout=get_action_bar(Screen.RESOURCE_VIEW),
@@ -418,7 +422,7 @@ def get_resource_view_layout():
                         sg.Column(
                             element_justification="center",
                             expand_x=True,
-                            right_click_menu=["", ["Change Name"]],
+                            right_click_menu=["", ["Change Name", "Help::RESOURCE_VIEW"]],
                             background_color=sg.theme_progress_bar_color()[1],
                             layout=[
                                 [sg.Text("Resource Name", font=("Arial", 13),
@@ -430,7 +434,7 @@ def get_resource_view_layout():
                         sg.Column(
                             element_justification="center",
                             justification="left",
-                            right_click_menu=["", ["Change Value", "View Full Value"]],
+                            right_click_menu=["", ["Change Value", "View Full Value", "Help::RESOURCE_VIEW"]],
                             background_color=sg.theme_progress_bar_color()[1],
                             expand_x=True,
                             layout=[
@@ -467,7 +471,7 @@ def get_resource_view_layout():
                                         right_click_menu=[
                                             "&Right",
                                             ["View::RESOURCE_ORG", "Copy ID", "Link Organization",
-                                             "Unlink Organization"],
+                                             "Unlink Organization", "Help::RESOURCE_VIEW"],
                                         ],
                                         right_click_selects=True,
                                         values=[[]],
@@ -488,7 +492,7 @@ def get_resource_view_layout():
                                         headings=["ID", "Name", "Email", "Phone"],
                                         visible_column_map=[False, True, True, True],
                                         right_click_menu=["", ["View::RESOURCE_CONTACT", "Copy ID", "Link Contact",
-                                                               "Unlink Contact"]],
+                                                               "Unlink Contact", "Help::RESOURCE_VIEW"]],
                                         right_click_selects=True,
                                         enable_click_events=True,
                                         expand_x=True,

@@ -94,6 +94,7 @@ def get_search_layout(
                             element_justification="left",
                             background_color=sg.theme_progress_bar_color()[1],
                             layout=get_action_bar(screen),
+                            right_click_menu=["", ["Help::ACTION_BAR"]],
                         ),
                         sg.Push(background_color=sg.theme_progress_bar_color()[1]),
                         sg.Column(
@@ -130,6 +131,7 @@ def get_search_layout(
             sg.Column(
                 expand_x=True,
                 pad=((0, 0), (0, 10)),
+                right_click_menu=["", ["Help::SEARCH_BAR"]],
                 layout=[
                     [
                         sg.Button("Search", k="-SEARCH_BUTTON-"),
@@ -155,6 +157,7 @@ def get_search_layout(
                 element_justification="center",
                 key="-ORG_SCREEN-",
                 visible=screen == Screen.ORG_SEARCH,
+                right_click_menu=["", ["Help::SEARCH"]],
                 layout=[
                     [
                         sg.Text(
@@ -172,7 +175,7 @@ def get_search_layout(
                             font=("Arial", 15),
                             right_click_menu=[
                                 "&Right",
-                                ["View", "Copy ID", "Delete"],
+                                ["View", "Copy ID", "Delete", "Help::SEARCH"],
                             ],
                             right_click_selects=True,
                             enable_click_events=True,
@@ -210,7 +213,7 @@ def get_search_layout(
                             font=("Arial", 15),
                             right_click_menu=[
                                 "&Right",
-                                ["View", "Copy ID", "Delete"],
+                                ["View", "Copy ID", "Delete", "Help::SEARCH"],
                             ],
                             right_click_selects=True,
                             k="-CONTACT_TABLE-",

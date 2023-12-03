@@ -192,12 +192,16 @@ def swap_to_resource_viewer(
 
     # Compile the information of each resource-related organization into a table
     for org in resource.organizations:
+        if org.primary_contact:
+            primary = org.primary_contact.name
+        else:
+            primary = "No Primary Contact"
         organizations_values.append(
             [
                 org.id,
                 org.name,
                 org.status,
-                org.primary_contact.name or "No Primary Contact",
+                primary,
             ]
         )
 

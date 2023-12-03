@@ -3,7 +3,7 @@ import PySimpleGUI as sg
 
 from ..utils.enums import AppStatus, Screen
 from ..ui_management import swap_to_org_viewer, swap_to_contact_viewer, swap_to_resource_viewer, settings_handler, \
-    backup_handler, export_handler, add_record_handler
+    backup_handler, export_handler, add_record_handler, help_manager
 from ..database.database import get_org_table_values, get_contact_table_values
 from ..layouts import get_field_keys, get_sort_keys
 from ..utils.helpers import format_phone, strip_phone
@@ -1221,6 +1221,9 @@ def main_loop(app: "App"):
         elif event == "-UPDATE_TABLES-":
             app.window["-CONTACT_TABLE-"].update(values["-UPDATE_TABLES-"][0])
             app.window["-ORG_TABLE-"].update(values["-UPDATE_TABLES-"][1])
+
+        elif event.startswith("Help::"):
+            help_manager(app, event.split("::")[-1])
 
         elif event.startswith("-SETTINGS-"):
             settings_handler(app)
