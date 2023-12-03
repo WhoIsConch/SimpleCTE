@@ -86,7 +86,9 @@ def swap_to_org_viewer(
     app.window["-ORG_RESOURCES_TABLE-"].update(values=resource_table_values)
     app.window["-ORG_CUSTOM_FIELDS_TABLE-"].update(values=custom_field_table_values)
 
-    app.window["-NAME-"].update(org.name)
+    app.window["-NAME-"].update(sanitize(org.type, 15))
+    app.window["-NAME_TEXT-"].update(org.name, font=("Arial", 11))
+
     app.window["-STATUS-"].update(org.status)
     app.window["-PHONE-"].update(format_phone(org.phones[0]) if org.phones else "No phone number")
     app.window["-ADDRESS-"].update(org.addresses[0] if org.addresses else "No address")

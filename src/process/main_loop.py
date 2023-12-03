@@ -702,6 +702,33 @@ def main_loop(app: "App"):
 
             app.lazy_load_table_values()
 
+        elif event == "Change Type" and app.current_screen == Screen.ORG_VIEW:
+            # Change the type of an Organization
+            org = app.db.get_organization(app.window["-ORG_VIEW-"].metadata)
+
+            input_win = sg.Window("Change Type", [
+                [sg.Text("New Type:"), sg.Input(key="-TYPE-", default_text=org.type)],
+                [sg.Button("Change"), sg.Button("Cancel")]
+            ], finalize=True, modal=True)
+
+            event, values = input_win.read()
+            input_win.close()
+
+            if event == "Cancel" or event == sg.WIN_CLOSED:
+                continue
+
+            new_type = values.get("-TYPE-", "")
+
+            if not new_type:
+                sg.popup("A type is required!")
+                continue
+
+            if new_type == org.type:
+                continue
+
+            app.db.update_organization(org.id, type=new_type)
+            swap_to_org_viewer(app, org_id=org.id, push=False)
+
         elif event == "Change Status":
             # Change the status of a record.
 

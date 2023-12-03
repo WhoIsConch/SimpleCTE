@@ -7,7 +7,7 @@ __all__ = (
     "get_contact_view_layout",
     "get_org_view_layout",
     "get_viewer_head",
-    "get_resource_view_layout",
+    "get_resource_view_layout"
 )
 
 
@@ -42,7 +42,8 @@ def get_viewer_head(contact: bool = False) -> list:
                             element_justification="center",
                             expand_x=True,
                             background_color=sg.theme_progress_bar_color()[1],
-                            right_click_menu=["", ["Change Name"]],
+                            right_click_menu=["", ["Change Name", "Change Type"]] if not contact else ["", ["Change Name"]],
+                            key="-NAME_COLUMN-",
                             layout=[
                                 [
                                     sg.Text(
@@ -50,6 +51,7 @@ def get_viewer_head(contact: bool = False) -> list:
                                         background_color=sg.theme_progress_bar_color()[
                                             1
                                         ],
+                                        key="-NAME_TEXT-"
                                     )
                                 ],
                                 [

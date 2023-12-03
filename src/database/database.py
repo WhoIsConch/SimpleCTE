@@ -43,6 +43,7 @@ class Database(orm.Database):
         self.password = None
         self.app = None
 
+    @orm.db_session
     def get_records(
             self,
             record_type: "Organization | Contact | str",
@@ -171,9 +172,11 @@ class Database(orm.Database):
         else:
             return db_query
 
+    @orm.db_session
     def get_contact(self, contact_id: int) -> "Contact":
         return Contact.get(id=contact_id)
 
+    @orm.db_session
     def get_organization(self, org_id: int) -> "Organization":
         return Organization.get(id=org_id)
 
@@ -235,6 +238,7 @@ class Database(orm.Database):
 
         return True
 
+    @orm.db_session
     def update_organization(self, org: "Organization | int", **kwargs) -> bool:
         if isinstance(org, int):
             org = Organization.get(id=org)
