@@ -21,7 +21,7 @@ def add_record_handler(app: "App"):
 
             if event == "-CANCEL-" or event == sg.WIN_CLOSED:
                 window.close()
-                break
+                return
 
             elif not (values["-FIRST_NAME-"] and values["-LAST_NAME-"]):
                 sg.popup("First and last name are required to create a contact.", title="Missing required fields.")
