@@ -247,7 +247,7 @@ def get_contact_view_layout():
                                 [
                                     sg.Table(
                                         key="-CONTACT_RESOURCES_TABLE-",
-                                        headings=["ID", "Name", "Status"],
+                                        headings=["ID", "Name", "Value"],
                                         visible_column_map=[False, True, True],
                                         right_click_menu=["", ["View Resource", "Create Resource", "Link Resource",
                                                                "Unlink Resource",
