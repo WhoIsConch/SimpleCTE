@@ -89,6 +89,24 @@ The Resource Viewer is a screen that displays information about a Resource. The 
 Double-clicking or alt-clicking on any entry of a table will open the View screen for that entry. For example, double-clicking on a Contact in the Associated Contacts table will open the Contact Viewer for that Contact.
 """
 
+RESOURCE_TABLE = """
+Resource tables are tables that display information about Resources. Resource tables are present in the following screens:
+
+- Organization Viewer: Displays all Resources that are linked to the Organization.
+- Contact Viewer: Displays all Resources that are linked to the Contact.
+
+Resource tables are composed of Name and Value columns. Alt-clicking on any entry in a resource table will bring up the following options:
+
+- View Resource: Opens the Resource Viewer for the selected Resource.
+- Create Resource: Opens the Resource creation form and automatically links it to the selected Contact or Organization.
+- Link Resource: Links the specified Resource to the selected Contact or Organization.
+- Unlink Resource: Unlinks the selected Resource from the selected Contact or Organization.
+- Delete Resource: Deletes the selected Resource and removes it from all Contacts and Organizations.
+- Copy ID: Copies the ID of the selected Resource to your clipboard.
+- Help: Opens the help menu.
+
+"""
+
 _help_mapping = {
     "ACTION_BAR": action_bar,
     "SEARCH_BAR": search_bar,
@@ -97,6 +115,7 @@ _help_mapping = {
     "ORG_VIEWER": ORG_VIEWER,
     "CONTACT_VIEWER": CONTACT_VIEWER,
     "RESOURCE_VIEW": RESOURCE_VIEW,
+    "RESOURCE_TABLE": RESOURCE_TABLE,
 }
 
 

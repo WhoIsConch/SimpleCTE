@@ -20,6 +20,7 @@ class App:
     It is responsible for managing most functions of the application
     and keeping essential information in a central location.
     """
+    ICON_PATH = os.path.join(os.path.dirname(__file__), '../data/simplecte.ico')
 
     def __init__(self):
         self.db = db
@@ -33,6 +34,7 @@ class App:
         self.logger.info("Loading database settings...")
         self.settings: Settings = Settings("data/settings.json")
         self.settings.load_settings()
+        sg.set_global_icon(self.ICON_PATH)
 
         # Decide which database configuration to use
         if (

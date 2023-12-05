@@ -3,11 +3,7 @@ import os
 
 
 class Settings:
-    def __init__(self, settings_path: str):
-        self.settings_path = settings_path
-
-        self.settings = self.load_settings()
-        self.template = {
+    template = {
                 "theme": "dark",
                 "database": {
                     "system": "sqlite",
@@ -20,6 +16,11 @@ class Settings:
                     "password": "",
                 },
             }
+
+    def __init__(self, settings_path: str):
+        self.settings_path = settings_path
+
+        self.settings = self.load_settings()
 
     def __eq__(self, other):
         if isinstance(other, Settings):
@@ -43,11 +44,11 @@ class Settings:
             # Create the directory relative to the top-level of this project
             os.makedirs(os.path.dirname(self.settings_path), exist_ok=True)
 
-            self.save_settings(self.template)
+            settings = self.save_settings(self.template)
 
         return settings
 
-    def save_settings(self, settings: "dict | Settings | None" = None) -> None:
+    def save_settings(self, settings: "dict | Settings | None" = None) -> dict:
         """
         Save the settings to the settings file.
         """
@@ -70,6 +71,8 @@ class Settings:
 
         with open(self.settings_path, "w") as settings_file:
             json.dump(settings, settings_file, indent=4)
+
+        return settings
 
     def copy(self) -> "Settings":
         """
