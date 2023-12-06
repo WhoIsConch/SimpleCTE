@@ -17,25 +17,28 @@ __all__ = (
 
 
 def sanitize(string: str | int, max_length: int = 10) -> str:
+    """
+    Sanitize the string by removing newlines and truncating it if it is too long.
+    """
+    string = str(string)
+
     if "\n" in string:
         string = string.split("\n")[0]
-        if len(string) > max_length:
-            string = string[:max_length]
 
-        string += "..."
-
-    elif len(string) > max_length:
+    if len(string) > max_length:
         string = string[:max_length] + "..."
 
     return string
 
 
 def get_custom_field_info(custom_fields: dict) -> list:
+    """
+    Compile the information of each custom field into a table, sanitizing the values.
+    """
     return_values = []
-    for key, value in custom_fields.items():
-        value = sanitize(value)
 
-        return_values.append([key, value])
+    for key, value in custom_fields.items():
+        return_values.append([sanitize(key, 20), sanitize(value, 15)])
 
     return return_values
 

@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING
 import PySimpleGUI as sg
+import webbrowser
 
 from ..utils.enums import AppStatus, Screen
 from ..ui_management import swap_to_org_viewer, swap_to_contact_viewer, swap_to_resource_viewer, settings_handler, \
@@ -623,12 +624,12 @@ def main_loop(app: "App"):
                 org_id = app.window["-ORG_VIEW-"].metadata
 
                 try:
-                    name = app.window["-NAME-"].get()
+                    org = app.db.get_organization(org_id)
                 except IndexError:
                     continue
 
                 layout = [
-                    [sg.Text("New Name:"), sg.Input(key="-NAME-", default_text=name)],
+                    [sg.Text("New Name:"), sg.Input(key="-NAME-", default_text=org.name)],
                     [sg.Button("Change"), sg.Button("Cancel")]
                 ]
 
@@ -1222,6 +1223,9 @@ def main_loop(app: "App"):
             app.window["-CONTACT_TABLE-"].update(values["-UPDATE_TABLES-"][0])
             app.window["-ORG_TABLE-"].update(values["-UPDATE_TABLES-"][1])
 
+        elif event.startswith("-HELP-"):
+            webbrowser.open("https://github.com/WhoIsConch/SimpleCTE/wiki")
+
         elif event.startswith("Help::"):
             help_manager(app, event.split("::")[-1])
 
@@ -1259,6 +1263,9 @@ def main_loop(app: "App"):
             )
 
         elif event in ["-VIEW_RESOURCE-", "View Resource"]:
+            if not app.last_selected_id:
+                continue
+
             # View the resource
             swap_to_resource_viewer(app, resource_id=app.last_selected_id)
 

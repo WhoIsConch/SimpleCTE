@@ -30,7 +30,7 @@ class App:
         self.window: sg.Window | None = None
         self.status = AppStatus.BUSY
         self.last_clicked_table_time = None
-        self.last_selected_id = None
+        self.last_selected_id: int | None = None
         self.logger.info("Loading database settings...")
         self.settings: Settings = Settings("data/settings.json")
         self.settings.load_settings()

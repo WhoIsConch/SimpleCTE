@@ -5,7 +5,7 @@ __all__ = (
     "get_help_layout",
 )
 
-action_bar = """
+ACTION_BAR = """
 The action bar is the bar at the top of the screen that contains various buttons. The buttons that may be present include:
 
 - Logout: Logs you out of the database.
@@ -22,7 +22,7 @@ The buttons that are present depend on the screen you are on. When in a Search s
 When in the Resource View screen, the Add Record button is not present. This is because the Resource View screen, unlike View screens, is not where much of the magic happens with Resources. Resources must be bound to a Contact or Organization, and are deleted otherwise. Resources also cannot be linked to other Resources, so creating an empty resource will not be useful. Instead, Resources are created when adding a Resource to a Contact or Organization.
 """
 
-search_bar = """
+SEARCH_BAR = """
 The Search bar is a bar near the top of the screen that contains various fields. These fields are used to filter the data in the database. The items present in the Search bar include:
 
 - Search: Searches for records that contain the given text in any field.
@@ -31,7 +31,7 @@ The Search bar is a bar near the top of the screen that contains various fields.
 - Sort by: The field to sort the results by. Can be sorted in ascending or descending order.
 """
 
-search_screen = """
+SEARCH_SCREEN = """
 The Search Screen is the main screen of SimpleCTE. Using the Search Screen allows a user to search for and view records in the database. The Search Screen is composed of the following parts:
 
 - Action Bar: The bar at the top of the screen that contains various buttons.
@@ -107,15 +107,32 @@ Resource tables are composed of Name and Value columns. Alt-clicking on any entr
 
 """
 
+CUSTOM_FIELDS = """
+Custom fields are fields that can be added to Contacts and Organizations. Custom fields are present in the following screens:
+
+- Organization Viewer: Displays all custom fields that are linked to the Organization.
+- Contact Viewer: Displays all custom fields that are linked to the Contact.
+
+Custom fields are composed of a Name and Value column. Alt-clicking on any entry in a custom field table will bring up the following options:
+
+- View Full Content: Opens a popup that displays the full content of the custom field.
+- Create Custom Field: Opens a form to create a new custom field.
+- Edit Custom Field: Opens a form to edit the selected custom field.
+- Delete Custom Field: Deletes the selected custom field.
+- Help: Opens the help menu.
+
+"""
+
 _help_mapping = {
-    "ACTION_BAR": action_bar,
-    "SEARCH_BAR": search_bar,
-    "SEARCH": search_screen,
+    "ACTION_BAR": ACTION_BAR,
+    "SEARCH_BAR": SEARCH_BAR,
+    "SEARCH": SEARCH_SCREEN,
     "VIEWER_HEADER": viewer_header,
     "ORG_VIEWER": ORG_VIEWER,
     "CONTACT_VIEWER": CONTACT_VIEWER,
     "RESOURCE_VIEW": RESOURCE_VIEW,
     "RESOURCE_TABLE": RESOURCE_TABLE,
+    "CUSTOM_FIELDS": CUSTOM_FIELDS,
 }
 
 
