@@ -20,6 +20,7 @@ class App:
     It is responsible for managing most functions of the application
     and keeping essential information in a central location.
     """
+    ICON_PATH = os.path.join(os.path.dirname(__file__), '../data/simplecte.ico')
 
     def __init__(self):
         self.db = db
@@ -29,10 +30,11 @@ class App:
         self.window: sg.Window | None = None
         self.status = AppStatus.BUSY
         self.last_clicked_table_time = None
-        self.last_selected_id = None
+        self.last_selected_id: int | None = None
         self.logger.info("Loading database settings...")
         self.settings: Settings = Settings("data/settings.json")
         self.settings.load_settings()
+        sg.set_global_icon(self.ICON_PATH)
 
         # Decide which database configuration to use
         if (
@@ -149,9 +151,6 @@ class App:
 
         self.hide_major_screens()
 
-        record_id = self.stack.peek()[1]
-        screen = self.current_screen.value
-
         if self.current_screen == Screen.ORG_SEARCH:
             self.window["-SEARCH_SCREEN-"].update(visible=True)
             self.window["-ORG_SCREEN-"].update(visible=True)
@@ -161,6 +160,9 @@ class App:
             self.window["-CONTACT_SCREEN-"].update(visible=True)
 
         else:
+            record_id = self.stack.peek()[1]
+            screen = self.current_screen.value
+
             self.window[screen].update(visible=True)
 
             if self.current_screen == Screen.ORG_VIEW:

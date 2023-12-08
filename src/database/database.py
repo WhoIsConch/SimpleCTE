@@ -43,6 +43,7 @@ class Database(orm.Database):
         self.password = None
         self.app = None
 
+    @orm.db_session
     def get_records(
             self,
             record_type: "Organization | Contact | str",
@@ -171,9 +172,11 @@ class Database(orm.Database):
         else:
             return db_query
 
+    @orm.db_session
     def get_contact(self, contact_id: int) -> "Contact":
         return Contact.get(id=contact_id)
 
+    @orm.db_session
     def get_organization(self, org_id: int) -> "Organization":
         return Organization.get(id=org_id)
 
@@ -235,6 +238,7 @@ class Database(orm.Database):
 
         return True
 
+    @orm.db_session
     def update_organization(self, org: "Organization | int", **kwargs) -> bool:
         if isinstance(org, int):
             org = Organization.get(id=org)
@@ -640,7 +644,7 @@ class Database(orm.Database):
         self.disconnect()
         self.status = DBStatus.DISCONNECTED
 
-        if app.settings.database_system == "sqlite" and app.settings.database_address:
+        if app.settings.database_system == "sqlite" and app.settings.database_location == "remote":
             ftp = FTP(app.settings.database_address)
             ftp.login(app.settings.database_username, self.password)
             ftp.cwd(app.settings.absolute_database_path[:app.settings.absolute_database_path.rfind("/")] + "/")
@@ -661,6 +665,7 @@ class Organization(db.Entity):
     status = orm.Optional(str)
     addresses = orm.Optional(orm.StrArray)
     phones = orm.Optional(orm.IntArray)
+    emails = orm.Optional(orm.StrArray)
     custom_fields = orm.Optional(orm.Json)
 
     contacts = orm.Set("Contact")

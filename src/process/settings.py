@@ -3,6 +3,20 @@ import os
 
 
 class Settings:
+    template = {
+                "theme": "dark",
+                "database": {
+                    "system": "sqlite",
+                    "location": "local",
+                    "path": "data/database.db",
+                    "name": "",
+                    "address": "",
+                    "port": "",
+                    "username": "",
+                    "password": "",
+                },
+            }
+
     def __init__(self, settings_path: str):
         self.settings_path = settings_path
 
@@ -30,25 +44,11 @@ class Settings:
             # Create the directory relative to the top-level of this project
             os.makedirs(os.path.dirname(self.settings_path), exist_ok=True)
 
-            settings = {
-                "theme": "dark",
-                "database": {
-                    "system": "sqlite",
-                    "location": "local",
-                    "path": "data/database.db",
-                    "name": "",
-                    "address": "",
-                    "port": "",
-                    "username": "",
-                    "password": "",
-                },
-            }
-
-            self.save_settings(settings)
+            settings = self.save_settings(self.template)
 
         return settings
 
-    def save_settings(self, settings: "dict | Settings | None" = None) -> None:
+    def save_settings(self, settings: "dict | Settings | None" = None) -> dict:
         """
         Save the settings to the settings file.
         """
@@ -58,8 +58,21 @@ class Settings:
         elif isinstance(settings, Settings):
             settings = settings.settings
 
+        # Verify that all the required keys are in the settings to save.
+        # If not, create them.
+        for key, value in self.template.items():
+            if key not in settings:
+                settings[key] = value
+
+            if isinstance(value, dict):
+                for sub_key, sub_value in value.items():
+                    if sub_key not in settings[key]:
+                        settings[key][sub_key] = sub_value
+
         with open(self.settings_path, "w") as settings_file:
             json.dump(settings, settings_file, indent=4)
+
+        return settings
 
     def copy(self) -> "Settings":
         """

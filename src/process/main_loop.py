@@ -1,11 +1,12 @@
 from typing import TYPE_CHECKING
 import PySimpleGUI as sg
+import webbrowser
 
 from ..utils.enums import AppStatus, Screen
 from ..ui_management import swap_to_org_viewer, swap_to_contact_viewer, swap_to_resource_viewer, settings_handler, \
-    backup_handler, export_handler
+    backup_handler, export_handler, add_record_handler, help_manager
 from ..database.database import get_org_table_values, get_contact_table_values
-from ..layouts import get_create_contact_layout, get_create_org_layout, get_field_keys, get_sort_keys
+from ..layouts import get_field_keys, get_sort_keys
 from ..utils.helpers import format_phone, strip_phone
 
 if TYPE_CHECKING:
@@ -62,7 +63,6 @@ def manage_custom_field(app: 'App', values: dict, edit=False) -> None:
             record.custom_fields[field_name],
             expand_x=True,
             size=(30, 10),
-            horizontal_scroll=True,
             disabled=not edit,
             key="-CUSTOM_FIELD_VALUE-",
         )],
@@ -84,7 +84,7 @@ def manage_custom_field(app: 'App', values: dict, edit=False) -> None:
         return
 
     app.db.update_custom_field(
-        name=values["-CUSTOM_FIELD_NAME-"],
+        name=field_name,
         value=values["-CUSTOM_FIELD_VALUE-"],
         **{record_type: record_id}
     )
@@ -209,56 +209,7 @@ def main_loop(app: "App"):
             app.lazy_load_table_values(search_info, descending=values["-SORT_DESCENDING-"])
 
         elif event.startswith("-ADD_RECORD-"):
-            if app.current_screen in [Screen.CONTACT_SEARCH, Screen.CONTACT_VIEW]:
-                new_window = sg.Window("Add Contact", get_create_contact_layout(), modal=True,
-                                       finalize=True)
-                event, values = new_window.read()
-                new_window.close()
-
-                if event == "-CANCEL-" or event == sg.WIN_CLOSED:
-                    continue
-
-                if not (values["-FIRST_NAME-"] and values["-LAST_NAME-"]):
-                    sg.popup("First and last name are required to create a contact.")
-                    continue
-
-                elif values["-PHONE_NUMBER-"]:
-                    try:
-                        values["-PHONE_NUMBER-"] = int(values["-PHONE_NUMBER-"])
-                    except ValueError:
-                        sg.popup(
-                            "Invalid phone number! Phone number must be a continuous string of numbers.")
-                        continue
-
-                db_values = {k.lower().replace("-", ""): v for k, v in values.items() if v}
-
-                contact = app.db.create_contact(**db_values)
-
-                swap_to_contact_viewer(app, contact=contact)
-
-            elif app.current_screen in [Screen.ORG_SEARCH, Screen.ORG_VIEW]:
-                new_window = sg.Window("Add Organization", get_create_org_layout(), modal=True,
-                                       finalize=True)
-                event, values = new_window.read()
-                new_window.close()
-
-                if event == "-CANCEL-" or event == sg.WIN_CLOSED:
-                    continue
-
-                if not values["-NAME-"] or not values["-TYPE-"]:
-                    sg.popup("Name and type are required to create an organization.")
-                    continue
-
-                db_values = {k.lower().replace("-", ""): v for k, v in values.items() if v}
-
-                organization = app.db.create_organization(**db_values)
-
-                swap_to_org_viewer(app, org=organization)
-
-            else:
-                continue
-
-            app.lazy_load_table_values()
+            add_record_handler(app)
 
         elif event == "View":
             method = None
@@ -310,7 +261,7 @@ def main_loop(app: "App"):
 
             layout = [
                 [sg.Text("Full Resource Value:")],
-                [sg.Multiline(resource.value, size=(30, 10), horizontal_scroll=True, disabled=True)],
+                [sg.Multiline(resource.value, size=(30, 10), disabled=True)],
                 [sg.Button("Close")]
             ]
 
@@ -673,12 +624,12 @@ def main_loop(app: "App"):
                 org_id = app.window["-ORG_VIEW-"].metadata
 
                 try:
-                    name = app.window["-NAME-"].get()
+                    org = app.db.get_organization(org_id)
                 except IndexError:
                     continue
 
                 layout = [
-                    [sg.Text("New Name:"), sg.Input(key="-NAME-", default_text=name)],
+                    [sg.Text("New Name:"), sg.Input(key="-NAME-", default_text=org.name)],
                     [sg.Button("Change"), sg.Button("Cancel")]
                 ]
 
@@ -750,6 +701,33 @@ def main_loop(app: "App"):
                 swap_to_resource_viewer(app, resource_id=resource_id, push=False)
 
             app.lazy_load_table_values()
+
+        elif event == "Change Type" and app.current_screen == Screen.ORG_VIEW:
+            # Change the type of an Organization
+            org = app.db.get_organization(app.window["-ORG_VIEW-"].metadata)
+
+            input_win = sg.Window("Change Type", [
+                [sg.Text("New Type:"), sg.Input(key="-TYPE-", default_text=org.type)],
+                [sg.Button("Change"), sg.Button("Cancel")]
+            ], finalize=True, modal=True)
+
+            event, values = input_win.read()
+            input_win.close()
+
+            if event == "Cancel" or event == sg.WIN_CLOSED:
+                continue
+
+            new_type = values.get("-TYPE-", "")
+
+            if not new_type:
+                sg.popup("A type is required!")
+                continue
+
+            if new_type == org.type:
+                continue
+
+            app.db.update_organization(org.id, type=new_type)
+            swap_to_org_viewer(app, org_id=org.id, push=False)
 
         elif event == "Change Status":
             # Change the status of a record.
@@ -951,8 +929,8 @@ def main_loop(app: "App"):
 
             layout = [
                 [sg.Text("Emails:")],
-                [sg.Multiline("\n".join(list(record.emails)), size=(30, 10), disabled=True,
-                              horizontal_scroll=True)],
+                [sg.Multiline("\n".join(list(record.emails or [])), size=(30, 10), disabled=True,
+                              )],
                 [sg.Button("Close")]
             ]
 
@@ -973,7 +951,7 @@ def main_loop(app: "App"):
 
             layout = [
                 [sg.Text("Emails, one per line\n(The first email is primary):")],
-                [sg.Multiline("\n".join(list(record.emails)), size=(30, 10), key="-EMAILS-")],
+                [sg.Multiline("\n".join(list(record.emails or [])), size=(30, 10), key="-EMAILS-")],
                 [sg.Button("Save"), sg.Button("Cancel")]
             ]
 
@@ -1141,7 +1119,7 @@ def main_loop(app: "App"):
 
             layout = [
                 [sg.Text("Full Resource Value:")],
-                [sg.Multiline(resource.value, size=(30, 10), horizontal_scroll=True, key="-NEW_VALUE-")],
+                [sg.Multiline(resource.value, size=(30, 10), key="-NEW_VALUE-")],
                 [sg.Button("Close")]
             ]
 
@@ -1245,6 +1223,12 @@ def main_loop(app: "App"):
             app.window["-CONTACT_TABLE-"].update(values["-UPDATE_TABLES-"][0])
             app.window["-ORG_TABLE-"].update(values["-UPDATE_TABLES-"][1])
 
+        elif event.startswith("-HELP-"):
+            webbrowser.open("https://github.com/WhoIsConch/SimpleCTE/wiki")
+
+        elif event.startswith("Help::"):
+            help_manager(app, event.split("::")[-1])
+
         elif event.startswith("-SETTINGS-"):
             settings_handler(app)
 
@@ -1279,6 +1263,9 @@ def main_loop(app: "App"):
             )
 
         elif event in ["-VIEW_RESOURCE-", "View Resource"]:
+            if not app.last_selected_id:
+                continue
+
             # View the resource
             swap_to_resource_viewer(app, resource_id=app.last_selected_id)
 
