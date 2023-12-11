@@ -135,6 +135,7 @@ def get_search_layout(
                 layout=[
                     [
                         sg.Button("Search", k="-SEARCH_BUTTON-"),
+                        sg.Button("Reset", k="-RESET_BUTTON-", tooltip=" Reset the search. "),
                         sg.Text("Search Query:", tooltip=" The text to search in a field for. "),
                         sg.Input(k="-SEARCH_QUERY-", expand_x=True, tooltip=" The text to search in a field for. "),
                     ],
@@ -142,8 +143,8 @@ def get_search_layout(
                         sg.Text("Search in:", tooltip=" The field to search in. "),
                         sg.Combo(fields, k="-SEARCH_FIELDS-", expand_x=True, tooltip=" The field to search in. "),
                         sg.Text("Sort by:", tooltip=" The field to sort by. "),
-                        sg.Combo(sort_fields, k="-SORT_TYPE-", expand_x=True, tooltip=" The field to sort by. "),
-                        sg.Checkbox("Descending", k="-SORT_DESCENDING-", tooltip="Whether to sort in descending "
+                        sg.Combo(sort_fields, k="-SORT_TYPE-", expand_x=True, tooltip=" The field to sort results by. "),
+                        sg.Checkbox("Descending", k="-SORT_DESCENDING-", tooltip=" Whether to sort in descending "
                                                                                  "order. "),
                     ],
                 ],

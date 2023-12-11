@@ -1223,6 +1223,21 @@ def main_loop(app: "App"):
             app.window["-CONTACT_TABLE-"].update(values["-UPDATE_TABLES-"][0])
             app.window["-ORG_TABLE-"].update(values["-UPDATE_TABLES-"][1])
 
+        elif event == "-RESET_BUTTON-":
+            # Reset the search parameters
+            app.window["-SEARCH_QUERY-"].update("")
+            app.window["-SEARCH_FIELDS-"].update("")
+            app.window["-SORT_TYPE-"].update("")
+
+            if app.current_screen == Screen.ORG_SEARCH:
+                app.window["-ORG_TABLE-"].update(get_org_table_values(app))
+
+            elif app.current_screen == Screen.CONTACT_SEARCH:
+                app.window["-CONTACT_TABLE-"].update(get_contact_table_values(app))
+
+            app.lazy_load_table_values()
+
+
         elif event.startswith("-HELP-"):
             webbrowser.open("https://github.com/WhoIsConch/SimpleCTE/wiki")
 
