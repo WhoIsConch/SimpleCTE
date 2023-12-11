@@ -104,9 +104,7 @@ def get_search_layout(
                                 [
                                     sg.Text(
                                         "View: ",
-                                        background_color=sg.theme_progress_bar_color()[
-                                            1
-                                        ],
+                                        background_color=sg.theme_progress_bar_color()[1],
                                         pad=((0, 0), (0, 0)),
                                         tooltip=" The type of record you are searching for. ",
                                     ),

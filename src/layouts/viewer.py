@@ -38,7 +38,8 @@ def get_viewer_head(contact: bool = False) -> list:
                 layout=[
                     [
                         sg.Button("Exit", k="-EXIT_1-" if not contact else "-EXIT_1_CONTACT-", expand_y=True,
-                                  expand_x=True),
+                                  expand_x=True, tooltip=" Go back to the previous screen. Alt-click to view all "
+                                  "screens you have recently viewed. "),
                         sg.Column(
                             element_justification="center",
                             expand_x=True,

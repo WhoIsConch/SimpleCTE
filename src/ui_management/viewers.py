@@ -97,7 +97,7 @@ def swap_to_org_viewer(
     app.window["-ADDRESS-"].update(org.addresses[0] if org.addresses else "No address")
     app.window["-EMAIL-"].update(org.emails[0] if org.emails else "No email")
 
-    app.switch_screen(Screen.ORG_VIEW, data=org.id, push=push)  # Switch to the organization viewer screen
+    app.switch_screen(Screen.ORG_VIEW, data=org, push=push)  # Switch to the organization viewer screen
 
 
 @db_session
@@ -158,7 +158,7 @@ def swap_to_contact_viewer(
     app.window["-CONTACT_ADDRESS-"].update(contact.addresses[0] if contact.addresses else "No address")
     app.window["-CONTACT_EMAIL-"].update(contact.emails[0] if contact.emails else "No email")
 
-    app.switch_screen(Screen.CONTACT_VIEW, data=contact.id, push=push)  # Switch to the contact viewer screen
+    app.switch_screen(Screen.CONTACT_VIEW, data=contact, push=push)  # Switch to the contact viewer screen
 
 
 @db_session
@@ -229,4 +229,4 @@ def swap_to_resource_viewer(
     app.window["-RESOURCE_CONTACTS_TABLE-"].update(values=contacts_values)
     app.window["-RESOURCE_ORGANIZATIONS_TABLE-"].update(values=organizations_values)
 
-    app.switch_screen(Screen.RESOURCE_VIEW, data=resource.id, push=push)
+    app.switch_screen(Screen.RESOURCE_VIEW, data=resource, push=push)

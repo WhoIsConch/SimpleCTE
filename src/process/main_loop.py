@@ -170,6 +170,8 @@ def main_loop(app: "App"):
                 app.window["-ORG_SCREEN-"].update(visible=True)
                 app.window["-SEARCH_FIELDS-"].update(values=search_fields)
                 app.window["-SORT_TYPE-"].update(values=sort_fields)
+
+                app.stack.clear()
                 app.stack.push(Screen.ORG_SEARCH)
 
             elif values["-SEARCHTYPE-"] == "Contacts":
@@ -181,6 +183,7 @@ def main_loop(app: "App"):
                 app.window["-SEARCH_FIELDS-"].update(values=search_fields)
                 app.window["-SORT_TYPE-"].update(values=sort_fields)
 
+                app.stack.clear()
                 app.stack.push(Screen.CONTACT_SEARCH)
 
         elif event.startswith("-EXIT"):
@@ -1237,7 +1240,6 @@ def main_loop(app: "App"):
 
             app.lazy_load_table_values()
 
-
         elif event.startswith("-HELP-"):
             webbrowser.open("https://github.com/WhoIsConch/SimpleCTE/wiki")
 
@@ -1253,6 +1255,10 @@ def main_loop(app: "App"):
         elif event == "-EXPORT_ALL-":
             # Export all records in the database
             export_handler(app)
+
+        elif event.endswith("STACK"):
+            # Handle jumping between screens in the stack
+            app.jump_to_screen(event, values)
 
         elif event.startswith("-EXPORT-"):
             # Export the selected record

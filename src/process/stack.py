@@ -1,7 +1,5 @@
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from ..utils.enums import Screen
+from typing import TYPE_CHECKING, Any
+from ..utils.enums import Screen
 
 
 class Stack:
@@ -14,7 +12,7 @@ class Stack:
     def __init__(self):
         self.stack = []
 
-    def push(self, screen: "Screen", data: any = None) -> None:
+    def push(self, screen: "Screen", data: Any = None) -> None:
         self.stack.append((screen, data))
 
     def pop(self) -> None:
@@ -26,11 +24,33 @@ class Stack:
     def clear(self) -> None:
         self.stack.clear()
 
-    def search_and_pop(self, data: any) -> None:
+    def search_and_pop(self, data: Any) -> None:
         """
         Search for a specific screen in the stack and pop it.
         """
         for i, (screen, value) in enumerate(self.stack):
             if value == data:
                 self.stack.pop(i)
-                break
+
+            if isinstance(data, int) and value and value.id == data:
+                self.stack.pop(i)
+
+    def generate_previews(self) -> list[str]:
+        """
+        Generates a list of strings that will be used to preview what is in the stack.
+        """
+        for screen, value in self.stack:
+            screen_title = screen.name.replace('_', ' ').title()
+
+            if value and screen in (Screen.ORG_VIEW, Screen.CONTACT_VIEW, Screen.RESOURCE_VIEW):
+                yield value.name
+            else:
+                yield screen_title
+
+    def jump_to(self, index: int) -> None:
+        """
+        Jump to a specific index in the stack. This will pop all screens above the index.
+        """
+
+        for _ in range(len(self.stack) - index - 1):
+            self.stack.pop()

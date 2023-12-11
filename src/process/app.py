@@ -104,6 +104,27 @@ class App:
         """
         return self.stack.stack[-2][0]
 
+    def update_exit_menu(self):
+        """
+        Will update the right-click menu of the exit button to show all
+        the screens in the stack.
+        """
+        menu = [
+                "",
+                # Subscripts remove the last item in the list and reverse it
+                [screen + f"::{index}-STACK" for index, screen in enumerate(self.stack.generate_previews())][:-1][::-1]
+            ]
+        self.window["-EXIT_1-"].set_right_click_menu(menu)
+        self.window["-EXIT_1_CONTACT-"].set_right_click_menu(menu)
+
+    def jump_to_screen(self, event: str, data: dict):
+        """
+        Jump to a screen in the stack.
+        """
+        index = int(event.split("::")[1].split("-")[0])
+        self.stack.jump_to(index + 1)
+        self.switch_to_last_screen()
+
     def hide_major_screens(self):
         """
         Hide all major screens.
@@ -143,6 +164,8 @@ class App:
         elif screen == Screen.RESOURCE_VIEW:
             self.window["-RESOURCE_VIEW-"].update(visible=True)
 
+        self.update_exit_menu()
+
     def switch_to_last_screen(self) -> None:
         """
         Switch the app back to the second-to-last screen in the stack.
@@ -160,7 +183,7 @@ class App:
             self.window["-CONTACT_SCREEN-"].update(visible=True)
 
         else:
-            record_id = self.stack.peek()[1]
+            record_id = self.stack.peek()[1].id
             screen = self.current_screen.value
 
             self.window[screen].update(visible=True)
@@ -173,6 +196,8 @@ class App:
 
             elif self.current_screen == Screen.RESOURCE_VIEW:
                 swap_to_resource_viewer(self, resource_id=record_id, push=False)
+
+        self.update_exit_menu()
 
     def check_doubleclick(self, callback: Callable, args: tuple, check: "Callable | None" = None) -> None:
         """
