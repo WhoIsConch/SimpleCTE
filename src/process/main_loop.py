@@ -92,6 +92,54 @@ def manage_custom_field(app: 'App', values: dict, edit=False) -> None:
     method[0](**method[1])
 
 
+def manage_contact_info(app: "App", values: dict, edit=False) -> None:
+    """
+    Manage the contact info of a contact. Not available for other records.
+    """
+    # Generate the code. do not handle for organizations.
+    if app.current_screen != Screen.CONTACT_VIEW:
+        return
+
+    try:
+        record_id = app.window[app.current_screen.value].metadata
+        field_name = app.window["-CONTACT_INFO_TABLE-"].get()[values["-CONTACT_INFO_TABLE-"][0]][0]
+    except IndexError:
+        return
+
+    contact = app.db.get_contact(record_id)
+
+    layout = [
+        [sg.Text("Contact Info Name: "), sg.Text(field_name)],
+        [sg.Multiline(
+            contact.contact_info[field_name],
+            expand_x=True,
+            size=(30, 10),
+            disabled=not edit,
+            key="-CONTACT_INFO_VALUE-",
+        )],
+        [sg.Button("Close", key="-CLOSE-")]
+    ]
+
+    if edit:
+        layout[2].insert(0, sg.Button("Edit", key="-EDIT-"))
+
+    window = sg.Window("Contact Info Content", finalize=True, modal=True, layout=layout)
+
+    event, values = window.read()
+    window.close()
+
+    if event != "-EDIT-":
+        return
+
+    app.db.update_contact_info(
+        name=field_name,
+        value=values["-CONTACT_INFO_VALUE-"],
+        contact=record_id
+    )
+
+    swap_to_contact_viewer(app, contact_id=record_id, push=False)
+
+
 def main_loop(app: "App"):
     while True:
         app.status = AppStatus.READY
@@ -1013,8 +1061,11 @@ def main_loop(app: "App"):
         elif event == "Edit::CONTACT_INFO":
             # If the contact info is one of Email, Phone, or Address, trigger
             # The appropriate event.
-            index = values["-CONTACT_INFO_TABLE-"][0]
-            title = app.window["-CONTACT_INFO_TABLE-"].get()[index][0]
+            try:
+                index = values["-CONTACT_INFO_TABLE-"][0]
+                title = app.window["-CONTACT_INFO_TABLE-"].get()[index][0]
+            except IndexError:
+                continue
 
             if title == "Email":
                 event = "Edit Emails"
@@ -1025,6 +1076,7 @@ def main_loop(app: "App"):
             elif title == "Availability":
                 event = "Edit Availability"
             else:
+                manage_contact_info(app, values, edit=True)
                 continue
 
             # Trigger the event
@@ -1033,8 +1085,11 @@ def main_loop(app: "App"):
         elif event == "View More::CONTACT_INFO":
             # If the contact info is one of Email, Phone, or Address, trigger
             # The appropriate event.
-            index = values["-CONTACT_INFO_TABLE-"][0]
-            title = app.window["-CONTACT_INFO_TABLE-"].get()[index][0]
+            try:
+                index = values["-CONTACT_INFO_TABLE-"][0]
+                title = app.window["-CONTACT_INFO_TABLE-"].get()[index][0]
+            except IndexError:
+                continue
 
             if title == "Email":
                 event = "View All Emails"
@@ -1043,6 +1098,7 @@ def main_loop(app: "App"):
             elif title == "Address":
                 event = "View All Addresses"
             else:
+                manage_contact_info(app, values, edit=False)
                 continue
 
             # Trigger the event
