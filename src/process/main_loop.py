@@ -247,14 +247,20 @@ def main_loop(app: "App"):
             match app.current_screen:
                 case Screen.ORG_SEARCH:
                     app.window["-ORG_TABLE-"].update(
-                        get_org_table_values(app, search_info=search_info,
-                                             descending=values["-SORT_DESCENDING-"])
+                        get_org_table_values(
+                            app,
+                            search_info=search_info,
+                            descending=values["-SORT_DESCENDING-"]
+                        )
                     )
 
                 case Screen.CONTACT_SEARCH:
                     app.window["-CONTACT_TABLE-"].update(
-                        get_contact_table_values(app, search_info=search_info,
-                                                 descending=values["-SORT_DESCENDING-"])
+                        get_contact_table_values(
+                            app,
+                            search_info=search_info,
+                            descending=values["-SORT_DESCENDING-"]
+                        )
                     )
 
             app.lazy_load_table_values(search_info, descending=values["-SORT_DESCENDING-"])

@@ -4,6 +4,7 @@ from datetime import datetime
 import PySimpleGUI as sg
 import os
 import sys
+import time
 
 from ..utils.enums import Screen, AppStatus, DBStatus
 from ..process.stack import Stack
@@ -227,6 +228,7 @@ class App:
                 get_org_table_values(self, paginated=False, search_info=search_info,
                                      descending=descending)
             ]
+            # time.sleep(3)
 
             return values
 
@@ -271,6 +273,8 @@ class App:
                     ]
                 ],
             )
+            self.window["-CONTACT_TABLE-"].update(get_contact_table_values(self))
+            self.window["-ORG_TABLE-"].update(get_contact_table_values(self))
 
     def restart(self):
         """
