@@ -792,14 +792,10 @@ def main_loop(app: "App"):
             # Get the ID of the record we're viewing
             if app.current_screen == Screen.ORG_VIEW:
                 org_id = app.window["-ORG_VIEW-"].metadata
-
-                try:
-                    status = app.window["-STATUS-"].get()
-                except IndexError:
-                    continue
+                org = app.db.get_organization(org_id)
 
                 layout = [
-                    [sg.Text("New Status:"), sg.Input(key="-STATUS-", default_text=status)],
+                    [sg.Text("New Status:"), sg.Input(key="-STATUS-", default_text=org.status)],
                     [sg.Button("Change"), sg.Button("Cancel")]
                 ]
 
@@ -807,15 +803,13 @@ def main_loop(app: "App"):
                 contact_id = app.window["-CONTACT_VIEW-"].metadata
                 contact = app.db.get_contact(contact_id)
 
-                try:
-                    status = app.window["-STATUS-"].get()
-                except IndexError:
-                    continue
-
                 layout = [
                     [sg.Text("New Status:"), sg.Input(key="-STATUS-", default_text=contact.status)],
                     [sg.Button("Change"), sg.Button("Cancel")]
                 ]
+
+            else:
+                continue
 
             input_window = sg.Window("Change Status", layout, finalize=True, modal=True)
 
