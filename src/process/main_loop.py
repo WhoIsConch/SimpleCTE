@@ -1336,7 +1336,9 @@ def main_loop(app: "App"):
                     "query": app.window["-SEARCH_QUERY-"].get(),
                     "field": app.window["-SEARCH_FIELDS-"].get(),
                     "sort": app.window["-SORT_TYPE-"].get(),
-                }
+                    "descending": app.window["-SORT_DESCENDING-"].get()
+                },
+                search_type=app.current_screen.name.split("_")[0].lower()
             )
 
         elif event in ["-VIEW_RESOURCE-", "View Resource"]:
