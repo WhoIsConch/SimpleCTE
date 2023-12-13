@@ -38,7 +38,8 @@ def get_viewer_head(contact: bool = False) -> list:
                 layout=[
                     [
                         sg.Button("Exit", k="-EXIT_1-" if not contact else "-EXIT_1_CONTACT-", expand_y=True,
-                                  expand_x=True),
+                                  expand_x=True, tooltip=" Go back to the previous screen. Alt-click to view all "
+                                  "screens you have recently viewed. "),
                         sg.Column(
                             element_justification="center",
                             expand_x=True,
@@ -201,7 +202,8 @@ def get_contact_view_layout():
                                         key="-CONTACT_INFO_TABLE-",
                                         headings=["Title", "Value"],
                                         right_click_menu=["", ["View More::CONTACT_INFO", "Add::CONTACT_INFO",
-                                                               "Edit::CONTACT_INFO", "Delete::CONTACT_INFO", "Help::RESOURCE_TABLE"]],
+                                                               "Edit::CONTACT_INFO", "Delete::CONTACT_INFO",
+                                                               "Help::CONTACT_VIEWER"]],
                                         right_click_selects=True,
                                         expand_x=True,
                                         font=("Arial", 15),
@@ -251,7 +253,7 @@ def get_contact_view_layout():
                                         visible_column_map=[False, True, True],
                                         right_click_menu=["", ["View Resource", "Create Resource", "Link Resource",
                                                                "Unlink Resource",
-                                                               "Delete Resource", "Copy ID"], "Help::CONTACT_VIEWER"],
+                                                               "Delete Resource", "Copy ID"], "Help::RESOURCE_TABLE"],
                                         right_click_selects=True,
                                         enable_click_events=True,
                                         expand_x=True,

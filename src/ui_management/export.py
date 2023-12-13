@@ -45,26 +45,40 @@ def _get_contact_data(contact: "Contact") -> list:
     return contact_data
 
 
+def update_info(info: dict, window: sg.Window, type: str):
+    window[f"-EXPORT_FILTER_TYPE_{type}-"].update(value=info["field"])
+    window[f"-EXPORT_SEARCH_QUERY_{type}-"].update(info["query"])
+    window[f"-EXPORT_SORT_TYPE_{type}-"].update(info["sort"])
+    window[f"-EXPORT_SORT_DESCENDING_{type}-"].update(info["descending"])
+
+
 def export_handler(
         app: "App",
         org_id: int | None = None,
         contact_id: int | None = None,
         search_info: dict | None = None,
+        search_type: str | None = None,
 ):
     """
     Handles the export process.
     """
     # Create the window
     window = sg.Window("Export", get_export_layout(), finalize=True, modal=True)
-    # if search_info:
-    #     window["-EXPORT_FILTER_COL-"].update(visible=True)
-    #     window["-EXPORT_FILTER-"].update(value=True)
-    #     # window["-EXPORT_SEARCH_QUERY-"].update(search_info["query"])
-    #     # window["-EXPORT_FILTER_TYPE-"].update(search_info["field"])
-    #     # window["-EXPORT_SORT_TYPE-"].update(search_info["sort"])
-    # else:
+
     contact_search_info = {}
     org_search_info = {}
+
+    if search_type and search_info:
+        if search_type.lower() == "contact":
+            contact_search_info = search_info
+            update_info(contact_search_info, window, "Contact")
+
+        elif search_type.lower() == "org":
+            org_search_info = search_info
+            update_info(org_search_info, window, "Organization")
+
+        window["-EXPORT_FILTER_COL-"].update(visible=True)
+        window["-EXPORT_FILTER-"].update(value=True)
 
     # Create the event loop
     while True:

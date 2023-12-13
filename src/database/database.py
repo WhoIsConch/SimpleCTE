@@ -21,10 +21,7 @@ def search_and_destroy(func: "Callable") -> "Callable":
     def wrapper(*args, **kwargs):
         app = args[0].app
         func(*args, **kwargs)
-        if not isinstance(args[1], int):
-            app.stack.search_and_pop(args[1].id)
-        else:
-            app.stack.search_and_pop(args[1])
+        app.stack.search_and_pop(args[1])
 
     return wrapper
 

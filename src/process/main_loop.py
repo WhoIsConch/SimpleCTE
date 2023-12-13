@@ -92,6 +92,54 @@ def manage_custom_field(app: 'App', values: dict, edit=False) -> None:
     method[0](**method[1])
 
 
+def manage_contact_info(app: "App", values: dict, edit=False) -> None:
+    """
+    Manage the contact info of a contact. Not available for other records.
+    """
+    # Generate the code. do not handle for organizations.
+    if app.current_screen != Screen.CONTACT_VIEW:
+        return
+
+    try:
+        record_id = app.window[app.current_screen.value].metadata
+        field_name = app.window["-CONTACT_INFO_TABLE-"].get()[values["-CONTACT_INFO_TABLE-"][0]][0]
+    except IndexError:
+        return
+
+    contact = app.db.get_contact(record_id)
+
+    layout = [
+        [sg.Text("Contact Info Name: "), sg.Text(field_name)],
+        [sg.Multiline(
+            contact.contact_info[field_name],
+            expand_x=True,
+            size=(30, 10),
+            disabled=not edit,
+            key="-CONTACT_INFO_VALUE-",
+        )],
+        [sg.Button("Close", key="-CLOSE-")]
+    ]
+
+    if edit:
+        layout[2].insert(0, sg.Button("Edit", key="-EDIT-"))
+
+    window = sg.Window("Contact Info Content", finalize=True, modal=True, layout=layout)
+
+    event, values = window.read()
+    window.close()
+
+    if event != "-EDIT-":
+        return
+
+    app.db.update_contact_info(
+        name=field_name,
+        value=values["-CONTACT_INFO_VALUE-"],
+        contact=record_id
+    )
+
+    swap_to_contact_viewer(app, contact_id=record_id, push=False)
+
+
 def main_loop(app: "App"):
     while True:
         app.status = AppStatus.READY
@@ -170,6 +218,8 @@ def main_loop(app: "App"):
                 app.window["-ORG_SCREEN-"].update(visible=True)
                 app.window["-SEARCH_FIELDS-"].update(values=search_fields)
                 app.window["-SORT_TYPE-"].update(values=sort_fields)
+
+                app.stack.clear()
                 app.stack.push(Screen.ORG_SEARCH)
 
             elif values["-SEARCHTYPE-"] == "Contacts":
@@ -181,6 +231,7 @@ def main_loop(app: "App"):
                 app.window["-SEARCH_FIELDS-"].update(values=search_fields)
                 app.window["-SORT_TYPE-"].update(values=sort_fields)
 
+                app.stack.clear()
                 app.stack.push(Screen.CONTACT_SEARCH)
 
         elif event.startswith("-EXIT"):
@@ -196,14 +247,20 @@ def main_loop(app: "App"):
             match app.current_screen:
                 case Screen.ORG_SEARCH:
                     app.window["-ORG_TABLE-"].update(
-                        get_org_table_values(app, search_info=search_info,
-                                             descending=values["-SORT_DESCENDING-"])
+                        get_org_table_values(
+                            app,
+                            search_info=search_info,
+                            descending=values["-SORT_DESCENDING-"]
+                        )
                     )
 
                 case Screen.CONTACT_SEARCH:
                     app.window["-CONTACT_TABLE-"].update(
-                        get_contact_table_values(app, search_info=search_info,
-                                                 descending=values["-SORT_DESCENDING-"])
+                        get_contact_table_values(
+                            app,
+                            search_info=search_info,
+                            descending=values["-SORT_DESCENDING-"]
+                        )
                     )
 
             app.lazy_load_table_values(search_info, descending=values["-SORT_DESCENDING-"])
@@ -735,14 +792,10 @@ def main_loop(app: "App"):
             # Get the ID of the record we're viewing
             if app.current_screen == Screen.ORG_VIEW:
                 org_id = app.window["-ORG_VIEW-"].metadata
-
-                try:
-                    status = app.window["-STATUS-"].get()
-                except IndexError:
-                    continue
+                org = app.db.get_organization(org_id)
 
                 layout = [
-                    [sg.Text("New Status:"), sg.Input(key="-STATUS-", default_text=status)],
+                    [sg.Text("New Status:"), sg.Input(key="-STATUS-", default_text=org.status)],
                     [sg.Button("Change"), sg.Button("Cancel")]
                 ]
 
@@ -750,15 +803,13 @@ def main_loop(app: "App"):
                 contact_id = app.window["-CONTACT_VIEW-"].metadata
                 contact = app.db.get_contact(contact_id)
 
-                try:
-                    status = app.window["-STATUS-"].get()
-                except IndexError:
-                    continue
-
                 layout = [
                     [sg.Text("New Status:"), sg.Input(key="-STATUS-", default_text=contact.status)],
                     [sg.Button("Change"), sg.Button("Cancel")]
                 ]
+
+            else:
+                continue
 
             input_window = sg.Window("Change Status", layout, finalize=True, modal=True)
 
@@ -1010,8 +1061,11 @@ def main_loop(app: "App"):
         elif event == "Edit::CONTACT_INFO":
             # If the contact info is one of Email, Phone, or Address, trigger
             # The appropriate event.
-            index = values["-CONTACT_INFO_TABLE-"][0]
-            title = app.window["-CONTACT_INFO_TABLE-"].get()[index][0]
+            try:
+                index = values["-CONTACT_INFO_TABLE-"][0]
+                title = app.window["-CONTACT_INFO_TABLE-"].get()[index][0]
+            except IndexError:
+                continue
 
             if title == "Email":
                 event = "Edit Emails"
@@ -1022,6 +1076,7 @@ def main_loop(app: "App"):
             elif title == "Availability":
                 event = "Edit Availability"
             else:
+                manage_contact_info(app, values, edit=True)
                 continue
 
             # Trigger the event
@@ -1030,8 +1085,11 @@ def main_loop(app: "App"):
         elif event == "View More::CONTACT_INFO":
             # If the contact info is one of Email, Phone, or Address, trigger
             # The appropriate event.
-            index = values["-CONTACT_INFO_TABLE-"][0]
-            title = app.window["-CONTACT_INFO_TABLE-"].get()[index][0]
+            try:
+                index = values["-CONTACT_INFO_TABLE-"][0]
+                title = app.window["-CONTACT_INFO_TABLE-"].get()[index][0]
+            except IndexError:
+                continue
 
             if title == "Email":
                 event = "View All Emails"
@@ -1040,6 +1098,7 @@ def main_loop(app: "App"):
             elif title == "Address":
                 event = "View All Addresses"
             else:
+                manage_contact_info(app, values, edit=False)
                 continue
 
             # Trigger the event
@@ -1223,6 +1282,20 @@ def main_loop(app: "App"):
             app.window["-CONTACT_TABLE-"].update(values["-UPDATE_TABLES-"][0])
             app.window["-ORG_TABLE-"].update(values["-UPDATE_TABLES-"][1])
 
+        elif event == "-RESET_BUTTON-":
+            # Reset the search parameters
+            app.window["-SEARCH_QUERY-"].update("")
+            app.window["-SEARCH_FIELDS-"].update("")
+            app.window["-SORT_TYPE-"].update("")
+
+            if app.current_screen == Screen.ORG_SEARCH:
+                app.window["-ORG_TABLE-"].update(get_org_table_values(app))
+
+            elif app.current_screen == Screen.CONTACT_SEARCH:
+                app.window["-CONTACT_TABLE-"].update(get_contact_table_values(app))
+
+            app.lazy_load_table_values()
+
         elif event.startswith("-HELP-"):
             webbrowser.open("https://github.com/WhoIsConch/SimpleCTE/wiki")
 
@@ -1238,6 +1311,10 @@ def main_loop(app: "App"):
         elif event == "-EXPORT_ALL-":
             # Export all records in the database
             export_handler(app)
+
+        elif event.endswith("STACK"):
+            # Handle jumping between screens in the stack
+            app.jump_to_screen(event, values)
 
         elif event.startswith("-EXPORT-"):
             # Export the selected record
@@ -1259,7 +1336,9 @@ def main_loop(app: "App"):
                     "query": app.window["-SEARCH_QUERY-"].get(),
                     "field": app.window["-SEARCH_FIELDS-"].get(),
                     "sort": app.window["-SORT_TYPE-"].get(),
-                }
+                    "descending": app.window["-SORT_DESCENDING-"].get()
+                },
+                search_type=app.current_screen.name.split("_")[0].lower()
             )
 
         elif event in ["-VIEW_RESOURCE-", "View Resource"]:
