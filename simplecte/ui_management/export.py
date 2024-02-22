@@ -4,11 +4,11 @@ from typing import TYPE_CHECKING
 import PySimpleGUI as sg
 import pandas as pd
 
-from ..layouts import get_export_layout, available_export_formats
+from layouts import get_export_layout, available_export_formats
 
 if TYPE_CHECKING:
-    from ..process.app import App
-    from ..database.database import Organization, Contact
+    from process.app import App
+    from database.database import Organization, Contact
 
 __all__ = (
     "export_handler",

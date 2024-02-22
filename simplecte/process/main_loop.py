@@ -2,15 +2,15 @@ from typing import TYPE_CHECKING
 import PySimpleGUI as sg
 import webbrowser
 
-from ..utils.enums import AppStatus, Screen
-from ..ui_management import swap_to_org_viewer, swap_to_contact_viewer, swap_to_resource_viewer, settings_handler, \
+from utils.enums import AppStatus, Screen
+from ui_management import swap_to_org_viewer, swap_to_contact_viewer, swap_to_resource_viewer, settings_handler, \
     backup_handler, export_handler, add_record_handler, help_manager
-from ..database.database import get_org_table_values, get_contact_table_values
-from ..layouts import get_field_keys, get_sort_keys
-from ..utils.helpers import format_phone, strip_phone
+from database.database import get_org_table_values, get_contact_table_values
+from layouts import get_field_keys, get_sort_keys
+from utils.helpers import format_phone, strip_phone
 
 if TYPE_CHECKING:
-    from ..process.app import App
+    from process.app import App
 
 
 def manage_custom_field(app: 'App', values: dict, edit=False) -> None:

@@ -1,5 +1,5 @@
 from typing import TYPE_CHECKING, Any
-from ..utils.enums import Screen
+from utils.enums import Screen
 
 
 class Stack:

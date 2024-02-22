@@ -1,9 +1,9 @@
 import PySimpleGUI as sg
-from ..layouts import get_help_layout, get_help_text
+from layouts import get_help_layout, get_help_text
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from src.process.app import App
+    from simplecte.process.app import App
 
 __all__ = (
     "help_manager",

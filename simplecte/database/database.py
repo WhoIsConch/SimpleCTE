@@ -3,12 +3,12 @@ from typing import TYPE_CHECKING, Any, Callable
 
 from pony import orm
 
-from ..utils.enums import DBStatus, Screen
-from ..utils.helpers import format_phone
-from ..layouts import get_field_keys, get_sort_keys
+from utils.enums import DBStatus
+from utils.helpers import format_phone
+from layouts import get_field_keys, get_sort_keys
 
 if TYPE_CHECKING:
-    from ..process.app import App
+    from process.app import App
 
 
 def search_and_destroy(func: "Callable") -> "Callable":

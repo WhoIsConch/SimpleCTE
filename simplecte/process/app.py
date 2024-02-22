@@ -4,15 +4,14 @@ from datetime import datetime
 import PySimpleGUI as sg
 import os
 import sys
-import time
 
-from ..utils.enums import Screen, AppStatus, DBStatus
-from ..process.stack import Stack
-from ..process.settings import Settings
-from ..database.database import db, get_org_table_values, get_contact_table_values
-from ..layouts import get_search_layout, get_contact_view_layout, get_org_view_layout, get_resource_view_layout, \
+from utils.enums import Screen, AppStatus, DBStatus
+from process.stack import Stack
+from process.settings import Settings
+from database.database import db, get_org_table_values, get_contact_table_values
+from layouts import get_search_layout, get_contact_view_layout, get_org_view_layout, get_resource_view_layout, \
     get_login_layout
-from ..ui_management.viewers import swap_to_org_viewer, swap_to_contact_viewer, swap_to_resource_viewer
+from ui_management import swap_to_org_viewer, swap_to_contact_viewer, swap_to_resource_viewer
 
 
 class App:

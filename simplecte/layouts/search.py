@@ -1,6 +1,6 @@
 import PySimpleGUI as sg
-from src.utils.enums import Screen
-from ..layouts import get_action_bar
+from utils.enums import Screen
+from layouts import get_action_bar
 
 __all__ = (
     "get_search_layout",

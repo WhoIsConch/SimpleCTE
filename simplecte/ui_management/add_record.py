@@ -1,11 +1,11 @@
 import PySimpleGUI as sg
 from typing import TYPE_CHECKING
-from ..layouts import get_create_contact_layout, get_create_org_layout
-from ..ui_management import swap_to_contact_viewer, swap_to_org_viewer
-from ..utils.enums import Screen
+from layouts import get_create_contact_layout, get_create_org_layout
+from ui_management import swap_to_contact_viewer, swap_to_org_viewer
+from utils.enums import Screen
 
 if TYPE_CHECKING:
-    from ..process.app import App
+    from process.app import App
 
 __all__ = (
     "add_record_handler",

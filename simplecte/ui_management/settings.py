@@ -1,10 +1,10 @@
 from typing import TYPE_CHECKING
 import PySimpleGUI as sg
 
-from ..layouts import get_settings_layout
+from layouts import get_settings_layout
 
 if TYPE_CHECKING:
-    from ..process.app import App
+    from process.app import App
 
 __all__ = (
     "settings_handler",

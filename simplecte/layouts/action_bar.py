@@ -1,5 +1,5 @@
 import PySimpleGUI as sg
-from src.utils.enums import Screen
+from utils.enums import Screen
 
 __all__ = (
     "get_action_bar",
