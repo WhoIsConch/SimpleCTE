@@ -1,5 +1,10 @@
-from typing import TYPE_CHECKING, Any
+from typing import Any
 from utils.enums import Screen
+
+
+__all__ = (
+    "Stack",
+)
 
 
 class Stack:

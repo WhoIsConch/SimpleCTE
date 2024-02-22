@@ -1,6 +1,5 @@
-from process.app import App
-from process.main_loop import main_loop
-
+from process import App
+from process import main_loop
 
 def start():
     app = App()

@@ -14,6 +14,11 @@ from layouts import get_search_layout, get_contact_view_layout, get_org_view_lay
 from ui_management import swap_to_org_viewer, swap_to_contact_viewer, swap_to_resource_viewer
 
 
+__all__ = (
+    "App",
+)
+
+
 class App:
     """
     The App class is the main class that runs the application.

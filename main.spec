@@ -2,7 +2,7 @@
 
 
 a = Analysis(
-    ['src\\main.py'],
+    ['simplecte\\main.py'],
     pathex=[],
     binaries=[],
     datas=[],
@@ -31,7 +31,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['src\\data\\simplecte.ico'],
+    icon=['simplecte\\data\\simplecte.ico'],
 )
 coll = COLLECT(
     exe,

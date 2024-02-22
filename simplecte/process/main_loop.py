@@ -13,7 +13,12 @@ if TYPE_CHECKING:
     from process.app import App
 
 
-def manage_custom_field(app: 'App', values: dict, edit=False) -> None:
+__all__ = (
+    "main_loop",
+)
+
+
+def _manage_custom_field(app: 'App', values: dict, edit=False) -> None:
     try:
         record_id = app.window[app.current_screen.value].metadata
     except IndexError:
@@ -92,7 +97,7 @@ def manage_custom_field(app: 'App', values: dict, edit=False) -> None:
     method[0](**method[1])
 
 
-def manage_contact_info(app: "App", values: dict, edit=False) -> None:
+def _manage_contact_info(app: "App", values: dict, edit=False) -> None:
     """
     Manage the contact info of a contact. Not available for other records.
     """
@@ -630,7 +635,7 @@ def main_loop(app: "App"):
             (swap_args[1])(**(swap_args[0]))
 
         elif event == "Edit Custom Field":
-            manage_custom_field(app, values, edit=True)
+            _manage_custom_field(app, values, edit=True)
 
         elif event == "Delete Custom Field":
             # Get the ID of the record we're viewing
@@ -671,7 +676,7 @@ def main_loop(app: "App"):
 
         elif event == "View Full Content":
             # For custom fields
-            manage_custom_field(app, values)
+            _manage_custom_field(app, values)
 
         elif event == "Change Name":
             # Change the name of a record.
@@ -1076,7 +1081,7 @@ def main_loop(app: "App"):
             elif title == "Availability":
                 event = "Edit Availability"
             else:
-                manage_contact_info(app, values, edit=True)
+                _manage_contact_info(app, values, edit=True)
                 continue
 
             # Trigger the event
@@ -1098,7 +1103,7 @@ def main_loop(app: "App"):
             elif title == "Address":
                 event = "View All Addresses"
             else:
-                manage_contact_info(app, values, edit=False)
+                _manage_contact_info(app, values, edit=False)
                 continue
 
             # Trigger the event
