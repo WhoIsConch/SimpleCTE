@@ -10,7 +10,7 @@ def get_action_bar(screen: Screen) -> list:
     if screen == Screen.ORG_SEARCH or screen == Screen.CONTACT_SEARCH:
         return [
             [
-                sg.Button("Logout", k="-LOGOUT-", tooltip="Log out of the database"),
+                sg.Button("Quit", k="-LOGOUT-", tooltip="Log out of the database"),
                 sg.Button("Export by Filter", k="-EXPORT_FILTER-", tooltip="Export data if it matches the selected "
                                                                            "filter"),
                 sg.Button("Export All", k="-EXPORT_ALL-", tooltip="Export all data"),
@@ -23,7 +23,7 @@ def get_action_bar(screen: Screen) -> list:
     else:
         layout = [
             [
-                sg.Button("Logout", k="-LOGOUT-", tooltip="Log out of the database"),
+                sg.Button("Quit", k="-LOGOUT-", tooltip="Log out of the database"),
                 sg.Button("Export", k="-EXPORT-", tooltip="Export database data"),
                 sg.Button("Settings", k="-SETTINGS-"),
                 sg.Button("Backup", k="-BACKUP-", tooltip="Back up your data"),
