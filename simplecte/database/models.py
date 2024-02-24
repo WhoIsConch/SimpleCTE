@@ -3,6 +3,14 @@ from sqlalchemy import ForeignKey, Column, Table
 import enum 
 
 
+__all__ = (
+    "Organization",
+    "Contact",
+    "Resource",
+    "ContactInfo",
+    "CustomField",
+    "ContactInfoType"
+)
 
 
 class ContactInfoType(enum.Enum):
@@ -12,33 +20,33 @@ class ContactInfoType(enum.Enum):
     CUSTOM_INFO = "custom_info"
 
 
-class Base(DeclarativeBase):
+class _Base(DeclarativeBase):
     pass
 
 
-contacts_organizations = Table(
+_contacts_organizations = Table(
     "contacts_organizations",
-    Base.metadata,
+    _Base.metadata,
     Column("contact_id", ForeignKey("contacts.id"), primary_key=True),
     Column("organization_id", ForeignKey("organizations.id"), primary_key=True),
 )
 
-organizations_resources = Table(
+_organizations_resources = Table(
     "organizations_resources",
-    Base.metadata,
+    _Base.metadata,
     Column("organization_id", ForeignKey("organizations.id"), primary_key=True),
     Column("resource_id", ForeignKey("resources.id"), primary_key=True),
 )
 
-contacts_resources = Table(
+_contacts_resources = Table(
     "contacts_resources",
-    Base.metadata,
+    _Base.metadata,
     Column("contact_id", ForeignKey("contacts.id"), primary_key=True),
     Column("resource_id", ForeignKey("resources.id"), primary_key=True),
 )
 
 
-class Organization(Base):
+class Organization(_Base):
     __tablename__ = "organizations"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
@@ -46,37 +54,37 @@ class Organization(Base):
     type: Mapped[str]
     status: Mapped[str | None]
     
-    contact_info: Mapped[list["ContactInfo"] | None] = relationship(back_populates="organization", foreign_keys="ContactInfo.organization_id")
-    custom_fields: Mapped[list["CustomField"] | None] = relationship(back_populates="organization", foreign_keys="CustomField.organization_id")
-    contacts: Mapped[list["Contact"] | None] = relationship(back_populates="organizations", secondary=contacts_organizations)
-    resources: Mapped[list["Resource"] | None] = relationship(back_populates="organizations", secondary=organizations_resources)
+    contact_info: Mapped[list["ContactInfo"] | None] = relationship(back_populates="organization", foreign_keys="ContactInfo.organization_id", cascade="all, delete-orphan")
+    custom_fields: Mapped[list["CustomField"] | None] = relationship(back_populates="organization", foreign_keys="CustomField.organization_id", cascade="all, delete-orphan")
+    contacts: Mapped[list["Contact"] | None] = relationship(back_populates="organizations", secondary=_contacts_organizations)
+    resources: Mapped[list["Resource"] | None] = relationship(back_populates="organizations", secondary=_organizations_resources)
 
 
-class Contact(Base):
+class Contact(_Base):
     __tablename__ = "contacts"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str]
     status: Mapped[str | None]
 
-    contact_info: Mapped[list["ContactInfo"] | None] = relationship(back_populates="contact", foreign_keys="ContactInfo.contact_id")
-    custom_fields: Mapped[list["CustomField"] | None] = relationship(back_populates="contact", foreign_keys="CustomField.contact_id")
-    resources: Mapped[list["Resource"] | None] = relationship(back_populates="contacts", secondary=contacts_resources)
-    organizations: Mapped[list["Organization"] | None] = relationship(back_populates="contacts", secondary=contacts_organizations)
+    contact_info: Mapped[list["ContactInfo"] | None] = relationship(back_populates="contact", foreign_keys="ContactInfo.contact_id", cascade="all, delete-orphan")
+    custom_fields: Mapped[list["CustomField"] | None] = relationship(back_populates="contact", foreign_keys="CustomField.contact_id", cascade="all, delete-orphan")
+    resources: Mapped[list["Resource"] | None] = relationship(back_populates="contacts", secondary=_contacts_resources)
+    organizations: Mapped[list["Organization"] | None] = relationship(back_populates="contacts", secondary=_contacts_organizations)
 
-class Resource(Base):
+class Resource(_Base):
     __tablename__ = "resources"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str]
     content: Mapped[str]
 
-    custom_fields: Mapped[list["CustomField"] | None] = relationship()
-    organizations: Mapped[list["Organization"] | None] = relationship(back_populates="resources", secondary=organizations_resources)
-    contacts: Mapped[list["Contact"] | None] = relationship(back_populates="resources", secondary=contacts_resources)
+    custom_fields: Mapped[list["CustomField"] | None] = relationship(cascade="all, delete-orphan")
+    organizations: Mapped[list["Organization"] | None] = relationship(back_populates="resources", secondary=_organizations_resources)
+    contacts: Mapped[list["Contact"] | None] = relationship(back_populates="resources", secondary=_contacts_resources)
 
 
-class ContactInfo(Base):
+class ContactInfo(_Base):
     __tablename__ = "contact_info"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
@@ -90,7 +98,7 @@ class ContactInfo(Base):
     content: Mapped["CustomField | None"] = relationship()
 
 
-class CustomField(Base):
+class CustomField(_Base):
     __tablename__ = "custom_fields"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)

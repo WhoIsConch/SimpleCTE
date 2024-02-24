@@ -8,7 +8,7 @@ from layouts import get_export_layout, available_export_formats
 
 if TYPE_CHECKING:
     from process.app import App
-    from database.database import Organization, Contact
+    from database import Organization, Contact
 
 __all__ = (
     "export_handler",

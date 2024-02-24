@@ -3,11 +3,19 @@ import PySimpleGUI as sg
 import webbrowser
 
 from utils.enums import AppStatus, Screen
-from ui_management import swap_to_org_viewer, swap_to_contact_viewer, swap_to_resource_viewer, settings_handler, \
-    backup_handler, export_handler, add_record_handler, help_manager
-from database.database import get_org_table_values, get_contact_table_values
+from ui_management import (
+    swap_to_org_viewer, 
+    swap_to_contact_viewer,
+    swap_to_resource_viewer,
+    settings_handler, 
+    backup_handler, 
+    export_handler, 
+    add_record_handler, 
+    help_manager
+)
 from layouts import get_field_keys, get_sort_keys
 from utils.helpers import format_phone, strip_phone
+from database import get_table_values, Contact, Organization
 
 if TYPE_CHECKING:
     from process.app import App
@@ -197,22 +205,9 @@ def main_loop(app: "App"):
             continue
 
         if event == sg.WIN_CLOSED or event.startswith("-LOGOUT-"):
-            app.db.close_database(app)
+            app.engine.dispose()
             app.window.close()
             break
-
-        if event == "-LOGIN-":
-            server_address = values["-SERVER-"]
-            server_port = values["-PORT-"]
-            database_name = values["-DBNAME-"]
-            username = values["-USERNAME-"]
-            password = values["-PASSWORD-"]
-
-            try:
-                server_port = int(server_port)
-            except ValueError:
-                sg.popup("Invalid port!")
-                continue
 
         elif event == "-SEARCHTYPE-":
             if values["-SEARCHTYPE-"] == "Organizations":
@@ -252,8 +247,9 @@ def main_loop(app: "App"):
             match app.current_screen:
                 case Screen.ORG_SEARCH:
                     app.window["-ORG_TABLE-"].update(
-                        get_org_table_values(
+                        get_table_values(
                             app,
+                            Organization,
                             search_info=search_info,
                             descending=values["-SORT_DESCENDING-"]
                         )
@@ -261,8 +257,9 @@ def main_loop(app: "App"):
 
                 case Screen.CONTACT_SEARCH:
                     app.window["-CONTACT_TABLE-"].update(
-                        get_contact_table_values(
+                        get_table_values(
                             app,
+                            Contact,
                             search_info=search_info,
                             descending=values["-SORT_DESCENDING-"]
                         )
@@ -1274,11 +1271,11 @@ def main_loop(app: "App"):
 
                 case Screen.ORG_SEARCH:
                     app.db.delete_organization(app.last_selected_id)
-                    app.window["-ORG_TABLE-"].update(get_org_table_values(app))
+                    app.window["-ORG_TABLE-"].update(get_table_values(app, Organization))
 
                 case Screen.CONTACT_SEARCH:
                     app.db.delete_contact(app.last_selected_id)
-                    app.window["-CONTACT_TABLE-"].update(get_contact_table_values(app))
+                    app.window["-CONTACT_TABLE-"].update(get_table_values(app, Contact))
 
             # Reload the table values after the record is deleted
             app.lazy_load_table_values()
@@ -1294,10 +1291,10 @@ def main_loop(app: "App"):
             app.window["-SORT_TYPE-"].update("")
 
             if app.current_screen == Screen.ORG_SEARCH:
-                app.window["-ORG_TABLE-"].update(get_org_table_values(app))
+                app.window["-ORG_TABLE-"].update(get_table_values(app, Organization))
 
             elif app.current_screen == Screen.CONTACT_SEARCH:
-                app.window["-CONTACT_TABLE-"].update(get_contact_table_values(app))
+                app.window["-CONTACT_TABLE-"].update(get_table_values(app, Contact))
 
             app.lazy_load_table_values()
 
