@@ -1,9 +1,9 @@
 # Welcome to SimpleCTE!
 
-SimpleCTE is a simple, easy-to-use, and free database application for managing contacts, organizations, and resources. 
+SimpleCTE is a simple, easy-to-use, and open-source database application for managing contacts, organizations, and resources. 
 SimpleCTE is designed to be used by Career and Technical Education (CTE) programs, but can be used by anyone who needs to manage contacts, organizations, and resources.
 
-SimpleCTE is written in Python 3.11 and uses PySimpleGUI for its GUI. SimpleCTE uses SQLite for its database.
+SimpleCTE is written in Python 3.11 and implements PySimpleGUI for its user interface and PonyORM with SQLite for its database operations.
 
 Written for entry into the FBLA 2023/2024 Coding and Programming event.
 
