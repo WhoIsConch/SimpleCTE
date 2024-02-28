@@ -1,0 +1,340 @@
+from typing import TYPE_CHECKING
+import PySimpleGUI as sg
+from simplecte.ui_management import swap_to_org_viewer, swap_to_contact_viewer, swap_to_resource_viewer
+from simplecte.utils.enums import Screen
+
+if TYPE_CHECKING:
+    from simplecte.process.app import App
+
+__all__ = (
+    "record_handler",
+)
+
+
+def _add_contact(app: "App"):
+    """
+    Add a contact to an organization.
+    This should only be emitted from the ORGANIZATION view screen.
+    """
+    user_input = sg.popup_get_text(
+        "Enter the ID of the contact you would like to add.\n\nIf you don't know the ID, you"
+        "can find it by searching\nfor the contact, then alt-clicking on it and selecting \"Copy ID\".",
+        title="Add Contact",
+    )
+
+    if not user_input:
+        return
+
+    try:
+        user_input = int(user_input)
+    except ValueError:
+        sg.popup("Invalid ID!")
+        return
+
+    org_id = app.window["-ORG_VIEW-"].metadata
+
+    status = app.db.add_contact_to_org(user_input, org_id)  # TODO: app.db
+
+    if not status:
+        sg.popup("Error adding contact.\nPerhaps you used an incorrect ID?")
+        return
+
+    swap_to_org_viewer(app, org_id=org_id, push=False)
+
+
+def _remove_contact(app: "App", values: dict):
+    """
+    Removes a contact from an organization.
+    This should only be emitted from the ORGANIZATION view screen.
+    """
+    try:
+        contact_name = \
+            app.window["-ORG_CONTACT_INFO_TABLE-"].get()[values["-ORG_CONTACT_INFO_TABLE-"][0]][
+                0]
+    except IndexError:
+        return
+
+    # Get organization name
+    org_id = app.window["-ORG_VIEW-"].metadata
+
+    # Remove contact from organization
+    status = app.db.remove_contact_from_org(contact_name, org_id)  # TODO: app.db
+
+    if not status:
+        sg.popup("Error removing contact.")
+        return
+
+    swap_to_org_viewer(app, org_id=org_id, push=False)
+
+
+def _add_org(app: "App"):
+    """
+    Handle adding an organization to a contact.
+    This should only be emitted from the CONTACT view screen.
+    """
+    user_input = sg.popup_get_text(
+        "Enter the ID of the organization you would like to add.\n\nIf you don't know the ID, "
+        "you can find it by"
+        "searching\nfor the organization, then alt-clicking on it and selecting \"Copy ID\".",
+        title="Add Organization",
+    )
+
+    contact_id = app.window["-CONTACT_VIEW-"].metadata
+
+    if not user_input:
+        return
+
+    try:
+        user_input = int(user_input)
+    except ValueError:
+        sg.popup("Invalid ID!")
+        return
+
+    status = app.db.add_contact_to_org(contact_id, user_input)  # TODO: app.db
+
+    if not status:
+        sg.popup("Error adding organization.\nPerhaps you used an incorrect ID?")
+        return
+
+    swap_to_contact_viewer(app, contact_id=contact_id, push=False)
+
+
+def _remove_org(app: "App", values: dict):
+    """
+    Removes an organization from a contact.
+    This should only be emitted from the CONTACT view screen
+    """
+    try:
+        org_id = \
+            app.window["-CONTACT_ORGANIZATIONS_TABLE-"].get()[values["-CONTACT_ORGANIZATIONS_TABLE-"][0]][0]
+    except IndexError:
+        sg.popup("No organization selected!")
+        return
+
+    # Get contact name
+    contact_id = app.window["-CONTACT_VIEW-"].metadata
+
+    # Remove contact from organization
+    status = app.db.remove_contact_from_org(contact_id, org_id)
+
+    if not status:
+        sg.popup("Error removing organization.")
+        return
+
+    swap_to_contact_viewer(app, contact_id=contact_id, push=False)
+
+
+def _create_resource(app: "App"):
+    """
+    Create a new resource.
+    """
+    input_window = sg.Window("Create Resource", [
+        [sg.Text("Resource Name:"), sg.Input(key="-RESOURCE_NAME-")],
+        [sg.Text("Resource Value:"), sg.Input(key="-RESOURCE_VALUE-")],
+        [sg.Button("Create"), sg.Button("Cancel")]
+    ], finalize=True, modal=True)
+
+    event, values = input_window.read()
+
+    input_window.close()
+
+    if event == "Cancel" or event == sg.WIN_CLOSED:
+        return
+
+    if not values["-RESOURCE_NAME-"] or not values["-RESOURCE_VALUE-"]:
+        sg.popup("Resource name and value are required!")
+        return
+
+    resource = app.db.create_resource(name=values["-RESOURCE_NAME-"], value=values["-RESOURCE_VALUE-"])
+
+    if app.current_screen == Screen.ORG_VIEW:
+        app.db.link_resource(org=app.window["-ORG_VIEW-"].metadata, resource=resource.id)
+        swap_to_org_viewer(app, org_id=app.window["-ORG_VIEW-"].metadata, push=False)
+
+    elif app.current_screen == Screen.CONTACT_VIEW:
+        app.db.link_resource(contact=app.window["-CONTACT_VIEW-"].metadata, resource=resource.id)
+        swap_to_contact_viewer(app, contact_id=app.window["-CONTACT_VIEW-"].metadata, push=False)
+
+
+def _delete_resource(app: "App", values: dict):
+    if app.current_screen == Screen.ORG_VIEW:
+        try:
+            resource_id = app.window["-ORG_RESOURCES_TABLE-"].get()[values["-ORG_RESOURCES_TABLE-"][0]][
+                0]
+        except IndexError:
+            return
+
+    elif app.current_screen == Screen.CONTACT_VIEW:
+        try:
+            resource_id = \
+                app.window["-CONTACT_RESOURCES_TABLE-"].get()[values["-CONTACT_RESOURCES_TABLE-"][0]][0]
+        except IndexError:
+            return
+
+    else:
+        return
+
+    confirmation = sg.popup_yes_no(
+        "Are you sure you want to delete this resource?\nThis will remove the resource for all other "
+        "records, too.",
+        title="Delete Resource")
+
+    if confirmation == "No" or confirmation == sg.WIN_CLOSED:
+        return
+
+    if app.current_screen == Screen.ORG_VIEW:
+        app.db.delete_resource(resource_id)
+
+        org_id = app.window["-ORG_VIEW-"].metadata
+        swap_to_org_viewer(app, org_id=org_id, push=False)
+
+    elif app.current_screen == Screen.CONTACT_VIEW:
+        app.db.delete_resource(resource_id)
+
+        contact_id = app.window["-CONTACT_VIEW-"].metadata
+        swap_to_contact_viewer(app, contact_id=contact_id, push=False)
+
+
+def _link_resource(app: "App"):
+    info_window = sg.Window("Link Resource", [
+        [sg.Text("Resource ID:"), sg.Input(key="-RESOURCE_ID-")],
+        [sg.Button("Link"), sg.Button("Cancel")]
+    ], finalize=True, modal=True)
+
+    event, values = info_window.read()
+    info_window.close()
+
+    if event == "Cancel" or event == sg.WIN_CLOSED:
+        return
+
+    try:
+        resource_id = int(values["-RESOURCE_ID-"])
+    except ValueError:
+        sg.popup("Invalid resource ID!")
+        return
+
+    if app.current_screen == Screen.ORG_VIEW:
+        org_id = app.window["-ORG_VIEW-"].metadata
+        app.db.link_resource(org=org_id, resource=resource_id)
+        swap_to_org_viewer(app, org_id=org_id, push=False)
+
+    elif app.current_screen == Screen.CONTACT_VIEW:
+        contact_id = app.window["-CONTACT_VIEW-"].metadata
+        app.db.link_resource(contact=contact_id, resource=resource_id)
+        swap_to_contact_viewer(app, contact_id=contact_id, push=False)
+
+
+def _unlink_resource(app: "App", values: dict) -> None:
+    # Get the resource ID
+    if app.current_screen == Screen.ORG_VIEW:
+        try:
+            resource_id = app.window["-ORG_RESOURCES_TABLE-"].get()[values["-ORG_RESOURCES_TABLE-"][0]][
+                0]
+        except IndexError:
+            return
+
+    elif app.current_screen == Screen.CONTACT_VIEW:
+        try:
+            resource_id = \
+                app.window["-CONTACT_RESOURCES_TABLE-"].get()[values["-CONTACT_RESOURCES_TABLE-"][0]][0]
+        except IndexError:
+            return
+
+    if app.current_screen == Screen.ORG_VIEW:
+        org_id = app.window["-ORG_VIEW-"].metadata
+        app.db.unlink_resource(org=org_id, resource=resource_id)
+        swap_to_org_viewer(app, org_id=org_id, push=False)
+
+    elif app.current_screen == Screen.CONTACT_VIEW:
+        contact_id = app.window["-CONTACT_VIEW-"].metadata
+        app.db.unlink_resource(contact=contact_id, resource=resource_id)
+        swap_to_contact_viewer(app, contact_id=contact_id, push=False)
+
+
+def _link_record(app: "App", values: dict, event: str) -> None:
+    # Link an organization to a contact via the Contact View screen
+    selected_item = event.split(" ")[-1]
+
+    input_window = sg.Window(f"Link {selected_item}", layout=[
+        [sg.Text(f"{selected_item} ID:"), sg.Input(key="-RECORD_ID-", size=(10, 20))
+         ],
+        [sg.Button("Link"), sg.Button("Cancel")]
+    ], finalize=True, modal=True)
+
+    event, values = input_window.read()
+    input_window.close()
+
+    if event == "Cancel" or event == sg.WIN_CLOSED:
+        return
+
+    try:
+        record_id = int(values["-RECORD_ID-"])
+    except ValueError:
+        sg.popup(f"Invalid {selected_item} ID!")
+        return
+
+    resource_id = app.window["-RESOURCE_VIEW-"].metadata
+
+    if selected_item.lower() == "organization":
+        app.db.link_resource(org=record_id, resource=resource_id)
+    elif selected_item.lower() == "contact":
+        app.db.link_resource(contact=record_id, resource=resource_id)
+
+    swap_to_resource_viewer(app, resource_id=resource_id, push=False)
+
+
+def _unlink_record(app: "App", values: dict, event: str) -> None:
+    """
+    Unlink an organization or contact from a resource
+    """
+
+    selected_item = event.split(" ")[-1]
+    resource_id = app.window["-RESOURCE_VIEW-"].metadata
+
+    if selected_item.lower() == "organization":
+        record_id = \
+            app.window["-RESOURCE_ORGANIZATIONS_TABLE-"].get()[values["-RESOURCE_ORGANIZATIONS_TABLE-"][0]][0]
+        app.db.unlink_resource(resource=resource_id, org=record_id)
+
+    elif selected_item.lower() == "contact":
+        record_id = app.window["-RESOURCE_CONTACTS_TABLE-"].get()[values["-RESOURCE_CONTACTS_TABLE-"][0]][0]
+        app.db.unlink_resource(resource=resource_id, contact=record_id)
+
+    swap_to_resource_viewer(app, resource_id=resource_id, push=False)
+
+
+EVENT_MAP = {
+    "Add Contact": _add_contact,
+    "Remove Contact": _remove_contact,
+    "Add Organization": _add_org,
+    "Remove Organization": _remove_org,
+    "Create Resource": _create_resource,
+    "Delete Resource": _delete_resource,
+    "Link Resource": _link_resource,
+    "Unlink Resource": _unlink_resource,
+    "Link Organization": _link_record,
+    "Link Contact": _link_record,
+    "Unlink Contact": _unlink_record,
+    "Unlink Organization": _unlink_record,
+}
+
+
+def record_handler(app: "App", event: str, data: dict) -> bool:
+    """
+    Updates some part of the system, whether it be a record, a screen, or something else.
+    """
+    method = EVENT_MAP.get(event, None)
+
+    if method is None:
+        return False
+
+    # Check if the method requires one argument, App, or both App and Data
+    try:
+        method(app)
+    except TypeError:
+        try:
+            method(app, data)
+        except TypeError:
+            method(app, data, event)
+
+    return True
