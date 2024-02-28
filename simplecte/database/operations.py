@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy.orm import Session
 
 if TYPE_CHECKING:
-    from process.app import App
+    from simplecte.process.app import App
 
 
 __all__ = (
@@ -13,7 +13,7 @@ __all__ = (
 
 def get_table_values(
         app: "App",
-        record_type: Contact | Organization,
+        record_type: type[Contact | Organization],
         amount: int | None = 10,
         search_info: dict | None = None,
         descending: bool = False,
