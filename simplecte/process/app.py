@@ -5,13 +5,19 @@ import PySimpleGUI as sg
 import os
 import sys
 
-from utils.enums import Screen, AppStatus, DBStatus
-from process.stack import Stack
-from process.settings import Settings
-from database.database import db, get_org_table_values, get_contact_table_values
-from layouts import get_search_layout, get_contact_view_layout, get_org_view_layout, get_resource_view_layout, \
-    get_login_layout
-from ui_management import swap_to_org_viewer, swap_to_contact_viewer, swap_to_resource_viewer
+from simplecte.utils.enums import Screen, AppStatus, DBStatus
+from simplecte.process.stack import Stack
+from simplecte.process.settings import Settings
+from sqlalchemy import create_engine, sessionmaker
+from simplecte.layouts import (
+    get_search_layout, 
+    get_contact_view_layout, 
+    get_org_view_layout, 
+    get_resource_view_layout, 
+    get_login_layout,
+)
+from simplecte.ui_management import swap_to_org_viewer, swap_to_contact_viewer, swap_to_resource_viewer
+from simplecte.database import get_table_values, Contact, Organization, Resource
 
 
 __all__ = (
@@ -28,8 +34,6 @@ class App:
     ICON_PATH = os.path.join(os.path.dirname(__file__), '../data/simplecte.ico')
 
     def __init__(self):
-        self.db = db
-        self.db.app = self
         self.logger = logging.getLogger("app")
         self.stack = Stack()
         self.window: sg.Window | None = None
@@ -39,56 +43,12 @@ class App:
         self.logger.info("Loading database settings...")
         self.settings: Settings = Settings("data/settings.json")
         self.settings.load_settings()
-        sg.set_global_icon(self.ICON_PATH)
 
-        # Decide which database configuration to use
-        if (
-                self.settings.database_system == "sqlite"
-                and self.settings.database_location == "local"
-        ):
-            self.logger.info("Constructing SQLite database...")
-            self.db.construct_database("sqlite", self.settings.absolute_database_path)
-            self.stack.push(Screen.ORG_SEARCH)
-
-        elif (
-                self.settings.database_system == "sqlite"
-                and self.settings.database_location == "remote"
-        ):
-            self.logger.info("Constructing remote SQLite database...")
-            self.db.construct_database(
-                "sqlite",
-                self.settings.absolute_database_path,
-                server_address=self.settings.database_address,
-                server_port=self.settings.database_port,
-                username=self.settings.database_username,
-            )
-            self.stack.push(Screen.ORG_SEARCH)
-
-        elif (
-                self.settings.database_system == "postgres"
-                or self.settings.database_system == "mysql"
-        ):
-            self.logger.info("Constructing remote database...")
-            try:
-                self.db.construct_database(
-                    self.settings.database_system,
-                    self.settings.database_name,
-                    server_address=self.settings.database_address,
-                    server_port=self.settings.database_port,
-                    username=self.settings.database_username,
-                    password=self.settings.database_password,
-                )
-            except Exception:
-                self.db.status = (
-                    DBStatus.LOGIN_REQUIRED
-                )
-                self.stack.push(Screen.LOGIN)
-
-        else:
-            self.logger.error("Invalid database system!")
-            raise ValueError("Invalid database system!")
+        self._engine = create_engine(self.settings.database_path)
+        self.Session = sessionmaker(bind=self._engine)
 
         # Configure GUI-related settings
+        sg.set_global_icon(self.ICON_PATH)
         sg.theme(self.settings.theme)
 
         self.show_start_screen()
@@ -227,9 +187,9 @@ class App:
         # Use empty lists to retrieve the information from the threads.
         def get_values():
             values = [
-                get_contact_table_values(self, paginated=False, search_info=search_info,
+                get_table_values(self, Contact, amount=None, search_info=search_info,
                                          descending=descending),
-                get_org_table_values(self, paginated=False, search_info=search_info,
+                get_table_values(self, Organization, amount=None, search_info=search_info,
                                      descending=descending)
             ]
             # time.sleep(3)
@@ -277,8 +237,8 @@ class App:
                     ]
                 ],
             )
-            self.window["-CONTACT_TABLE-"].update(get_contact_table_values(self))
-            self.window["-ORG_TABLE-"].update(get_contact_table_values(self))
+            self.window["-CONTACT_TABLE-"].update(get_table_values(self, Contact))
+            self.window["-ORG_TABLE-"].update(get_table_values(self, Organization))
 
     def restart(self):
         """

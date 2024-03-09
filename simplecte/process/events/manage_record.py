@@ -1,13 +1,16 @@
 from typing import TYPE_CHECKING
 import PySimpleGUI as sg
+
+from simplecte.database import get_table_values
 from simplecte.ui_management import swap_to_org_viewer, swap_to_contact_viewer, swap_to_resource_viewer
 from simplecte.utils.enums import Screen
+from simplecte.database.models import Organization, Contact
 
 if TYPE_CHECKING:
     from simplecte.process.app import App
 
 __all__ = (
-    "record_handler",
+    "EVENT_MAP",
 )
 
 
@@ -303,6 +306,40 @@ def _unlink_record(app: "App", values: dict, event: str) -> None:
     swap_to_resource_viewer(app, resource_id=resource_id, push=False)
 
 
+def _delete_record(app: "App"):
+    confirmation = sg.popup_yes_no("Are you sure you want to delete this record?",
+                                   title="Delete Record")
+
+    if confirmation != "Yes":
+        return
+
+    match app.current_screen:
+        case Screen.ORG_VIEW:
+            org_id = app.window["-ORG_VIEW-"].metadata
+            app.db.delete_organization(org_id)
+            app.switch_to_last_screen()
+
+        case Screen.CONTACT_VIEW:
+            contact_id = app.window["-CONTACT_VIEW-"].metadata
+            app.db.delete_contact(contact_id)
+            app.switch_to_last_screen()
+
+        case Screen.RESOURCE_VIEW:
+            app.db.delete_resource(app.window["-RESOURCE_VIEW-"].metadata)
+            app.switch_to_last_screen()
+
+        case Screen.ORG_SEARCH:
+            app.db.delete_organization(app.last_selected_id)
+            app.window["-ORG_TABLE-"].update(get_table_values(app, Organization))
+
+        case Screen.CONTACT_SEARCH:
+            app.db.delete_contact(app.last_selected_id)
+            app.window["-CONTACT_TABLE-"].update(get_table_values(app, Contact))
+
+    # Reload the table values after the record is deleted
+    app.lazy_load_table_values()
+
+
 EVENT_MAP = {
     "Add Contact": _add_contact,
     "Remove Contact": _remove_contact,
@@ -316,25 +353,6 @@ EVENT_MAP = {
     "Link Contact": _link_record,
     "Unlink Contact": _unlink_record,
     "Unlink Organization": _unlink_record,
+    "Delete Record": _delete_record,
 }
 
-
-def record_handler(app: "App", event: str, data: dict) -> bool:
-    """
-    Updates some part of the system, whether it be a record, a screen, or something else.
-    """
-    method = EVENT_MAP.get(event, None)
-
-    if method is None:
-        return False
-
-    # Check if the method requires one argument, App, or both App and Data
-    try:
-        method(app)
-    except TypeError:
-        try:
-            method(app, data)
-        except TypeError:
-            method(app, data, event)
-
-    return True
