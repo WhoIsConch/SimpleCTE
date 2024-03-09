@@ -11,6 +11,17 @@ if TYPE_CHECKING:
     from process.app import App
 
 
+__all__ = (
+    "Database",
+    "db",
+    "Organization",
+    "Contact",
+    "Resource",
+    "get_table_values",
+    "search_and_destroy",
+)
+
+
 def search_and_destroy(func: "Callable") -> "Callable":
     """
     Decorator for functions that delete an object, so they can
@@ -710,95 +721,155 @@ class Resource(db.Entity):
     contacts = orm.Set(Contact)
 
 
+# @orm.db_session
+# def get_org_table_values(
+#         app: "App",
+#         search_info: dict[str, Any] | None = None,
+#         paginated: bool = True,
+#         table_values: list | None = None,
+#         descending: bool = False,
+# ):
+#     """
+#     Get the necessary information from the database to populate the search table's organization info.
+#     """
+#     if table_values is None:
+#         table_values = []
+
+#     if search_info is None:
+#         search_info = {}
+
+#     org_pages = app.db.get_records(
+#         Organization,
+#         **search_info,
+#         paginated=paginated,
+#         descending=descending
+#     )
+
+#     if not org_pages:
+#         org_pages = app.db.get_records(
+#             Organization,
+#             paginated=paginated
+#         )
+
+#     for org in org_pages:
+#         contact = org.primary_contact
+#         contact_name = contact.name if contact else "No Primary Contact"
+#         table_values.append([org.id, org.name, org.type, contact_name, org.status])
+
+#     return table_values
+
+
+# @orm.db_session
+# def get_contact_table_values(
+#         app: "App",
+#         search_info: dict[str, Any] | None = None,
+#         paginated: bool = True,
+#         table_values: list | None = None,
+#         descending: bool = False,
+# ):
+#     """
+#     Get the necessary information from the database to populate the search table's contact info.
+#     """
+#     if table_values is None:
+#         table_values = []
+
+#     if search_info is None:
+#         search_info = {}
+
+#     contact_pages = app.db.get_records(
+#         Contact,
+#         **search_info,
+#         paginated=paginated,
+#         descending=descending
+#     )
+
+#     if not contact_pages:
+#         contact_pages = app.db.get_records(
+#             Contact,
+#             paginated=paginated
+#         )
+
+#     for contact in contact_pages:
+#         org = None
+#         for org in contact.organizations:
+#             if org.primary_contact == contact:
+#                 break
+
+#         if org:
+#             org_name = org.name
+
+#         else:
+#             org_name = "No Organization"
+
+#         table_values.append(
+#             [
+#                 contact.id,
+#                 contact.name,
+#                 org_name,
+#                 format_phone(contact.phone_numbers[0])
+#                 if contact.phone_numbers
+#                 else "No Phone Number",
+#             ]
+#         )
+
+#     return table_values
+
 @orm.db_session
-def get_org_table_values(
+def get_table_values(
         app: "App",
+        record: "Organization | Contact",
+        amount: int | None = None,
         search_info: dict[str, Any] | None = None,
-        paginated: bool = True,
-        table_values: list | None = None,
         descending: bool = False,
-):
+) -> list:
     """
-    Get the necessary information from the database to populate the search table's organization info.
+    Get the necessary information from the database to populate the search table's info.
     """
-    if table_values is None:
-        table_values = []
+    table_values = []
 
     if search_info is None:
         search_info = {}
 
-    org_pages = app.db.get_records(
-        Organization,
+    record_pages = app.db.get_records(
+        record,
         **search_info,
-        paginated=paginated,
+        paginated=False,
         descending=descending
     )
 
-    if not org_pages:
-        org_pages = app.db.get_records(
-            Organization,
-            paginated=paginated
+    if not record_pages:
+        record_pages = app.db.get_records(
+            record,
+            paginated=False
         )
 
-    for org in org_pages:
-        contact = org.primary_contact
-        contact_name = contact.name if contact else "No Primary Contact"
-        table_values.append([org.id, org.name, org.type, contact_name, org.status])
-
-    return table_values
-
-
-@orm.db_session
-def get_contact_table_values(
-        app: "App",
-        search_info: dict[str, Any] | None = None,
-        paginated: bool = True,
-        table_values: list | None = None,
-        descending: bool = False,
-):
-    """
-    Get the necessary information from the database to populate the search table's contact info.
-    """
-    if table_values is None:
-        table_values = []
-
-    if search_info is None:
-        search_info = {}
-
-    contact_pages = app.db.get_records(
-        Contact,
-        **search_info,
-        paginated=paginated,
-        descending=descending
-    )
-
-    if not contact_pages:
-        contact_pages = app.db.get_records(
-            Contact,
-            paginated=paginated
-        )
-
-    for contact in contact_pages:
-        org = None
-        for org in contact.organizations:
-            if org.primary_contact == contact:
-                break
-
-        if org:
-            org_name = org.name
+    for rec in record_pages:
+        if record == Organization:
+            contact = rec.primary_contact
+            contact_name = contact.name if contact else "No Primary Contact"
+            table_values.append([rec.id, rec.name, rec.type, contact_name, rec.status])
 
         else:
-            org_name = "No Organization"
+            org = None
+            for org in rec.organizations:
+                if org.primary_contact == rec:
+                    break
 
-        table_values.append(
-            [
-                contact.id,
-                contact.name,
-                org_name,
-                format_phone(contact.phone_numbers[0])
-                if contact.phone_numbers
-                else "No Phone Number",
-            ]
-        )
+            if org:
+                org_name = org.name
+
+            else:
+                org_name = "No Organization"
+
+            table_values.append(
+                [
+                    rec.id,
+                    rec.name,
+                    org_name,
+                    format_phone(rec.phone_numbers[0])
+                    if rec.phone_numbers
+                    else "No Phone Number",
+                ]
+            )
 
     return table_values

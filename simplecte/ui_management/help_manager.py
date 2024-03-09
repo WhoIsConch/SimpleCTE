@@ -3,7 +3,7 @@ from layouts import get_help_layout, get_help_text
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from simplecte.process.app import App
+    from process.app import App
 
 __all__ = (
     "help_manager",

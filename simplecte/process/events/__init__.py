@@ -1,6 +1,9 @@
 from .manage_record import EVENT_MAP as RECORD_MAP, _delete_record
-from .view import *
 from .edit_info import EVENT_MAP as EDIT_INFO_MAP
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from process.app import App
 
 
 def handle_other_events(app: "App", event: str, data: dict) -> bool:

@@ -2,8 +2,8 @@ from typing import TYPE_CHECKING
 import PySimpleGUI as sg
 import webbrowser
 
-from simplecte.utils.enums import AppStatus, Screen
-from simplecte.ui_management import (
+from utils.enums import AppStatus, Screen
+from ui_management import (
     swap_to_org_viewer,
     swap_to_contact_viewer,
     swap_to_resource_viewer,
@@ -13,12 +13,12 @@ from simplecte.ui_management import (
     add_record_handler,
     help_manager
 )
-from simplecte.layouts import get_field_keys, get_sort_keys
-from simplecte.database import get_table_values, Contact, Organization, get_record, update_field
-from simplecte.process.events import handle_other_events
+from layouts import get_field_keys, get_sort_keys
+from database import get_table_values, Contact, Organization
+from process.events import handle_other_events
 
 if TYPE_CHECKING:
-    from simplecte.process.app import App
+    from process.app import App
 
 
 __all__ = (
@@ -40,7 +40,7 @@ def _manage_custom_field(app: 'App', values: dict, edit=False) -> None:
     ]
 
     if app.current_screen == Screen.ORG_VIEW:
-        record = get_record(app, Organization, record_id)
+        record = app.db.get_organization(record_id)
         record_type = "org"
         method.insert(0, swap_to_org_viewer)
         method[1]["org_id"] = record.id
@@ -53,7 +53,7 @@ def _manage_custom_field(app: 'App', values: dict, edit=False) -> None:
             return
 
     elif app.current_screen == Screen.CONTACT_VIEW:
-        record = get_record(app, Contact, record_id)
+        record = app.db.get_contact(record_id)
         record_type = "contact"
         method.insert(0, swap_to_contact_viewer)
         method[1]["contact_id"] = record.id
@@ -102,7 +102,11 @@ def _manage_custom_field(app: 'App', values: dict, edit=False) -> None:
         **{record_type: record_id}
     )
 
-    update_field(app, record.__class__, record_id, "custom_fields", values["-CUSTOM_FIELD_VALUE-"])
+    app.db.update_custom_field(
+        name=field_name,
+        value=values["-CUSTOM_FIELD_VALUE-"],
+        **{record_type: record_id}
+    )
 
     method[0](**method[1])
 
@@ -159,7 +163,7 @@ def main_loop(app: "App"):
             continue
 
         if event == sg.WIN_CLOSED or event.startswith("-LOGOUT-"):
-            app.engine.dispose()
+            app.db.close_database(app)
             app.window.close()
             break
 

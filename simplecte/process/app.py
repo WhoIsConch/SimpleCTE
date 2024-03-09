@@ -5,19 +5,18 @@ import PySimpleGUI as sg
 import os
 import sys
 
-from simplecte.utils.enums import Screen, AppStatus, DBStatus
-from simplecte.process.stack import Stack
-from simplecte.process.settings import Settings
-from sqlalchemy import create_engine, sessionmaker
-from simplecte.layouts import (
+from utils.enums import Screen, AppStatus
+from process.stack import Stack
+from process.settings import Settings
+from layouts import (
     get_search_layout, 
     get_contact_view_layout, 
     get_org_view_layout, 
     get_resource_view_layout, 
     get_login_layout,
 )
-from simplecte.ui_management import swap_to_org_viewer, swap_to_contact_viewer, swap_to_resource_viewer
-from simplecte.database import get_table_values, Contact, Organization, Resource
+from ui_management import swap_to_org_viewer, swap_to_contact_viewer, swap_to_resource_viewer
+from database import Contact, Organization, db, get_table_values
 
 
 __all__ = (
@@ -31,7 +30,7 @@ class App:
     It is responsible for managing most functions of the application
     and keeping essential information in a central location.
     """
-    ICON_PATH = os.path.join(os.path.dirname(__file__), '../data/simplecte.ico')
+    ICON_PATH = os.path.join(os.path.dirname(__file__), '../data/ico')
 
     def __init__(self):
         self.logger = logging.getLogger("app")
@@ -43,9 +42,11 @@ class App:
         self.logger.info("Loading database settings...")
         self.settings: Settings = Settings("data/settings.json")
         self.settings.load_settings()
+        self.db = db
 
-        self._engine = create_engine(self.settings.database_path)
-        self.Session = sessionmaker(bind=self._engine)
+        self.logger.info("Constructing SQLite database...")
+        self.db.construct_database("sqlite", self.settings.absolute_database_path)
+        self.stack.push(Screen.ORG_SEARCH)
 
         # Configure GUI-related settings
         sg.set_global_icon(self.ICON_PATH)

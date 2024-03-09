@@ -1,11 +1,11 @@
 from typing import TYPE_CHECKING
 import PySimpleGUI as sg
-from simplecte.ui_management import swap_to_org_viewer, swap_to_contact_viewer, swap_to_resource_viewer
-from simplecte.utils.enums import Screen
-from simplecte.utils.helpers import format_phone, strip_phone
+from ui_management import swap_to_org_viewer, swap_to_contact_viewer, swap_to_resource_viewer
+from utils.enums import Screen
+from utils.helpers import format_phone, strip_phone
 
 if TYPE_CHECKING:
-    from simplecte.process.app import App
+    from process.app import App
 
 __all__ = (
     "EVENT_MAP",
