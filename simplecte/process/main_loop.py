@@ -4,19 +4,18 @@ import webbrowser
 
 from simplecte.utils.enums import AppStatus, Screen
 from simplecte.ui_management import (
-    swap_to_org_viewer, 
+    swap_to_org_viewer,
     swap_to_contact_viewer,
     swap_to_resource_viewer,
-    settings_handler, 
-    backup_handler, 
-    export_handler, 
-    add_record_handler, 
+    settings_handler,
+    backup_handler,
+    export_handler,
+    add_record_handler,
     help_manager
 )
 from simplecte.layouts import get_field_keys, get_sort_keys
-from simplecte.utils.helpers import format_phone, strip_phone
-from simplecte.database import get_table_values, Contact, Organization
-from simplecte.process.events import record_handler
+from simplecte.database import get_table_values, Contact, Organization, get_record, update_field
+from simplecte.process.events import handle_other_events
 
 if TYPE_CHECKING:
     from simplecte.process.app import App
@@ -41,7 +40,7 @@ def _manage_custom_field(app: 'App', values: dict, edit=False) -> None:
     ]
 
     if app.current_screen == Screen.ORG_VIEW:
-        record = app.db.get_organization(record_id)
+        record = get_record(app, Organization, record_id)
         record_type = "org"
         method.insert(0, swap_to_org_viewer)
         method[1]["org_id"] = record.id
@@ -54,7 +53,7 @@ def _manage_custom_field(app: 'App', values: dict, edit=False) -> None:
             return
 
     elif app.current_screen == Screen.CONTACT_VIEW:
-        record = app.db.get_contact(record_id)
+        record = get_record(app, Contact, record_id)
         record_type = "contact"
         method.insert(0, swap_to_contact_viewer)
         method[1]["contact_id"] = record.id
@@ -102,6 +101,8 @@ def _manage_custom_field(app: 'App', values: dict, edit=False) -> None:
         value=values["-CUSTOM_FIELD_VALUE-"],
         **{record_type: record_id}
     )
+
+    update_field(app, record.__class__, record_id, "custom_fields", values["-CUSTOM_FIELD_VALUE-"])
 
     method[0](**method[1])
 
@@ -163,7 +164,7 @@ def main_loop(app: "App"):
             break
 
         # Handle any events that may have to do with updating data
-        if record_handler(app, event, values):
+        if handle_other_events(app, event, values):
             continue
 
         elif event == "-SEARCHTYPE-":
@@ -389,73 +390,6 @@ def main_loop(app: "App"):
             # For custom fields
             _manage_custom_field(app, values)
 
-        elif event == "Add::CONTACT_INFO":
-            # Show a basic prompt for the user to enter the contact info
-
-            input_window = sg.Window("Add Contact Info", [
-                [sg.Text("Add new contact info. If you want to add an address, email, or phone,\nconsider "
-                         "alt-clicking an entry in the table and selecting \"Edit.\"")],
-                [sg.Text("Contact Info Type:"), sg.Input(key="-CONTACT_INFO_TYPE-")],
-                [sg.Text("Contact Info Value:"), sg.Input(key="-CONTACT_INFO_VALUE-")],
-                [sg.Button("Add"), sg.Button("Cancel")]
-            ], finalize=True, modal=True)
-
-            event, values = input_window.read()
-            input_window.close()
-
-            if event == "Cancel" or event == sg.WIN_CLOSED:
-                continue
-
-            if not values["-CONTACT_INFO_TYPE-"] or not values["-CONTACT_INFO_VALUE-"]:
-                sg.popup("Contact info type and value are required!")
-                continue
-
-            if len(values["-CONTACT_INFO_TYPE-"]) > 50 or len(values["-CONTACT_INFO_VALUE-"]) > 50:
-                confirmation = sg.popup_yes_no(
-                    "Making a contact info type or value too long may cause issues with the UI. Are you sure you "
-                    "want to continue?")
-
-                if confirmation == "No" or confirmation == sg.WIN_CLOSED:
-                    continue
-
-            # Check if any other contact info has the same title
-            for title in app.window["-CONTACT_INFO_TABLE-"].get():
-                if title[0] == values["-CONTACT_INFO_TYPE-"]:
-                    sg.popup("A contact info type with that name already exists!")
-                    continue
-
-            # Get the contact ID
-            contact_id = app.window["-CONTACT_VIEW-"].metadata
-
-            # Add the contact info
-            app.db.create_contact_info(values["-CONTACT_INFO_TYPE-"], values["-CONTACT_INFO_VALUE-"],
-                                       contact=contact_id)
-
-            # Reload the table values
-            swap_to_contact_viewer(app, contact_id=contact_id, push=False)
-
-        elif event == "Delete::CONTACT_INFO":
-            # Get the contact info ID
-            try:
-                contact_info_name = \
-                    app.window["-CONTACT_INFO_TABLE-"].get()[values["-CONTACT_INFO_TABLE-"][0]][0]
-                contact_info_value = \
-                    app.window["-CONTACT_INFO_TABLE-"].get()[values["-CONTACT_INFO_TABLE-"][0]][1]
-            except IndexError:
-                continue
-
-            # Get the contact ID
-            contact_id = app.window["-CONTACT_VIEW-"].metadata
-
-            # Delete the contact info
-            if contact_info_name.lower() == "phone":
-                contact_info_value = int(strip_phone(contact_info_value))
-
-            app.db.delete_contact_info(contact_info_name, contact_info_value, contact=contact_id)
-
-            # Reload the table values
-            swap_to_contact_viewer(app, contact_id=contact_id, push=False)
-
         elif event == "Change Value":
             # Change the value of a resource
             resource_id = app.window["-RESOURCE_VIEW-"].metadata
@@ -482,39 +416,6 @@ def main_loop(app: "App"):
 
             app.db.update_resource(resource_id, value=new_value)
             swap_to_resource_viewer(app, resource_id=resource_id, push=False)
-
-        elif event.lower().strip("-").startswith("delete"):
-            confirmation = sg.popup_yes_no("Are you sure you want to delete this record?",
-                                           title="Delete Record")
-
-            if confirmation != "Yes":
-                continue
-
-            match app.current_screen:
-                case Screen.ORG_VIEW:
-                    org_id = app.window["-ORG_VIEW-"].metadata
-                    app.db.delete_organization(org_id)
-                    app.switch_to_last_screen()
-
-                case Screen.CONTACT_VIEW:
-                    contact_id = app.window["-CONTACT_VIEW-"].metadata
-                    app.db.delete_contact(contact_id)
-                    app.switch_to_last_screen()
-
-                case Screen.RESOURCE_VIEW:
-                    app.db.delete_resource(app.window["-RESOURCE_VIEW-"].metadata)
-                    app.switch_to_last_screen()
-
-                case Screen.ORG_SEARCH:
-                    app.db.delete_organization(app.last_selected_id)
-                    app.window["-ORG_TABLE-"].update(get_table_values(app, Organization))
-
-                case Screen.CONTACT_SEARCH:
-                    app.db.delete_contact(app.last_selected_id)
-                    app.window["-CONTACT_TABLE-"].update(get_table_values(app, Contact))
-
-            # Reload the table values after the record is deleted
-            app.lazy_load_table_values()
 
         elif event == "-UPDATE_TABLES-":
             app.window["-CONTACT_TABLE-"].update(values["-UPDATE_TABLES-"][0])

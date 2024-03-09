@@ -5,19 +5,19 @@ import PySimpleGUI as sg
 import os
 import sys
 
-from utils.enums import Screen, AppStatus, DBStatus
-from process.stack import Stack
-from process.settings import Settings
-from sqlalchemy import create_engine
-from layouts import (
+from simplecte.utils.enums import Screen, AppStatus, DBStatus
+from simplecte.process.stack import Stack
+from simplecte.process.settings import Settings
+from sqlalchemy import create_engine, sessionmaker
+from simplecte.layouts import (
     get_search_layout, 
     get_contact_view_layout, 
     get_org_view_layout, 
     get_resource_view_layout, 
     get_login_layout,
 )
-from ui_management import swap_to_org_viewer, swap_to_contact_viewer, swap_to_resource_viewer
-from database import get_table_values, Contact, Organization, Resource
+from simplecte.ui_management import swap_to_org_viewer, swap_to_contact_viewer, swap_to_resource_viewer
+from simplecte.database import get_table_values, Contact, Organization, Resource
 
 
 __all__ = (
@@ -44,7 +44,8 @@ class App:
         self.settings: Settings = Settings("data/settings.json")
         self.settings.load_settings()
 
-        self.engine = create_engine(self.settings.database_path)
+        self._engine = create_engine(self.settings.database_path)
+        self.Session = sessionmaker(bind=self._engine)
 
         # Configure GUI-related settings
         sg.set_global_icon(self.ICON_PATH)

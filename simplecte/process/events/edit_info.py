@@ -7,6 +7,9 @@ from simplecte.utils.helpers import format_phone, strip_phone
 if TYPE_CHECKING:
     from simplecte.process.app import App
 
+__all__ = (
+    "EVENT_MAP",
+)
 
 def _change_title(app: "App", values: dict):
     """
@@ -439,6 +442,75 @@ def _edit_phones(app: "App"):
         swap_to_contact_viewer(app, contact_id=contact_id, push=False)
 
 
+def add_contact_info(app: "App"):
+    # Show a basic prompt for the user to enter the contact info
+
+    input_window = sg.Window("Add Contact Info", [
+        [sg.Text("Add new contact info. If you want to add an address, email, or phone,\nconsider "
+                 "alt-clicking an entry in the table and selecting \"Edit.\"")],
+        [sg.Text("Contact Info Type:"), sg.Input(key="-CONTACT_INFO_TYPE-")],
+        [sg.Text("Contact Info Value:"), sg.Input(key="-CONTACT_INFO_VALUE-")],
+        [sg.Button("Add"), sg.Button("Cancel")]
+    ], finalize=True, modal=True)
+
+    event, values = input_window.read()
+    input_window.close()
+
+    if event == "Cancel" or event == sg.WIN_CLOSED:
+        return
+
+    if not values["-CONTACT_INFO_TYPE-"] or not values["-CONTACT_INFO_VALUE-"]:
+        sg.popup("Contact info type and value are required!")
+        return
+
+    if len(values["-CONTACT_INFO_TYPE-"]) > 50 or len(values["-CONTACT_INFO_VALUE-"]) > 50:
+        confirmation = sg.popup_yes_no(
+            "Making a contact info type or value too long may cause issues with the UI. Are you sure you "
+            "want to continue?")
+
+        if confirmation == "No" or confirmation == sg.WIN_CLOSED:
+            return
+
+    # Check if any other contact info has the same title
+    for title in app.window["-CONTACT_INFO_TABLE-"].get():
+        if title[0] == values["-CONTACT_INFO_TYPE-"]:
+            sg.popup("A contact info type with that name already exists!")
+            continue
+
+    # Get the contact ID
+    contact_id = app.window["-CONTACT_VIEW-"].metadata
+
+    # Add the contact info
+    app.db.create_contact_info(values["-CONTACT_INFO_TYPE-"], values["-CONTACT_INFO_VALUE-"],
+                               contact=contact_id)
+
+    # Reload the table values
+    swap_to_contact_viewer(app, contact_id=contact_id, push=False)
+
+
+def delete_contact_info(app: "App", values: dict):
+    # Get the contact info ID
+    try:
+        contact_info_name = \
+            app.window["-CONTACT_INFO_TABLE-"].get()[values["-CONTACT_INFO_TABLE-"][0]][0]
+        contact_info_value = \
+            app.window["-CONTACT_INFO_TABLE-"].get()[values["-CONTACT_INFO_TABLE-"][0]][1]
+    except IndexError:
+        return
+
+    # Get the contact ID
+    contact_id = app.window["-CONTACT_VIEW-"].metadata
+
+    # Delete the contact info
+    if contact_info_name.lower() == "phone":
+        contact_info_value = int(strip_phone(contact_info_value))
+
+    app.db.delete_contact_info(contact_info_name, contact_info_value, contact=contact_id)
+
+    # Reload the table values
+    swap_to_contact_viewer(app, contact_id=contact_id, push=False)
+
+
 EVENT_MAP = {
     "Change Title": _change_title,
     "Change Name": _change_name,
@@ -453,4 +525,6 @@ EVENT_MAP = {
     "View All Addresses": _edit_addresses,
     "Edit Phones": _edit_phones,
     "View All Phones": _edit_phones,
+    "Add::CONTACT_INFO": add_contact_info,
+    "Delete::CONTACT_INFO": delete_contact_info
 }
