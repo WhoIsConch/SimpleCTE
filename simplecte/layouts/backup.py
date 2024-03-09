@@ -1,8 +1,6 @@
 import PySimpleGUI as sg
 
-__all__ = (
-    "get_backup_layout",
-)
+__all__ = ("get_backup_layout",)
 
 
 def get_backup_layout():
@@ -10,9 +8,12 @@ def get_backup_layout():
     name_tooltip = " The name of the backup file "
     layout = [
         [
-            sg.Text("Back up your data! Data is backed up by copying the database file to a new\n"
-                    "directory. To restore a backup, you can simply copy the file and paste it where\n"
-                    "the old file was, or open the database directly via settings.", auto_size_text=True),
+            sg.Text(
+                "Back up your data! Data is backed up by copying the database file to a new\n"
+                "directory. To restore a backup, you can simply copy the file and paste it where\n"
+                "the old file was, or open the database directly via settings.",
+                auto_size_text=True,
+            ),
         ],
         [sg.HorizontalSeparator()],
         [

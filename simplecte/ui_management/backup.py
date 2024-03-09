@@ -3,10 +3,12 @@ import shutil
 import os
 
 import PySimpleGUI as sg
+from typing import TYPE_CHECKING
 
-__all__ = (
-    "backup_handler",
-)
+if TYPE_CHECKING:
+    from simplecte.process import App
+
+__all__ = ("backup_handler",)
 
 
 def backup_handler(app: "App"):
@@ -22,9 +24,11 @@ def backup_handler(app: "App"):
 
             case "-BACKUP_BACKUP-":
                 # Check if the backup name violates Windows' file naming rules
-                if any(c in values["-BACKUP_NAME-"] for c in "\\/:*?\"<>|"):
-                    sg.popup("The backup name cannot contain any of the following characters: "
-                                   "\\/:*?\"<>|")
+                if any(c in values["-BACKUP_NAME-"] for c in '\\/:*?"<>|'):
+                    sg.popup(
+                        "The backup name cannot contain any of the following characters: "
+                        '\\/:*?"<>|'
+                    )
                     continue
 
                 if not values["-BACKUP_NAME-"] or not values["-BACKUP_PATH-"]:
@@ -37,5 +41,8 @@ def backup_handler(app: "App"):
 
                 window.close()
                 # back up the file
-                shutil.copy(app.settings.database_path, values["-BACKUP_PATH-"] + "/" + values["-BACKUP_NAME-"] + ".db")
+                shutil.copy(
+                    app.settings.database_path,
+                    values["-BACKUP_PATH-"] + "/" + values["-BACKUP_NAME-"] + ".db",
+                )
                 break

@@ -7,14 +7,14 @@ from utils.enums import Screen
 if TYPE_CHECKING:
     from process.app import App
 
-__all__ = (
-    "add_record_handler",
-)
+__all__ = ("add_record_handler",)
 
 
 def add_record_handler(app: "App"):
     if app.current_screen in [Screen.CONTACT_SEARCH, Screen.CONTACT_VIEW]:
-        window = sg.Window("Add Contact", get_create_contact_layout(), modal=True, finalize=True)
+        window = sg.Window(
+            "Add Contact", get_create_contact_layout(), modal=True, finalize=True
+        )
 
         while True:
             event, values = window.read()
@@ -24,15 +24,20 @@ def add_record_handler(app: "App"):
                 return
 
             elif not (values["-FIRST_NAME-"] and values["-LAST_NAME-"]):
-                sg.popup("First and last name are required to create a contact.", title="Missing required fields.")
+                sg.popup(
+                    "First and last name are required to create a contact.",
+                    title="Missing required fields.",
+                )
                 continue
 
             elif values["-PHONE_NUMBER-"]:
                 try:
                     values["-PHONE_NUMBER-"] = int(values["-PHONE_NUMBER-"])
                 except ValueError:
-                    sg.popup("Invalid phone number! Phone number must be a continuous string of numbers.",
-                             title="Invalid phone number.")
+                    sg.popup(
+                        "Invalid phone number! Phone number must be a continuous string of numbers.",
+                        title="Invalid phone number.",
+                    )
                     continue
 
             break
@@ -44,7 +49,9 @@ def add_record_handler(app: "App"):
         window.close()
 
     elif app.current_screen in [Screen.ORG_SEARCH, Screen.ORG_VIEW]:
-        window = sg.Window("Add Organization", get_create_org_layout(), modal=True, finalize=True)
+        window = sg.Window(
+            "Add Organization", get_create_org_layout(), modal=True, finalize=True
+        )
 
         while True:
             event, values = window.read()
@@ -54,15 +61,20 @@ def add_record_handler(app: "App"):
                 return
 
             elif not values["-NAME-"] or not values["-TYPE-"]:
-                sg.popup("Name and type are required to create an organization.", title="Missing required fields.")
+                sg.popup(
+                    "Name and type are required to create an organization.",
+                    title="Missing required fields.",
+                )
                 continue
 
             elif values["-PHONE_NUMBER-"]:
                 try:
                     values["-PHONE_NUMBER-"] = int(values["-PHONE_NUMBER-"])
                 except ValueError:
-                    sg.popup("Invalid phone number! Phone number must be a continuous string of numbers.",
-                             title="Invalid phone number.")
+                    sg.popup(
+                        "Invalid phone number! Phone number must be a continuous string of numbers.",
+                        title="Invalid phone number.",
+                    )
                     continue
 
             break

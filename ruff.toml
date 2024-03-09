@@ -1,0 +1,12 @@
+target-version = "py310"
+
+[lint]
+select = ["F"]
+ignore = ["F403"]
+
+fixable = ["ALL"]
+
+[format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"

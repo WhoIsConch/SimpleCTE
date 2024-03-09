@@ -1,15 +1,18 @@
 from typing import TYPE_CHECKING
 import PySimpleGUI as sg
-from ui_management import swap_to_org_viewer, swap_to_contact_viewer, swap_to_resource_viewer
+from ui_management import (
+    swap_to_org_viewer,
+    swap_to_contact_viewer,
+    swap_to_resource_viewer,
+)
 from utils.enums import Screen
 from utils.helpers import format_phone, strip_phone
 
 if TYPE_CHECKING:
     from process.app import App
 
-__all__ = (
-    "EVENT_MAP",
-)
+__all__ = ("EVENT_MAP",)
+
 
 def _change_title(app: "App", values: dict):
     """
@@ -23,12 +26,15 @@ def _change_title(app: "App", values: dict):
 
     # Get the contact ID
     try:
-        contact_id = \
-            app.window["-ORG_CONTACT_INFO_TABLE-"].get()[values["-ORG_CONTACT_INFO_TABLE-"][0]][0]
+        contact_id = app.window["-ORG_CONTACT_INFO_TABLE-"].get()[
+            values["-ORG_CONTACT_INFO_TABLE-"][0]
+        ][0]
     except IndexError:
         return
 
-    title = sg.popup_get_text("Enter the new title for this contact.", title="Change Title")
+    title = sg.popup_get_text(
+        "Enter the new title for this contact.", title="Change Title"
+    )
 
     if not title:
         return
@@ -58,7 +64,7 @@ def _change_name(app: "App"):
 
         layout = [
             [sg.Text("New Name:"), sg.Input(key="-NAME-", default_text=org.name)],
-            [sg.Button("Change"), sg.Button("Cancel")]
+            [sg.Button("Change"), sg.Button("Cancel")],
         ]
 
     elif app.current_screen == Screen.CONTACT_VIEW:
@@ -66,9 +72,15 @@ def _change_name(app: "App"):
         contact = app.db.get_contact(contact_id)
 
         layout = [
-            [sg.Text("New First Name:"), sg.Input(key="-FIRST_NAME-", default_text=contact.first_name)],
-            [sg.Text("New Last Name:"), sg.Input(key="-LAST_NAME-", default_text=contact.last_name)],
-            [sg.Button("Change"), sg.Button("Cancel")]
+            [
+                sg.Text("New First Name:"),
+                sg.Input(key="-FIRST_NAME-", default_text=contact.first_name),
+            ],
+            [
+                sg.Text("New Last Name:"),
+                sg.Input(key="-LAST_NAME-", default_text=contact.last_name),
+            ],
+            [sg.Button("Change"), sg.Button("Cancel")],
         ]
 
     elif app.current_screen == Screen.RESOURCE_VIEW:
@@ -77,7 +89,7 @@ def _change_name(app: "App"):
 
         layout = [
             [sg.Text("New Name:"), sg.Input(key="-NAME-", default_text=resource.name)],
-            [sg.Button("Change"), sg.Button("Cancel")]
+            [sg.Button("Change"), sg.Button("Cancel")],
         ]
 
     else:
@@ -101,7 +113,8 @@ def _change_name(app: "App"):
 
     if len(new_org_name) > 50 or len(new_first_name) > 50 or len(new_last_name) > 50:
         confirmation = sg.popup_yes_no(
-            "Making a name too long may cause issues with the UI. Are you sure you want to continue?")
+            "Making a name too long may cause issues with the UI. Are you sure you want to continue?"
+        )
 
         if confirmation == "No" or confirmation == sg.WIN_CLOSED:
             return
@@ -111,7 +124,9 @@ def _change_name(app: "App"):
         swap_to_org_viewer(app, org_id=org_id, push=False)
 
     elif app.current_screen == Screen.CONTACT_VIEW:
-        app.db.update_contact(contact_id, first_name=new_first_name, last_name=new_last_name)
+        app.db.update_contact(
+            contact_id, first_name=new_first_name, last_name=new_last_name
+        )
         swap_to_contact_viewer(app, contact_id=contact_id, push=False)
 
     elif app.current_screen == Screen.RESOURCE_VIEW:
@@ -130,10 +145,15 @@ def _change_type(app: "App"):
 
     org = app.db.get_organization(app.window["-ORG_VIEW-"].metadata)
 
-    input_win = sg.Window("Change Type", [
-        [sg.Text("New Type:"), sg.Input(key="-TYPE-", default_text=org.type)],
-        [sg.Button("Change"), sg.Button("Cancel")]
-    ], finalize=True, modal=True)
+    input_win = sg.Window(
+        "Change Type",
+        [
+            [sg.Text("New Type:"), sg.Input(key="-TYPE-", default_text=org.type)],
+            [sg.Button("Change"), sg.Button("Cancel")],
+        ],
+        finalize=True,
+        modal=True,
+    )
 
     event, values = input_win.read()
     input_win.close()
@@ -166,7 +186,7 @@ def _change_status(app: "App"):
 
         layout = [
             [sg.Text("New Status:"), sg.Input(key="-STATUS-", default_text=org.status)],
-            [sg.Button("Change"), sg.Button("Cancel")]
+            [sg.Button("Change"), sg.Button("Cancel")],
         ]
 
     elif app.current_screen == Screen.CONTACT_VIEW:
@@ -174,8 +194,11 @@ def _change_status(app: "App"):
         contact = app.db.get_contact(contact_id)
 
         layout = [
-            [sg.Text("New Status:"), sg.Input(key="-STATUS-", default_text=contact.status)],
-            [sg.Button("Change"), sg.Button("Cancel")]
+            [
+                sg.Text("New Status:"),
+                sg.Input(key="-STATUS-", default_text=contact.status),
+            ],
+            [sg.Button("Change"), sg.Button("Cancel")],
         ]
 
     else:
@@ -198,7 +221,8 @@ def _change_status(app: "App"):
 
     if len(new_org_status) > 50 or len(new_contact_status) > 50:
         confirmation = sg.popup_yes_no(
-            "Making a status too long may cause issues with the UI. Are you sure you want to continue?")
+            "Making a status too long may cause issues with the UI. Are you sure you want to continue?"
+        )
 
         if confirmation == "No" or confirmation == sg.WIN_CLOSED:
             return
@@ -232,7 +256,7 @@ def _edit_availability(app: "App"):
     layout = [
         [sg.Text("Availability:")],
         [sg.Multiline(record.availability, size=(30, 10), key="-AVAILABILITY-")],
-        [sg.Button("Save"), sg.Button("Cancel")]
+        [sg.Button("Save"), sg.Button("Cancel")],
     ]
 
     input_window = sg.Window("Edit Availability", layout, finalize=True, modal=True)
@@ -263,7 +287,9 @@ def _edit_contact_info(app: "App", values: dict):
 
     try:
         record_id = app.window[app.current_screen.value].metadata
-        field_name = app.window["-CONTACT_INFO_TABLE-"].get()[values["-CONTACT_INFO_TABLE-"][0]][0]
+        field_name = app.window["-CONTACT_INFO_TABLE-"].get()[
+            values["-CONTACT_INFO_TABLE-"][0]
+        ][0]
     except IndexError:
         return
 
@@ -271,13 +297,15 @@ def _edit_contact_info(app: "App", values: dict):
 
     layout = [
         [sg.Text("Contact Info Name: "), sg.Text(field_name)],
-        [sg.Multiline(
-            contact.contact_info[field_name],
-            expand_x=True,
-            size=(30, 10),
-            key="-CONTACT_INFO_VALUE-",
-        )],
-        [sg.Button("Edit", key="-EDIT-"), sg.Button("Close", key="-CLOSE-")]
+        [
+            sg.Multiline(
+                contact.contact_info[field_name],
+                expand_x=True,
+                size=(30, 10),
+                key="-CONTACT_INFO_VALUE-",
+            )
+        ],
+        [sg.Button("Edit", key="-EDIT-"), sg.Button("Close", key="-CLOSE-")],
     ]
 
     window = sg.Window("Contact Info Content", finalize=True, modal=True, layout=layout)
@@ -289,9 +317,7 @@ def _edit_contact_info(app: "App", values: dict):
         return
 
     app.db.update_contact_info(
-        name=field_name,
-        value=values["-CONTACT_INFO_VALUE-"],
-        contact=record_id
+        name=field_name, value=values["-CONTACT_INFO_VALUE-"], contact=record_id
     )
 
     swap_to_contact_viewer(app, contact_id=record_id, push=False)
@@ -335,8 +361,12 @@ def _edit_emails(app: "App"):
 
     layout = [
         [sg.Text("Emails, one per line\n(The first email is primary):")],
-        [sg.Multiline("\n".join(list(record.emails or [])), size=(30, 10), key="-EMAILS-")],
-        [sg.Button("Save"), sg.Button("Cancel")]
+        [
+            sg.Multiline(
+                "\n".join(list(record.emails or [])), size=(30, 10), key="-EMAILS-"
+            )
+        ],
+        [sg.Button("Save"), sg.Button("Cancel")],
     ]
 
     input_window = sg.Window("Edit Emails", layout, finalize=True, modal=True)
@@ -370,9 +400,15 @@ def _edit_addresses(app: "App"):
 
     layout = [
         [sg.Text("Addresses, one per line\n(The first address is primary):")],
-        [sg.Multiline("\n".join(list(record.addresses)), size=(30, 10), key="-ADDRESSES-",
-                      horizontal_scroll=True)],
-        [sg.Button("Save"), sg.Button("Cancel")]
+        [
+            sg.Multiline(
+                "\n".join(list(record.addresses)),
+                size=(30, 10),
+                key="-ADDRESSES-",
+                horizontal_scroll=True,
+            )
+        ],
+        [sg.Button("Save"), sg.Button("Cancel")],
     ]
 
     input_window = sg.Window("Edit Addresses", layout, finalize=True, modal=True)
@@ -413,8 +449,15 @@ def _edit_phones(app: "App"):
 
     layout = [
         [sg.Text("Phone Numbers, one per line\n(The first number is primary):")],
-        [sg.Multiline("\n".join(list(phones)), size=(30, 10), key="-PHONES-", horizontal_scroll=True)],
-        [sg.Button("Save"), sg.Button("Cancel")]
+        [
+            sg.Multiline(
+                "\n".join(list(phones)),
+                size=(30, 10),
+                key="-PHONES-",
+                horizontal_scroll=True,
+            )
+        ],
+        [sg.Button("Save"), sg.Button("Cancel")],
     ]
 
     input_window = sg.Window("Edit Phones", layout, finalize=True, modal=True)
@@ -426,11 +469,14 @@ def _edit_phones(app: "App"):
         return
 
     try:
-        new_phones = [int(strip_phone(phone)) for phone in values["-PHONES-"].split("\n")]
+        new_phones = [
+            int(strip_phone(phone)) for phone in values["-PHONES-"].split("\n")
+        ]
     except ValueError:
         sg.popup(
             "Invalid phone number! Phone number must be a continuous string of numbers, or a string "
-            "of numbers separated by dashes or parentheses.")
+            "of numbers separated by dashes or parentheses."
+        )
         return
 
     if app.current_screen == Screen.ORG_VIEW:
@@ -445,13 +491,22 @@ def _edit_phones(app: "App"):
 def add_contact_info(app: "App"):
     # Show a basic prompt for the user to enter the contact info
 
-    input_window = sg.Window("Add Contact Info", [
-        [sg.Text("Add new contact info. If you want to add an address, email, or phone,\nconsider "
-                 "alt-clicking an entry in the table and selecting \"Edit.\"")],
-        [sg.Text("Contact Info Type:"), sg.Input(key="-CONTACT_INFO_TYPE-")],
-        [sg.Text("Contact Info Value:"), sg.Input(key="-CONTACT_INFO_VALUE-")],
-        [sg.Button("Add"), sg.Button("Cancel")]
-    ], finalize=True, modal=True)
+    input_window = sg.Window(
+        "Add Contact Info",
+        [
+            [
+                sg.Text(
+                    "Add new contact info. If you want to add an address, email, or phone,\nconsider "
+                    'alt-clicking an entry in the table and selecting "Edit."'
+                )
+            ],
+            [sg.Text("Contact Info Type:"), sg.Input(key="-CONTACT_INFO_TYPE-")],
+            [sg.Text("Contact Info Value:"), sg.Input(key="-CONTACT_INFO_VALUE-")],
+            [sg.Button("Add"), sg.Button("Cancel")],
+        ],
+        finalize=True,
+        modal=True,
+    )
 
     event, values = input_window.read()
     input_window.close()
@@ -463,10 +518,14 @@ def add_contact_info(app: "App"):
         sg.popup("Contact info type and value are required!")
         return
 
-    if len(values["-CONTACT_INFO_TYPE-"]) > 50 or len(values["-CONTACT_INFO_VALUE-"]) > 50:
+    if (
+        len(values["-CONTACT_INFO_TYPE-"]) > 50
+        or len(values["-CONTACT_INFO_VALUE-"]) > 50
+    ):
         confirmation = sg.popup_yes_no(
             "Making a contact info type or value too long may cause issues with the UI. Are you sure you "
-            "want to continue?")
+            "want to continue?"
+        )
 
         if confirmation == "No" or confirmation == sg.WIN_CLOSED:
             return
@@ -481,8 +540,11 @@ def add_contact_info(app: "App"):
     contact_id = app.window["-CONTACT_VIEW-"].metadata
 
     # Add the contact info
-    app.db.create_contact_info(values["-CONTACT_INFO_TYPE-"], values["-CONTACT_INFO_VALUE-"],
-                               contact=contact_id)
+    app.db.create_contact_info(
+        values["-CONTACT_INFO_TYPE-"],
+        values["-CONTACT_INFO_VALUE-"],
+        contact=contact_id,
+    )
 
     # Reload the table values
     swap_to_contact_viewer(app, contact_id=contact_id, push=False)
@@ -491,10 +553,12 @@ def add_contact_info(app: "App"):
 def delete_contact_info(app: "App", values: dict):
     # Get the contact info ID
     try:
-        contact_info_name = \
-            app.window["-CONTACT_INFO_TABLE-"].get()[values["-CONTACT_INFO_TABLE-"][0]][0]
-        contact_info_value = \
-            app.window["-CONTACT_INFO_TABLE-"].get()[values["-CONTACT_INFO_TABLE-"][0]][1]
+        contact_info_name = app.window["-CONTACT_INFO_TABLE-"].get()[
+            values["-CONTACT_INFO_TABLE-"][0]
+        ][0]
+        contact_info_value = app.window["-CONTACT_INFO_TABLE-"].get()[
+            values["-CONTACT_INFO_TABLE-"][0]
+        ][1]
     except IndexError:
         return
 
@@ -505,7 +569,9 @@ def delete_contact_info(app: "App", values: dict):
     if contact_info_name.lower() == "phone":
         contact_info_value = int(strip_phone(contact_info_value))
 
-    app.db.delete_contact_info(contact_info_name, contact_info_value, contact=contact_id)
+    app.db.delete_contact_info(
+        contact_info_name, contact_info_value, contact=contact_id
+    )
 
     # Reload the table values
     swap_to_contact_viewer(app, contact_id=contact_id, push=False)
@@ -526,5 +592,5 @@ EVENT_MAP = {
     "Edit Phones": _edit_phones,
     "View All Phones": _edit_phones,
     "Add::CONTACT_INFO": add_contact_info,
-    "Delete::CONTACT_INFO": delete_contact_info
+    "Delete::CONTACT_INFO": delete_contact_info,
 }

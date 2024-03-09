@@ -10,8 +10,8 @@ __all__ = (
 
 
 def get_field_keys(
-        screen: Screen = None,
-        record: str = None,
+    screen: Screen = None,
+    record: str = None,
 ) -> dict:
     if screen == Screen.ORG_SEARCH or record == "organization":
         return {
@@ -75,7 +75,7 @@ def get_sort_keys(screen: Screen = None, record: str = None) -> dict:
 
 
 def get_search_layout(
-        screen: Screen,
+    screen: Screen,
 ) -> list:
     fields = [s.title() for s in get_field_keys(screen).keys()]
     sort_fields = [s.title() for s in get_sort_keys(screen).keys()]
@@ -104,7 +104,9 @@ def get_search_layout(
                                 [
                                     sg.Text(
                                         "View: ",
-                                        background_color=sg.theme_progress_bar_color()[1],
+                                        background_color=sg.theme_progress_bar_color()[
+                                            1
+                                        ],
                                         pad=((0, 0), (0, 0)),
                                         tooltip=" The type of record you are searching for. ",
                                     ),
@@ -133,17 +135,39 @@ def get_search_layout(
                 layout=[
                     [
                         sg.Button("Search", k="-SEARCH_BUTTON-"),
-                        sg.Button("Reset", k="-RESET_BUTTON-", tooltip=" Reset the search. "),
-                        sg.Text("Search Query:", tooltip=" The text to search in a field for. "),
-                        sg.Input(k="-SEARCH_QUERY-", expand_x=True, tooltip=" The text to search in a field for. "),
+                        sg.Button(
+                            "Reset", k="-RESET_BUTTON-", tooltip=" Reset the search. "
+                        ),
+                        sg.Text(
+                            "Search Query:",
+                            tooltip=" The text to search in a field for. ",
+                        ),
+                        sg.Input(
+                            k="-SEARCH_QUERY-",
+                            expand_x=True,
+                            tooltip=" The text to search in a field for. ",
+                        ),
                     ],
                     [
                         sg.Text("Search in:", tooltip=" The field to search in. "),
-                        sg.Combo(fields, k="-SEARCH_FIELDS-", expand_x=True, tooltip=" The field to search in. "),
+                        sg.Combo(
+                            fields,
+                            k="-SEARCH_FIELDS-",
+                            expand_x=True,
+                            tooltip=" The field to search in. ",
+                        ),
                         sg.Text("Sort by:", tooltip=" The field to sort by. "),
-                        sg.Combo(sort_fields, k="-SORT_TYPE-", expand_x=True, tooltip=" The field to sort results by. "),
-                        sg.Checkbox("Descending", k="-SORT_DESCENDING-", tooltip=" Whether to sort in descending "
-                                                                                 "order. "),
+                        sg.Combo(
+                            sort_fields,
+                            k="-SORT_TYPE-",
+                            expand_x=True,
+                            tooltip=" The field to sort results by. ",
+                        ),
+                        sg.Checkbox(
+                            "Descending",
+                            k="-SORT_DESCENDING-",
+                            tooltip=" Whether to sort in descending " "order. ",
+                        ),
                     ],
                 ],
             )
@@ -167,7 +191,13 @@ def get_search_layout(
                     ],
                     [
                         sg.Table(
-                            headings=["ID", "Organization Name", "Type", "Primary Contact", "Status"],
+                            headings=[
+                                "ID",
+                                "Organization Name",
+                                "Type",
+                                "Primary Contact",
+                                "Status",
+                            ],
                             values=[],
                             visible_column_map=[False, True, True, True, True],
                             expand_x=True,
@@ -205,7 +235,12 @@ def get_search_layout(
                     ],
                     [
                         sg.Table(
-                            headings=["ID", "Name", "Primary Organization", "Primary Phone"],
+                            headings=[
+                                "ID",
+                                "Name",
+                                "Primary Organization",
+                                "Primary Phone",
+                            ],
                             values=[],
                             visible_column_map=[False, True, True, True],
                             expand_x=True,

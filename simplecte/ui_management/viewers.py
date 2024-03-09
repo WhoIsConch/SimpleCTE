@@ -45,10 +45,10 @@ def get_custom_field_info(custom_fields: dict) -> list:
 
 @db_session
 def swap_to_org_viewer(
-        app: "App",
-        org_id: int | None = None,
-        org: Organization | None = None,
-        push: bool = True,
+    app: "App",
+    org_id: int | None = None,
+    org: Organization | None = None,
+    push: bool = True,
 ) -> None:
     """
     Get ready to swap the UI to the organization viewer screen.
@@ -68,7 +68,9 @@ def swap_to_org_viewer(
             [
                 contact.id,
                 contact.name,
-                sanitize(contact.org_titles.get(str(org.id), "No Title"), 20) if contact.org_titles else "No Title",
+                sanitize(contact.org_titles.get(str(org.id), "No Title"), 20)
+                if contact.org_titles
+                else "No Title",
                 contact.emails[0] if contact.emails else "No Email",
                 format_phone(contact.phone_numbers[0])
                 if contact.phone_numbers
@@ -78,7 +80,9 @@ def swap_to_org_viewer(
 
     # Add available resources to the table of organization resources
     for resource in org.resources:
-        resource_table_values.append([resource.id, resource.name, sanitize(resource.value, 20)])
+        resource_table_values.append(
+            [resource.id, resource.name, sanitize(resource.value, 20)]
+        )
 
     # Add the custom fields to the table of custom fields
     custom_field_table_values = get_custom_field_info(org.custom_fields)
@@ -93,19 +97,27 @@ def swap_to_org_viewer(
     app.window["-NAME_TEXT-"].update(sanitize(org.name, 30), font=("Arial", 11))
 
     app.window["-STATUS-"].update(sanitize(org.status))
-    app.window["-PHONE-"].update(sanitize(format_phone(org.phones[0]), 20) if org.phones else "No phone number")
-    app.window["-ADDRESS-"].update(sanitize(org.addresses[0], 30) if org.addresses else "No address")
-    app.window["-EMAIL-"].update(sanitize(org.emails[0], 20) if org.emails else "No email")
+    app.window["-PHONE-"].update(
+        sanitize(format_phone(org.phones[0]), 20) if org.phones else "No phone number"
+    )
+    app.window["-ADDRESS-"].update(
+        sanitize(org.addresses[0], 30) if org.addresses else "No address"
+    )
+    app.window["-EMAIL-"].update(
+        sanitize(org.emails[0], 20) if org.emails else "No email"
+    )
 
-    app.switch_screen(Screen.ORG_VIEW, data=org, push=push)  # Switch to the organization viewer screen
+    app.switch_screen(
+        Screen.ORG_VIEW, data=org, push=push
+    )  # Switch to the organization viewer screen
 
 
 @db_session
 def swap_to_contact_viewer(
-        app: "App",
-        contact_id: int | None = None,
-        contact: Contact | None = None,
-        push: bool = True,
+    app: "App",
+    contact_id: int | None = None,
+    contact: Contact | None = None,
+    push: bool = True,
 ) -> None:
     """
     Get ready to swap the UI to the contact viewer screen.
@@ -131,16 +143,26 @@ def swap_to_contact_viewer(
         contact_info_table_values.append(["Email", sanitize(email, 20)])
 
     contact_info_table_values.append(
-        ["Availability", sanitize(contact.availability) if contact.availability else "No Recorded Availability"])
+        [
+            "Availability",
+            sanitize(contact.availability)
+            if contact.availability
+            else "No Recorded Availability",
+        ]
+    )
 
     for key, value in contact.contact_info.items():
         contact_info_table_values.append([key, sanitize(value, 20)])
 
     for org in contact.organizations:
-        organization_table_values.append([org.id, sanitize(org.name, 20), sanitize(org.status, 10)])
+        organization_table_values.append(
+            [org.id, sanitize(org.name, 20), sanitize(org.status, 10)]
+        )
 
     for resource in contact.resources:
-        resource_table_values.append([resource.id, resource.name, sanitize(resource.value, 20)])
+        resource_table_values.append(
+            [resource.id, resource.name, sanitize(resource.value, 20)]
+        )
 
     custom_field_table_values = get_custom_field_info(contact.custom_fields)
 
@@ -154,19 +176,28 @@ def swap_to_contact_viewer(
     app.window["-CONTACT_NAME-"].update(sanitize(contact.name, 30))
     app.window["-CONTACT_STATUS-"].update(sanitize(contact.status, 12))
     app.window["-CONTACT_PHONE-"].update(
-        sanitize(format_phone(contact.phone_numbers[0]), 20) if contact.phone_numbers else "No phone number")
-    app.window["-CONTACT_ADDRESS-"].update(sanitize(contact.addresses[0], 20) if contact.addresses else "No address")
-    app.window["-CONTACT_EMAIL-"].update(sanitize(contact.emails[0], 30) if contact.emails else "No email")
+        sanitize(format_phone(contact.phone_numbers[0]), 20)
+        if contact.phone_numbers
+        else "No phone number"
+    )
+    app.window["-CONTACT_ADDRESS-"].update(
+        sanitize(contact.addresses[0], 20) if contact.addresses else "No address"
+    )
+    app.window["-CONTACT_EMAIL-"].update(
+        sanitize(contact.emails[0], 30) if contact.emails else "No email"
+    )
 
-    app.switch_screen(Screen.CONTACT_VIEW, data=contact, push=push)  # Switch to the contact viewer screen
+    app.switch_screen(
+        Screen.CONTACT_VIEW, data=contact, push=push
+    )  # Switch to the contact viewer screen
 
 
 @db_session
 def swap_to_resource_viewer(
-        app: "App",
-        resource_id: int | None = None,
-        resource: Resource | None = None,
-        push: bool = True,
+    app: "App",
+    resource_id: int | None = None,
+    resource: Resource | None = None,
+    push: bool = True,
 ) -> None:
     """
     Get ready to swap the UI to the resource viewer screen.

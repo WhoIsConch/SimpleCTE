@@ -11,7 +11,7 @@ from ui_management import (
     backup_handler,
     export_handler,
     add_record_handler,
-    help_manager
+    help_manager,
 )
 from layouts import get_field_keys, get_sort_keys
 from database import get_table_values, Contact, Organization
@@ -21,23 +21,16 @@ if TYPE_CHECKING:
     from process.app import App
 
 
-__all__ = (
-    "main_loop",
-)
+__all__ = ("main_loop",)
 
 
-def _manage_custom_field(app: 'App', values: dict, edit=False) -> None:
+def _manage_custom_field(app: "App", values: dict, edit=False) -> None:
     try:
         record_id = app.window[app.current_screen.value].metadata
     except IndexError:
         return
 
-    method = [
-        {
-            "app": app,
-            "push": False
-        }
-    ]
+    method = [{"app": app, "push": False}]
 
     if app.current_screen == Screen.ORG_VIEW:
         record = app.db.get_organization(record_id)
@@ -46,8 +39,9 @@ def _manage_custom_field(app: 'App', values: dict, edit=False) -> None:
         method[1]["org_id"] = record.id
 
         try:
-            field_name = \
-                app.window["-ORG_CUSTOM_FIELDS_TABLE-"].get()[values["-ORG_CUSTOM_FIELDS_TABLE-"][0]][0]
+            field_name = app.window["-ORG_CUSTOM_FIELDS_TABLE-"].get()[
+                values["-ORG_CUSTOM_FIELDS_TABLE-"][0]
+            ][0]
 
         except IndexError:
             return
@@ -59,9 +53,9 @@ def _manage_custom_field(app: 'App', values: dict, edit=False) -> None:
         method[1]["contact_id"] = record.id
 
         try:
-            field_name = \
-                app.window["-CONTACT_CUSTOM_FIELDS_TABLE-"].get()[
-                    values["-CONTACT_CUSTOM_FIELDS_TABLE-"][0]][0]
+            field_name = app.window["-CONTACT_CUSTOM_FIELDS_TABLE-"].get()[
+                values["-CONTACT_CUSTOM_FIELDS_TABLE-"][0]
+            ][0]
         except IndexError:
             return
 
@@ -71,15 +65,20 @@ def _manage_custom_field(app: 'App', values: dict, edit=False) -> None:
     name_tooltip = "The names of custom fields cannot be changed. Consider creating a new custom field instead."
 
     layout = [
-        [sg.Text("Custom Field Name: ", tooltip=name_tooltip), sg.Text(field_name, tooltip=name_tooltip)],
-        [sg.Multiline(
-            record.custom_fields[field_name],
-            expand_x=True,
-            size=(30, 10),
-            disabled=not edit,
-            key="-CUSTOM_FIELD_VALUE-",
-        )],
-        [sg.Button("Close", key="-CLOSE-")]
+        [
+            sg.Text("Custom Field Name: ", tooltip=name_tooltip),
+            sg.Text(field_name, tooltip=name_tooltip),
+        ],
+        [
+            sg.Multiline(
+                record.custom_fields[field_name],
+                expand_x=True,
+                size=(30, 10),
+                disabled=not edit,
+                key="-CUSTOM_FIELD_VALUE-",
+            )
+        ],
+        [sg.Button("Close", key="-CLOSE-")],
     ]
 
     if edit:
@@ -99,13 +98,13 @@ def _manage_custom_field(app: 'App', values: dict, edit=False) -> None:
     app.db.update_custom_field(
         name=field_name,
         value=values["-CUSTOM_FIELD_VALUE-"],
-        **{record_type: record_id}
+        **{record_type: record_id},
     )
 
     app.db.update_custom_field(
         name=field_name,
         value=values["-CUSTOM_FIELD_VALUE-"],
-        **{record_type: record_id}
+        **{record_type: record_id},
     )
 
     method[0](**method[1])
@@ -120,6 +119,7 @@ def main_loop(app: "App"):
         print(event, values, "\n")
 
         if isinstance(event, tuple) and event[2][0] is not None:
+
             def doubleclick_check() -> bool:
                 """
                 Checks if the last selected ID is the same as the current ID.
@@ -128,27 +128,38 @@ def main_loop(app: "App"):
                     current_id = app.window[event[0]].get()[event[2][0]][0]
                 except IndexError:
                     current_id = None
-                return app.last_selected_id == current_id and app.last_selected_id is not None
+                return (
+                    app.last_selected_id == current_id
+                    and app.last_selected_id is not None
+                )
 
-            if event[0] in ["-ORG_TABLE-", "-CONTACT_ORGANIZATIONS_TABLE-", "-RESOURCE_ORGANIZATIONS_TABLE-"]:
+            if event[0] in [
+                "-ORG_TABLE-",
+                "-CONTACT_ORGANIZATIONS_TABLE-",
+                "-RESOURCE_ORGANIZATIONS_TABLE-",
+            ]:
                 app.check_doubleclick(
                     swap_to_org_viewer,
                     check=doubleclick_check,
-                    args=(app, app.last_selected_id)
+                    args=(app, app.last_selected_id),
                 )
 
-            elif event[0] in ["-CONTACT_TABLE-", "-ORG_CONTACT_INFO_TABLE-", "-RESOURCE_CONTACTS_TABLE-"]:
+            elif event[0] in [
+                "-CONTACT_TABLE-",
+                "-ORG_CONTACT_INFO_TABLE-",
+                "-RESOURCE_CONTACTS_TABLE-",
+            ]:
                 app.check_doubleclick(
                     swap_to_contact_viewer,
                     check=doubleclick_check,
-                    args=(app, app.last_selected_id)
+                    args=(app, app.last_selected_id),
                 )
 
             elif event[0] in ["-ORG_RESOURCES_TABLE-", "-CONTACT_RESOURCES_TABLE-"]:
                 app.check_doubleclick(
                     swap_to_resource_viewer,
                     check=doubleclick_check,
-                    args=(app, app.last_selected_id)
+                    args=(app, app.last_selected_id),
                 )
 
             try:
@@ -173,8 +184,12 @@ def main_loop(app: "App"):
 
         elif event == "-SEARCHTYPE-":
             if values["-SEARCHTYPE-"] == "Organizations":
-                sort_fields = [s.title() for s in get_sort_keys(screen=Screen.ORG_SEARCH).keys()]
-                search_fields = [s.title() for s in get_field_keys(screen=Screen.ORG_SEARCH)]
+                sort_fields = [
+                    s.title() for s in get_sort_keys(screen=Screen.ORG_SEARCH).keys()
+                ]
+                search_fields = [
+                    s.title() for s in get_field_keys(screen=Screen.ORG_SEARCH)
+                ]
 
                 app.window["-CONTACT_SCREEN-"].update(visible=False)
                 app.window["-ORG_SCREEN-"].update(visible=True)
@@ -185,8 +200,13 @@ def main_loop(app: "App"):
                 app.stack.push(Screen.ORG_SEARCH)
 
             elif values["-SEARCHTYPE-"] == "Contacts":
-                sort_fields = [s.title() for s in get_sort_keys(screen=Screen.CONTACT_SEARCH).keys()]
-                search_fields = [s.title() for s in get_field_keys(screen=Screen.CONTACT_SEARCH)]
+                sort_fields = [
+                    s.title()
+                    for s in get_sort_keys(screen=Screen.CONTACT_SEARCH).keys()
+                ]
+                search_fields = [
+                    s.title() for s in get_field_keys(screen=Screen.CONTACT_SEARCH)
+                ]
 
                 app.window["-ORG_SCREEN-"].update(visible=False)
                 app.window["-CONTACT_SCREEN-"].update(visible=True)
@@ -213,7 +233,7 @@ def main_loop(app: "App"):
                             app,
                             Organization,
                             search_info=search_info,
-                            descending=values["-SORT_DESCENDING-"]
+                            descending=values["-SORT_DESCENDING-"],
                         )
                     )
 
@@ -223,11 +243,13 @@ def main_loop(app: "App"):
                             app,
                             Contact,
                             search_info=search_info,
-                            descending=values["-SORT_DESCENDING-"]
+                            descending=values["-SORT_DESCENDING-"],
                         )
                     )
 
-            app.lazy_load_table_values(search_info, descending=values["-SORT_DESCENDING-"])
+            app.lazy_load_table_values(
+                search_info, descending=values["-SORT_DESCENDING-"]
+            )
 
         elif event.startswith("-ADD_RECORD-"):
             add_record_handler(app)
@@ -283,10 +305,12 @@ def main_loop(app: "App"):
             layout = [
                 [sg.Text("Full Resource Value:")],
                 [sg.Multiline(resource.value, size=(30, 10), disabled=True)],
-                [sg.Button("Close")]
+                [sg.Button("Close")],
             ]
 
-            view_window = sg.Window("Full Resource Value", layout, finalize=True, modal=True)
+            view_window = sg.Window(
+                "Full Resource Value", layout, finalize=True, modal=True
+            )
 
             _ = view_window.read()
             view_window.close()
@@ -296,11 +320,16 @@ def main_loop(app: "App"):
 
         elif event == "Create Custom Field":
             # Create a new window to get the field name and value
-            input_window = sg.Window("Create Custom Field", [
-                [sg.Text("Field Name:"), sg.Input(key="-FIELD_NAME-")],
-                [sg.Text("Field Value:"), sg.Input(key="-FIELD_VALUE-")],
-                [sg.Button("Create"), sg.Button("Cancel")]
-            ], finalize=True, modal=True)
+            input_window = sg.Window(
+                "Create Custom Field",
+                [
+                    [sg.Text("Field Name:"), sg.Input(key="-FIELD_NAME-")],
+                    [sg.Text("Field Value:"), sg.Input(key="-FIELD_VALUE-")],
+                    [sg.Button("Create"), sg.Button("Cancel")],
+                ],
+                finalize=True,
+                modal=True,
+            )
 
             # Read the window and close it
             event, values = input_window.read()
@@ -317,22 +346,21 @@ def main_loop(app: "App"):
 
             create_kwargs = {
                 "name": values["-FIELD_NAME-"],
-                "value": values["-FIELD_VALUE-"]
+                "value": values["-FIELD_VALUE-"],
             }
 
-            swap_args = [
-                {
-                    "app": app,
-                    "push": False
-                }
-            ]
+            swap_args = [{"app": app, "push": False}]
 
             if app.current_screen == Screen.ORG_VIEW:
-                create_kwargs["org"] = swap_args[0]["org_id"] = app.window["-ORG_VIEW-"].metadata
+                create_kwargs["org"] = swap_args[0]["org_id"] = app.window[
+                    "-ORG_VIEW-"
+                ].metadata
                 swap_args.append(swap_to_org_viewer)
 
             elif app.current_screen == Screen.CONTACT_VIEW:
-                create_kwargs["contact"] = swap_args[0]["contact_id"] = app.window["-CONTACT_VIEW-"].metadata
+                create_kwargs["contact"] = swap_args[0]["contact_id"] = app.window[
+                    "-CONTACT_VIEW-"
+                ].metadata
 
                 swap_args.append(swap_to_contact_viewer)
 
@@ -345,7 +373,8 @@ def main_loop(app: "App"):
 
             if not field:
                 sg.popup(
-                    "Error creating custom field.\nPerhaps you used the same name as an existing field?")
+                    "Error creating custom field.\nPerhaps you used the same name as an existing field?"
+                )
                 continue
 
             (swap_args[1])(**(swap_args[0]))
@@ -359,8 +388,9 @@ def main_loop(app: "App"):
                 org_id = app.window["-ORG_VIEW-"].metadata
 
                 try:
-                    field_name = \
-                        app.window["-ORG_CUSTOM_FIELDS_TABLE-"].get()[values["-ORG_CUSTOM_FIELDS_TABLE-"][0]][0]
+                    field_name = app.window["-ORG_CUSTOM_FIELDS_TABLE-"].get()[
+                        values["-ORG_CUSTOM_FIELDS_TABLE-"][0]
+                    ][0]
                 except IndexError:
                     continue
 
@@ -368,15 +398,15 @@ def main_loop(app: "App"):
                 contact_id = app.window["-CONTACT_VIEW-"].metadata
 
                 try:
-                    field_name = \
-                        app.window["-CONTACT_CUSTOM_FIELDS_TABLE-"].get()[
-                            values["-CONTACT_CUSTOM_FIELDS_TABLE-"][0]][0]
+                    field_name = app.window["-CONTACT_CUSTOM_FIELDS_TABLE-"].get()[
+                        values["-CONTACT_CUSTOM_FIELDS_TABLE-"][0]
+                    ][0]
                 except IndexError:
                     continue
 
             confirmation = sg.popup_yes_no(
-                "Are you sure you want to delete this field?",
-                title="Delete Field")
+                "Are you sure you want to delete this field?", title="Delete Field"
+            )
 
             if confirmation == "No" or confirmation == sg.WIN_CLOSED:
                 continue
@@ -402,7 +432,7 @@ def main_loop(app: "App"):
             layout = [
                 [sg.Text("Full Resource Value:")],
                 [sg.Multiline(resource.value, size=(30, 10), key="-NEW_VALUE-")],
-                [sg.Button("Close")]
+                [sg.Button("Close")],
             ]
 
             input_window = sg.Window("Change Value", layout, finalize=True, modal=True)
@@ -475,13 +505,14 @@ def main_loop(app: "App"):
         elif event == "-EXPORT_FILTER-":
             # Export based on the current search parameters
             export_handler(
-                app, search_info={
+                app,
+                search_info={
                     "query": app.window["-SEARCH_QUERY-"].get(),
                     "field": app.window["-SEARCH_FIELDS-"].get(),
                     "sort": app.window["-SORT_TYPE-"].get(),
-                    "descending": app.window["-SORT_DESCENDING-"].get()
+                    "descending": app.window["-SORT_DESCENDING-"].get(),
                 },
-                search_type=app.current_screen.name.split("_")[0].lower()
+                search_type=app.current_screen.name.split("_")[0].lower(),
             )
 
         elif event in ["-VIEW_RESOURCE-", "View Resource"]:

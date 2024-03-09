@@ -31,5 +31,3 @@ def handle_other_events(app: "App", event: str, data: dict) -> bool:
         return True
 
     return False
-
-

@@ -9,19 +9,21 @@ from utils.enums import Screen, AppStatus
 from process.stack import Stack
 from process.settings import Settings
 from layouts import (
-    get_search_layout, 
-    get_contact_view_layout, 
-    get_org_view_layout, 
-    get_resource_view_layout, 
+    get_search_layout,
+    get_contact_view_layout,
+    get_org_view_layout,
+    get_resource_view_layout,
     get_login_layout,
 )
-from ui_management import swap_to_org_viewer, swap_to_contact_viewer, swap_to_resource_viewer
+from ui_management import (
+    swap_to_org_viewer,
+    swap_to_contact_viewer,
+    swap_to_resource_viewer,
+)
 from database import Contact, Organization, db, get_table_values
 
 
-__all__ = (
-    "App",
-)
+__all__ = ("App",)
 
 
 class App:
@@ -30,7 +32,8 @@ class App:
     It is responsible for managing most functions of the application
     and keeping essential information in a central location.
     """
-    ICON_PATH = os.path.join(os.path.dirname(__file__), '../data/ico')
+
+    ICON_PATH = os.path.join(os.path.dirname(__file__), "../data/ico")
 
     def __init__(self):
         self.logger = logging.getLogger("app")
@@ -76,10 +79,13 @@ class App:
         the screens in the stack.
         """
         menu = [
-                "",
-                # Subscripts remove the last item in the list and reverse it
-                [screen + f"::{index}-STACK" for index, screen in enumerate(self.stack.generate_previews())][:-1][::-1]
-            ]
+            "",
+            # Subscripts remove the last item in the list and reverse it
+            [
+                screen + f"::{index}-STACK"
+                for index, screen in enumerate(self.stack.generate_previews())
+            ][:-1][::-1],
+        ]
         self.window["-EXIT_1-"].set_right_click_menu(menu)
         self.window["-EXIT_1_CONTACT-"].set_right_click_menu(menu)
 
@@ -96,8 +102,14 @@ class App:
         Hide all major screens.
         Major screens include the search screens, the org/contact view screens, and the create screens.
         """
-        screens = ["-SEARCH_SCREEN-", "-ORG_VIEW-", "-CONTACT_VIEW-", "-ORG_SCREEN-", "-CONTACT_SCREEN-",
-                   "-RESOURCE_VIEW-"]
+        screens = [
+            "-SEARCH_SCREEN-",
+            "-ORG_VIEW-",
+            "-CONTACT_VIEW-",
+            "-ORG_SCREEN-",
+            "-CONTACT_SCREEN-",
+            "-RESOURCE_VIEW-",
+        ]
 
         for screen in screens:
             self.window[screen].update(visible=False)
@@ -165,12 +177,14 @@ class App:
 
         self.update_exit_menu()
 
-    def check_doubleclick(self, callback: Callable, args: tuple, check: "Callable | None" = None) -> None:
+    def check_doubleclick(
+        self, callback: Callable, args: tuple, check: "Callable | None" = None
+    ) -> None:
         """
         Check if a table was double-clicked. If it was, run the callback.
         """
         if (self.last_clicked_table_time is not None) and (
-                (datetime.now() - self.last_clicked_table_time).total_seconds() < 0.5
+            (datetime.now() - self.last_clicked_table_time).total_seconds() < 0.5
         ):
             if check and check():
                 callback(*args)
@@ -179,7 +193,9 @@ class App:
         else:
             self.last_clicked_table_time = datetime.now()
 
-    def lazy_load_table_values(self, search_info: dict = None, descending: bool = False):
+    def lazy_load_table_values(
+        self, search_info: dict = None, descending: bool = False
+    ):
         """
         Load the values for the search tables, in the case there is a
         lot of info in the database to decrease load times.
@@ -188,26 +204,35 @@ class App:
         # Use empty lists to retrieve the information from the threads.
         def get_values():
             values = [
-                get_table_values(self, Contact, amount=None, search_info=search_info,
-                                         descending=descending),
-                get_table_values(self, Organization, amount=None, search_info=search_info,
-                                     descending=descending)
+                get_table_values(
+                    self,
+                    Contact,
+                    amount=None,
+                    search_info=search_info,
+                    descending=descending,
+                ),
+                get_table_values(
+                    self,
+                    Organization,
+                    amount=None,
+                    search_info=search_info,
+                    descending=descending,
+                ),
             ]
             # time.sleep(3)
 
             return values
 
-        self.window.start_thread(
-            get_values,
-            end_key="-UPDATE_TABLES-"
-        )
+        self.window.start_thread(get_values, end_key="-UPDATE_TABLES-")
 
     def show_start_screen(self):
         """
         Decide which screen to start the app on.
         """
         if self.current_screen == Screen.LOGIN:
-            self.window = sg.Window("Log In to your SimpleCTE Database", get_login_layout())
+            self.window = sg.Window(
+                "Log In to your SimpleCTE Database", get_login_layout()
+            )
 
         else:
             self.window = sg.Window(
@@ -234,7 +259,7 @@ class App:
                             layout=get_resource_view_layout(),
                             key="-RESOURCE_VIEW-",
                             visible=False,
-                        )
+                        ),
                     ]
                 ],
             )

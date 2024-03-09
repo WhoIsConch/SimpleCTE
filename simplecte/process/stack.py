@@ -2,9 +2,7 @@ from typing import Any
 from utils.enums import Screen
 
 
-__all__ = (
-    "Stack",
-)
+__all__ = ("Stack",)
 
 
 class Stack:
@@ -45,9 +43,13 @@ class Stack:
         Generates a list of strings that will be used to preview what is in the stack.
         """
         for screen, value in self.stack:
-            screen_title = screen.name.replace('_', ' ').title()
+            screen_title = screen.name.replace("_", " ").title()
 
-            if value and screen in (Screen.ORG_VIEW, Screen.CONTACT_VIEW, Screen.RESOURCE_VIEW):
+            if value and screen in (
+                Screen.ORG_VIEW,
+                Screen.CONTACT_VIEW,
+                Screen.RESOURCE_VIEW,
+            ):
                 yield value.name
             else:
                 yield screen_title

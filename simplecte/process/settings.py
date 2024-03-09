@@ -2,25 +2,23 @@ import json
 import os
 
 
-__all__ = (
-    "Settings",
-)
+__all__ = ("Settings",)
 
 
 class Settings:
     template = {
-                "theme": "dark",
-                "database": {
-                    "system": "sqlite",
-                    "location": "local",
-                    "path": "data/db.db",
-                    "name": "",
-                    "address": "",
-                    "port": "",
-                    "username": "",
-                    "password": "",
-                },
-            }
+        "theme": "dark",
+        "database": {
+            "system": "sqlite",
+            "location": "local",
+            "path": "data/db.db",
+            "name": "",
+            "address": "",
+            "port": "",
+            "username": "",
+            "password": "",
+        },
+    }
 
     def __init__(self, settings_path: str):
         self.settings_path = settings_path

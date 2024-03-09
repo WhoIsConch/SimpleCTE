@@ -6,9 +6,7 @@ from layouts import get_settings_layout
 if TYPE_CHECKING:
     from process.app import App
 
-__all__ = (
-    "settings_handler",
-)
+__all__ = ("settings_handler",)
 
 
 def update_settings_window(window: sg.Window, app: "App"):
@@ -116,7 +114,9 @@ def settings_handler(app: "App"):
                     window["-SET_POSTGRESQL_TAB-"].update(disabled=False)
 
             case "-SET_SQLITE_LOCATION_TYPE-":
-                settings.database_location = values["-SET_SQLITE_LOCATION_TYPE-"].lower()
+                settings.database_location = values[
+                    "-SET_SQLITE_LOCATION_TYPE-"
+                ].lower()
                 if settings.database_location == "local":
                     window["-SET_DB_PATH-"].update(disabled=False)
                     window["-SET_DB_URL-"].update(disabled=True)

@@ -29,6 +29,7 @@ def search_and_destroy(func: "Callable") -> "Callable":
     using the app.stack.search_and_pop() function, referencing
     app from the subclass's self.app variable.
     """
+
     def wrapper(*args, **kwargs):
         app = args[0].app
         func(*args, **kwargs)
@@ -53,22 +54,21 @@ class Database(orm.Database):
 
     @orm.db_session
     def get_records(
-            self,
-            record_type: "Organization | Contact | str",
-            query: str = "",
-            field: str = "",
-            sort: str = "",
-            paginated: bool = True,
-            descending: bool = False,
+        self,
+        record_type: "Organization | Contact | str",
+        query: str = "",
+        field: str = "",
+        sort: str = "",
+        paginated: bool = True,
+        descending: bool = False,
     ) -> orm.core.Query | bool:
-
         """
         Get a list of records from the database.
         Field can include, based on the GUI implementation,
         name, status, primary phone, address, custom field name and
         custom field value.
-        Sort can be by status, alphabetical, type (commercial/community/other), or 
-        association with a resource. 
+        Sort can be by status, alphabetical, type (commercial/community/other), or
+        association with a resource.
         """
         field = field.lower()
         query = query.lower()
@@ -89,15 +89,20 @@ class Database(orm.Database):
             else:
                 return False
 
-        record_type_str = "organization" if record_type == Organization else \
-            ("contact" if record_type == Contact else "resource")
+        record_type_str = (
+            "organization"
+            if record_type == Organization
+            else ("contact" if record_type == Contact else "resource")
+        )
         field_key = get_field_keys(record=record_type_str)
         sort_key = get_sort_keys(record=record_type_str)
 
         if sort and sort not in sort_key:
             sort = ""
 
-        if (field == "phone" or field == "id" or field == "associated with resource...") and not query.isdigit():
+        if (
+            field == "phone" or field == "id" or field == "associated with resource..."
+        ) and not query.isdigit():
             return False
 
         if field == "phone" or field == "id":
@@ -106,10 +111,11 @@ class Database(orm.Database):
         if not field or field not in field_key.keys():
             db_query = orm.select(r for r in record_type)
 
-        elif (field == "custom field name" or
-              field == "custom field value" or
-              field == "contact info name" or
-              field == "contact info value"
+        elif (
+            field == "custom field name"
+            or field == "custom field value"
+            or field == "contact info name"
+            or field == "contact info value"
         ):
             db_query = orm.select(r for r in record_type)
 
@@ -119,9 +125,10 @@ class Database(orm.Database):
 
             for record in db_query:
                 for key in (
-                        getattr(record, field_key[field]).keys()
-                        if field == "custom field name" or field == "contact info name"
-                        else getattr(record, field_key[field]).values()):
+                    getattr(record, field_key[field]).keys()
+                    if field == "custom field name" or field == "contact info name"
+                    else getattr(record, field_key[field]).values()
+                ):
                     if query in key.lower():
                         break
                 else:
@@ -130,7 +137,9 @@ class Database(orm.Database):
             db_query = db_query.filter(lambda r: r.id not in exclude_ids)
 
         elif field == "id":
-            db_query = orm.select(r for r in record_type if getattr(r, field_key[field]) == int(query))
+            db_query = orm.select(
+                r for r in record_type if getattr(r, field_key[field]) == int(query)
+            )
 
         elif field == "associated with resource...":
             resource = Resource.get(id=int(query))
@@ -138,7 +147,9 @@ class Database(orm.Database):
             if resource is None:
                 return False
 
-            db_query = orm.select(r for r in record_type if resource in getattr(r, field_key[field]))
+            db_query = orm.select(
+                r for r in record_type if resource in getattr(r, field_key[field])
+            )
 
         elif field == "address" or field == "phone" or field == "email":
             # Search through each item in the array, making each item lowercase if its a string
@@ -157,10 +168,14 @@ class Database(orm.Database):
             db_query = db_query.filter(lambda r: r.id not in exclude_ids)
 
         elif not getattr(record_type, field_key[field]).is_string:
-            db_query = orm.select(r for r in record_type if query in getattr(r, field_key[field]))
+            db_query = orm.select(
+                r for r in record_type if query in getattr(r, field_key[field])
+            )
 
         else:
-            db_query = orm.select(r for r in record_type if query in getattr(r, field_key[field]).lower())
+            db_query = orm.select(
+                r for r in record_type if query in getattr(r, field_key[field]).lower()
+            )
 
         # Sort the results
         if sort:
@@ -170,13 +185,15 @@ class Database(orm.Database):
                     orm.desc(getattr(record_type, sort_key[sort]))
                 )
             else:
-                db_query = db_query.order_by(
-                    getattr(record_type, sort_key[sort])
-                )
+                db_query = db_query.order_by(getattr(record_type, sort_key[sort]))
 
         if paginated:
-            return db_query.page(self.contacts_page if record_type == Contact else
-                                 (self.organizations_page if record_type == Organization else 1), 10)
+            return db_query.page(
+                self.contacts_page
+                if record_type == Contact
+                else (self.organizations_page if record_type == Organization else 1),
+                10,
+            )
         else:
             return db_query
 
@@ -299,7 +316,9 @@ class Database(orm.Database):
         return True
 
     @orm.db_session
-    def add_contact_to_org(self, contact: "Contact | int", org: "Organization | int") -> bool:
+    def add_contact_to_org(
+        self, contact: "Contact | int", org: "Organization | int"
+    ) -> bool:
         if isinstance(org, int):
             org = Organization.get(id=org)
 
@@ -315,7 +334,9 @@ class Database(orm.Database):
         return True
 
     @orm.db_session
-    def remove_contact_from_org(self, contact: "Contact | int", org: "Organization | int") -> bool:
+    def remove_contact_from_org(
+        self, contact: "Contact | int", org: "Organization | int"
+    ) -> bool:
         if isinstance(org, int):
             org = Organization.get(id=org)
 
@@ -331,7 +352,9 @@ class Database(orm.Database):
         return True
 
     @orm.db_session
-    def change_contact_title(self, org: "Organization | int", contact: "Contact | int", title: str) -> bool:
+    def change_contact_title(
+        self, org: "Organization | int", contact: "Contact | int", title: str
+    ) -> bool:
         if isinstance(org, int):
             org = Organization.get(id=org)
 
@@ -383,8 +406,12 @@ class Database(orm.Database):
         return True
 
     @orm.db_session
-    def link_resource(self, resource: "Resource | int", org: "Organization | int" = None,
-                      contact: "Contact | int" = None) -> bool:
+    def link_resource(
+        self,
+        resource: "Resource | int",
+        org: "Organization | int" = None,
+        contact: "Contact | int" = None,
+    ) -> bool:
         if isinstance(resource, int):
             resource = Resource.get(id=resource)
 
@@ -408,8 +435,12 @@ class Database(orm.Database):
         return True
 
     @orm.db_session
-    def unlink_resource(self, resource: "Resource | int", org: "Organization | int" = None,
-                        contact: "Contact | int" = None) -> bool:
+    def unlink_resource(
+        self,
+        resource: "Resource | int",
+        org: "Organization | int" = None,
+        contact: "Contact | int" = None,
+    ) -> bool:
         if isinstance(resource, int):
             resource = Resource.get(id=resource)
 
@@ -433,8 +464,13 @@ class Database(orm.Database):
         return True
 
     @orm.db_session
-    def create_custom_field(self, name: str, value: str, contact: "Contact | int" = None,
-                            org: "Organization | int" = None) -> bool:
+    def create_custom_field(
+        self,
+        name: str,
+        value: str,
+        contact: "Contact | int" = None,
+        org: "Organization | int" = None,
+    ) -> bool:
         if isinstance(contact, int):
             contact = Contact.get(id=contact)
 
@@ -459,8 +495,13 @@ class Database(orm.Database):
         return True
 
     @orm.db_session
-    def update_custom_field(self, name: str, value: str, contact: "Contact | int" = None,
-                            org: "Organization | int" = None) -> bool:
+    def update_custom_field(
+        self,
+        name: str,
+        value: str,
+        contact: "Contact | int" = None,
+        org: "Organization | int" = None,
+    ) -> bool:
         if isinstance(contact, int):
             contact = Contact.get(id=contact)
 
@@ -481,7 +522,12 @@ class Database(orm.Database):
         return True
 
     @orm.db_session
-    def delete_custom_field(self, name: str, contact: "Contact | int" = None, org: "Organization | int" = None) -> bool:
+    def delete_custom_field(
+        self,
+        name: str,
+        contact: "Contact | int" = None,
+        org: "Organization | int" = None,
+    ) -> bool:
         if isinstance(contact, int):
             contact = Contact.get(id=contact)
 
@@ -502,8 +548,13 @@ class Database(orm.Database):
         return True
 
     @orm.db_session
-    def create_contact_info(self, name: str, value: str, contact: "Contact | int" = None,
-                            org: "Organization | int" = None) -> bool:
+    def create_contact_info(
+        self,
+        name: str,
+        value: str,
+        contact: "Contact | int" = None,
+        org: "Organization | int" = None,
+    ) -> bool:
         if isinstance(contact, int):
             contact = Contact.get(id=contact)
 
@@ -528,8 +579,13 @@ class Database(orm.Database):
         return True
 
     @orm.db_session
-    def update_contact_info(self, name: str, value: str, contact: "Contact | int" = None,
-                            org: "Organization | int" = None) -> bool:
+    def update_contact_info(
+        self,
+        name: str,
+        value: str,
+        contact: "Contact | int" = None,
+        org: "Organization | int" = None,
+    ) -> bool:
         if isinstance(contact, int):
             contact = Contact.get(id=contact)
 
@@ -550,8 +606,13 @@ class Database(orm.Database):
         return True
 
     @orm.db_session
-    def delete_contact_info(self, name: str, value=None, contact: "Contact | int" = None,
-                            org: "Organization | int" = None) -> bool:
+    def delete_contact_info(
+        self,
+        name: str,
+        value=None,
+        contact: "Contact | int" = None,
+        org: "Organization | int" = None,
+    ) -> bool:
         if isinstance(contact, int):
             contact = Contact.get(id=contact)
 
@@ -567,10 +628,7 @@ class Database(orm.Database):
             "email": "emails",
         }
 
-        org_diff_values = {
-            "phone": "phones",
-            "address": "addresses"
-        }
+        org_diff_values = {"phone": "phones", "address": "addresses"}
 
         if contact:
             if name.lower() == "availability":
@@ -591,14 +649,14 @@ class Database(orm.Database):
         return True
 
     def construct_database(
-            self,
-            provider: str,
-            absolute_path: str,
-            database_name: str | None = None,
-            server_address: str | None = None,
-            server_port: int | None = None,
-            username: str | None = None,
-            password: str | None = None,
+        self,
+        provider: str,
+        absolute_path: str,
+        database_name: str | None = None,
+        server_address: str | None = None,
+        server_port: int | None = None,
+        username: str | None = None,
+        password: str | None = None,
     ) -> "Database":
         # Perform a different operation based on what type of database is being used
         self.password = password
@@ -607,10 +665,9 @@ class Database(orm.Database):
                 # If the provider is SQLite, we have to check if the user is storing it in an FTP server.
                 # If they are, we have to take download it and temporarily store it on our machine.
                 if server_address:
-
                     ftp = FTP(server_address)
                     ftp.login(username, password)
-                    ftp.cwd(absolute_path[:absolute_path.rfind("/")])
+                    ftp.cwd(absolute_path[: absolute_path.rfind("/")])
                     ftp.retrbinary(
                         "RETR " + absolute_path, open("../data/temp/db.db", "wb").write
                     )
@@ -652,11 +709,21 @@ class Database(orm.Database):
         self.disconnect()
         self.status = DBStatus.DISCONNECTED
 
-        if app.settings.database_system == "sqlite" and app.settings.database_location == "remote":
+        if (
+            app.settings.database_system == "sqlite"
+            and app.settings.database_location == "remote"
+        ):
             ftp = FTP(app.settings.database_address)
             ftp.login(app.settings.database_username, self.password)
-            ftp.cwd(app.settings.absolute_database_path[:app.settings.absolute_database_path.rfind("/")] + "/")
-            ftp.storbinary("STOR " + app.settings.absolute_database_path, open("temp/db.db", "rb"))
+            ftp.cwd(
+                app.settings.absolute_database_path[
+                    : app.settings.absolute_database_path.rfind("/")
+                ]
+                + "/"
+            )
+            ftp.storbinary(
+                "STOR " + app.settings.absolute_database_path, open("temp/db.db", "rb")
+            )
             ftp.quit()
 
         return True
@@ -814,13 +881,14 @@ class Resource(db.Entity):
 
 #     return table_values
 
+
 @orm.db_session
 def get_table_values(
-        app: "App",
-        record: "Organization | Contact",
-        amount: int | None = None,
-        search_info: dict[str, Any] | None = None,
-        descending: bool = False,
+    app: "App",
+    record: "Organization | Contact",
+    amount: int | None = None,
+    search_info: dict[str, Any] | None = None,
+    descending: bool = False,
 ) -> list:
     """
     Get the necessary information from the database to populate the search table's info.
@@ -831,17 +899,11 @@ def get_table_values(
         search_info = {}
 
     record_pages = app.db.get_records(
-        record,
-        **search_info,
-        paginated=False,
-        descending=descending
+        record, **search_info, paginated=False, descending=descending
     )
 
     if not record_pages:
-        record_pages = app.db.get_records(
-            record,
-            paginated=False
-        )
+        record_pages = app.db.get_records(record, paginated=False)
 
     for rec in record_pages:
         if record == Organization:

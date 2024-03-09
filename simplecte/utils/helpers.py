@@ -1,6 +1,3 @@
-import os
-
-
 def format_phone(phone_number: int) -> str:
     """
     Convert a ten-digit or eleven-digit phone number, such as
@@ -26,10 +23,12 @@ def strip_phone(phone_number: str) -> int:
     +1 (123) 456-7890, into a ten-digit or eleven-digit phone number,
     such as 1234567890 or 11234567890.
     """
-    phone_number = phone_number.replace("(", "") \
-        .replace(")", "") \
-        .replace("-", "") \
-        .replace(" ", "") \
+    phone_number = (
+        phone_number.replace("(", "")
+        .replace(")", "")
+        .replace("-", "")
+        .replace(" ", "")
         .replace("+", "")
+    )
 
     return int(phone_number)

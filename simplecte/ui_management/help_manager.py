@@ -5,9 +5,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from process.app import App
 
-__all__ = (
-    "help_manager",
-)
+__all__ = ("help_manager",)
 
 
 def help_manager(app: "App", key: str):
