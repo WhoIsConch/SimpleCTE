@@ -703,28 +703,13 @@ class Database(orm.Database):
         return self
 
     def close_database(self, app: "App") -> bool:
+        """
+        Close the database connection. This does not do much at the moment,
+        but it may be useful in the future for implementing other databases types.
+        """
+
         if self.status != DBStatus.CONNECTED:
             return False
-
-        self.disconnect()
-        self.status = DBStatus.DISCONNECTED
-
-        if (
-            app.settings.database_system == "sqlite"
-            and app.settings.database_location == "remote"
-        ):
-            ftp = FTP(app.settings.database_address)
-            ftp.login(app.settings.database_username, self.password)
-            ftp.cwd(
-                app.settings.absolute_database_path[
-                    : app.settings.absolute_database_path.rfind("/")
-                ]
-                + "/"
-            )
-            ftp.storbinary(
-                "STOR " + app.settings.absolute_database_path, open("temp/db.db", "rb")
-            )
-            ftp.quit()
 
         return True
 

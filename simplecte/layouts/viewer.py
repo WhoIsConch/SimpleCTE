@@ -31,7 +31,7 @@ def get_viewer_head(contact: bool = False) -> list:
                             k="-DELETE-" if not contact else "-DELETE_CONTACT-",
                         ),
                         sg.Button(
-                            "Exit", k="-EXIT-" if not contact else "-EXIT_CONTACT-"
+                            "Back", k="-EXIT-" if not contact else "-EXIT_CONTACT-"
                         ),
                     ]
                 ],
@@ -43,7 +43,7 @@ def get_viewer_head(contact: bool = False) -> list:
                 layout=[
                     [
                         sg.Button(
-                            "Return",
+                            "Back",
                             k="-EXIT_1-" if not contact else "-EXIT_1_CONTACT-",
                             expand_y=True,
                             expand_x=True,
@@ -514,14 +514,14 @@ def get_resource_view_layout():
                             layout=[
                                 [
                                     sg.Button("Delete", k="-DELETE_RESOURCE-"),
-                                    sg.Button("Exit", k="-EXIT_RESOURCE-"),
+                                    sg.Button("Back", k="-EXIT_RESOURCE-"),
                                 ]
                             ],
                         ),
                     ],
                     [
                         sg.Button(
-                            "Exit", k="-EXIT_1_RESOURCE-", expand_y=True, expand_x=True
+                            "Back", k="-EXIT_1_RESOURCE-", expand_y=True, expand_x=True
                         ),
                         sg.Column(
                             element_justification="center",

@@ -13,7 +13,7 @@ from ui_management import (
     add_record_handler,
     help_manager,
 )
-from layouts import get_field_keys, get_sort_keys
+from layouts import get_field_keys, get_sort_keys, get_first_time_layout
 from database import get_table_values, Contact, Organization
 from process.events import handle_other_events
 
@@ -116,7 +116,18 @@ def main_loop(app: "App"):
         event, values = app.window.read()
         app.status = AppStatus.BUSY
 
-        print(event, values, "\n")
+        if app.settings.first_time:
+            app.settings.first_time = False
+            popup = sg.Window(
+                "Welcome to SimpleCTE",
+                get_first_time_layout(),
+                icon="simplecte.ico",
+                finalize=True,
+                margins=(10, 10),
+                modal=True,
+            )
+            popup.read()
+            popup.close()
 
         if isinstance(event, tuple) and event[2][0] is not None:
 

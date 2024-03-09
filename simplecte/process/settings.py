@@ -10,18 +10,13 @@ class Settings:
         "theme": "dark",
         "database": {
             "system": "sqlite",
-            "location": "local",
             "path": "data/db.db",
-            "name": "",
-            "address": "",
-            "port": "",
-            "username": "",
-            "password": "",
         },
     }
 
     def __init__(self, settings_path: str):
         self.settings_path = settings_path
+        self.first_time = False
 
         self.settings = self.load_settings()
 
@@ -48,6 +43,7 @@ class Settings:
             os.makedirs(os.path.dirname(self.settings_path), exist_ok=True)
 
             settings = self.save_settings(self.template)
+            self.first_time = True
 
         return settings
 
@@ -118,13 +114,6 @@ class Settings:
         """
         return self.settings["database"]["location"]
 
-    @database_location.setter
-    def database_location(self, database_location: str) -> None:
-        """
-        Set the current database location.
-        """
-        self.settings["database"]["location"] = database_location
-
     @property
     def database_path(self) -> str:
         """
@@ -145,115 +134,3 @@ class Settings:
         Get the current absolute database path.
         """
         return os.path.abspath(self.database_path)
-
-    @property
-    def database_address(self) -> str:
-        """
-        Get the current database address.
-        """
-        return self.settings["database"]["address"]
-
-    @database_address.setter
-    def database_address(self, database_address: str) -> None:
-        """
-        Set the current database address.
-        """
-        self.settings["database"]["address"] = database_address
-
-    @property
-    def database_port(self) -> str:
-        """
-        Get the current database port.
-        """
-        return self.settings["database"]["port"]
-
-    @database_port.setter
-    def database_port(self, database_port: str) -> None:
-        """
-        Set the current database port.
-        """
-        self.settings["database"]["port"] = database_port
-
-    @property
-    def database_username(self) -> str:
-        """
-        Get the current database username.
-        """
-        return self.settings["database"]["username"]
-
-    @database_username.setter
-    def database_username(self, database_username: str) -> None:
-        """
-        Set the current database username.
-        """
-        self.settings["database"]["username"] = database_username
-
-    @property
-    def database_password(self) -> str:
-        """
-        Get the current database password.
-        """
-        return self.settings["database"]["password"]
-
-    @database_password.setter
-    def database_password(self, database_password: str) -> None:
-        """
-        Set the current database password.
-        """
-        self.settings["database"]["password"] = database_password
-
-    @property
-    def database_name(self) -> str:
-        """
-        Get the current database name.
-        """
-        return self.settings["database"]["name"]
-
-    @database_name.setter
-    def database_name(self, database_name: str) -> None:
-        """
-        Set the current database name.
-        """
-        self.settings["database"]["name"] = database_name
-
-    @property
-    def database_url(self) -> str:
-        """
-        Get the current database URL.
-        """
-        return self.settings["database"]["url"]
-
-    @database_url.setter
-    def database_url(self, database_url: str) -> None:
-        """
-        Set the current database URL.
-        """
-        self.settings["database"]["url"] = database_url
-
-    @property
-    def database_save_password(self) -> bool:
-        """
-        Get the current database save password setting.
-        """
-        return self.settings["database"]["save_password"]
-
-    @database_save_password.setter
-    def database_save_password(self, database_save_password: bool) -> None:
-        """
-        Set the current database save password setting.
-        """
-        self.settings["database"]["save_password"] = database_save_password
-
-    @property
-    def password(self) -> str:
-        """
-        Get the current password.
-        """
-        return self.settings["database"]["password"]
-
-    @password.setter
-    def password(self, password: str) -> None:
-        """
-        Set the current password.
-        """
-        self.settings["password"] = password

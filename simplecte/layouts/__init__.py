@@ -7,3 +7,4 @@ from .settings import *
 from .backup import *
 from .export import *
 from .help import *
+from .first_time import *
