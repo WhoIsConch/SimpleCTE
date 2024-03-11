@@ -9,8 +9,7 @@ Written for entry into the FBLA 2023/2024 Coding and Programming event.
 
 ## Installation
 
-Simply download and run the executable file, found in the [releases](https://github.com/WhoIsConch/SimpleCTE/releases). 
-SimpleCTE requires no further installation.
+SimpleCTE requires Python 3.10 or higher and Python's `virtualenv` package to be installed. Once these requirements are met, SimpleCTE can be run using its `run.ps1` file found in the top-level directory of this repository. This script will create a new virtual environment, install all necessary dependencies, then run the program.
 
 SimpleCTE has not been tested to run on any operating system other than Windows 10 and 11.
 
