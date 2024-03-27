@@ -32,17 +32,7 @@ def update_settings_window(window: sg.Window, app: "App"):
         window["-SET_SQLITE_TAB-"].update(disabled=True)
         window["-SET_DB_SYSTEM-"].update(value="PostgreSQL")
 
-    if app.settings.database_location == "local":
-        window["-SET_DB_PATH-"].update(value=app.settings.database_path)
-
-    else:
-        window["-SET_DB_URL-"].update(value=app.settings.database_address)
-
-    window["-SET_POSTGRESQL_DB_NAME-"].update(value=app.settings.database_name)
-    window["-SET_POSTGRESQL_ADDRESS-"].update(value=app.settings.database_address)
-    window["-SET_POSTGRESQL_PORT-"].update(value=app.settings.database_port)
-    window["-SET_POSTGRESQL_USERNAME-"].update(value=app.settings.database_username)
-    window["-SET_POSTGRESQL_PASSWORD-"].update(value=app.settings.password)
+    window["-SET_DB_PATH-"].update(value=app.settings.database_path)
 
 
 def settings_handler(app: "App"):
