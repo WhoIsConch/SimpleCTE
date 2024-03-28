@@ -129,6 +129,7 @@ def main_loop(app: "App"):
             popup.read()
             popup.close()
 
+        # Handle double-click events
         if isinstance(event, tuple) and event[2][0] is not None:
 
             def doubleclick_check() -> bool:
@@ -190,7 +191,7 @@ def main_loop(app: "App"):
             break
 
         # Handle any events that may have to do with updating data
-        if handle_other_events(app, event, values):
+        if handle_other_events(app, event, values): # HERE
             continue
 
         elif event == "-SEARCHTYPE-":

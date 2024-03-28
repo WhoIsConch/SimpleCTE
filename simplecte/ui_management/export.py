@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING
 
 import PySimpleGUI as sg
 import pandas as pd
+from pony import orm
 
 from layouts import get_export_layout, available_export_formats
 
@@ -71,7 +72,7 @@ def update_info(info: dict, window: sg.Window, type: str):
     window[f"-EXPORT_SORT_TYPE_{type}-"].update(info["sort"])
     window[f"-EXPORT_SORT_DESCENDING_{type}-"].update(info["descending"])
 
-
+@orm.db_session
 def export_handler(
     app: "App",
     org_id: int | None = None,

@@ -112,7 +112,7 @@ class Settings:
         """
         Get the current database location.
         """
-        return self.settings["database"]["location"]
+        return "local"
 
     @property
     def database_path(self) -> str:

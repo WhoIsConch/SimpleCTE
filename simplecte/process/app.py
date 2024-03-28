@@ -46,6 +46,7 @@ class App:
         self.settings: Settings = Settings("data/settings.json")
         self.settings.load_settings()
         self.db = db
+        self.db.app = self
 
         self.logger.info("Constructing SQLite database...")
         self.db.construct_database("sqlite", self.settings.absolute_database_path)

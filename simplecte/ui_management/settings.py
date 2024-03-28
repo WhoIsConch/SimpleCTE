@@ -54,28 +54,10 @@ def settings_handler(app: "App"):
 
                 settings.database_system = values["-SET_DB_SYSTEM-"].lower()
 
-                if settings.database_system == "sqlite":
-                    if settings.database_location.lower() == "local":
-                        settings.database_path = values["-SET_DB_PATH-"]
+                settings.database_path = values["-SET_DB_PATH-"]
 
-                        if settings.database_path == "":
-                            settings.database_path = app.settings.database_path
-
-                    else:
-                        settings.database_address = values["-SET_DB_URL-"]
-
-                else:
-                    settings.database_name = values["-SET_POSTGRESQL_DB_NAME-"]
-                    settings.database_address = values["-SET_POSTGRESQL_ADDRESS-"]
-                    settings.database_port = values["-SET_POSTGRESQL_PORT-"]
-                    settings.database_username = values["-SET_POSTGRESQL_USERNAME-"]
-                    settings.database_system = "postgres"
-
-                    if values["-SET_POSTGRESQL_SAVE_PASSWORD-"]:
-                        settings.password = values["-SET_POSTGRESQL_PASSWORD-"]
-
-                    else:
-                        settings.password = ""
+                if settings.database_path == "":
+                    settings.database_path = app.settings.database_path
 
                 if settings == app.settings:
                     window.close()

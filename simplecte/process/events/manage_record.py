@@ -79,7 +79,7 @@ def _add_org(app: "App"):
     """
     user_input = sg.popup_get_text(
         "Enter the ID of the organization you would like to add.\n\nIf you don't know the ID, "
-        "you can find it by"
+        "you can find it by "
         'searching\nfor the organization, then alt-clicking on it and selecting "Copy ID".',
         title="Add Organization",
     )
