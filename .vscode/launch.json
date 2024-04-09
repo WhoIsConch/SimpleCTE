@@ -6,9 +6,9 @@
     "configurations": [
         {
             "name": "Python: Main",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
-            "program": "src/main.py",
+            "program": "simplecte/main.py",
             "console": "integratedTerminal",
             "justMyCode": true
         }

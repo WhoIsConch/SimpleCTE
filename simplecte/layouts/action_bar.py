@@ -4,7 +4,12 @@ from utils.enums import Screen
 __all__ = ("get_action_bar",)
 
 
-def get_action_bar(screen: Screen) -> list:
+def get_action_bar(screen: Screen) -> list[sg.Element]:
+    """
+    Get the action bar, the only UI element that stays persistent across screens.
+    The action bar holds useful functions that you may want to use at any point 
+    in the program.
+    """
     if screen == Screen.ORG_SEARCH or screen == Screen.CONTACT_SEARCH:
         return [
             [

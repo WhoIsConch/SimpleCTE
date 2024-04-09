@@ -1,5 +1,5 @@
-from typing import Any
 from utils.enums import Screen
+from typing import Generator, Any
 
 
 __all__ = ("Stack",)
@@ -13,7 +13,7 @@ class Stack:
     """
 
     def __init__(self):
-        self.stack = []
+        self.stack: list[tuple[Screen, Any]] = []
 
     def push(self, screen: "Screen", data: Any = None) -> None:
         self.stack.append((screen, data))
@@ -38,7 +38,7 @@ class Stack:
             if isinstance(data, int) and value and value.id == data:
                 self.stack.pop(i)
 
-    def generate_previews(self) -> list[str]:
+    def generate_previews(self) -> Generator[str, str, None]:
         """
         Generates a list of strings that will be used to preview what is in the stack.
         """

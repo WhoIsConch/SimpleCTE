@@ -208,14 +208,12 @@ class App:
                 get_table_values(
                     self,
                     Contact,
-                    amount=None,
                     search_info=search_info,
                     descending=descending,
                 ),
                 get_table_values(
                     self,
                     Organization,
-                    amount=None,
                     search_info=search_info,
                     descending=descending,
                 ),

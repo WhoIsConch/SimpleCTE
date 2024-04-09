@@ -14,7 +14,12 @@ _welcome_text = """• You can change the app's theme and open a different datab
 """
 
 
-def get_first_time_layout():
+def get_first_time_layout() -> list[list[sg.Element]]:
+    """
+    Return the layout that shows when it is a user's first time
+    opening the app. This layout welcomes the user and offers
+    tips on how to use the program.
+    """
     return [
         [
             sg.Column(
