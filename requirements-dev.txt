@@ -8,3 +8,4 @@ PySimpleGUI==4.60.5 # PySimpleGUI to power the GUI interface
 pyinstaller==6.1.0 # PyInstaller to create the executable [DEV]
 
 ruff==0.3.2 # Ruff to format and check our files for errors [DEV]
+pre-commit # To make sure ruff formats our files and checks for errors before committing [DEV]
