@@ -191,7 +191,7 @@ def main_loop(app: "App"):
             break
 
         # Handle any events that may have to do with updating data
-        if handle_other_events(app, event, values): # HERE
+        if handle_other_events(app, event, values):  # HERE
             continue
 
         elif event == "-SEARCHTYPE-":

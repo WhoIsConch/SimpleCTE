@@ -1,8 +1,6 @@
 import PySimpleGUI as sg
 
-__all__ = (
-    "get_first_time_layout",
-)
+__all__ = ("get_first_time_layout",)
 
 _welcome_text = """• You can change the app's theme and open a different database at any time in the `settings` menu.
 

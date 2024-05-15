@@ -72,6 +72,7 @@ def update_info(info: dict, window: sg.Window, type: str):
     window[f"-EXPORT_SORT_TYPE_{type}-"].update(info["sort"])
     window[f"-EXPORT_SORT_DESCENDING_{type}-"].update(info["descending"])
 
+
 @orm.db_session
 def export_handler(
     app: "App",

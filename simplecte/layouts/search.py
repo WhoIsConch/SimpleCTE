@@ -131,7 +131,14 @@ def get_search_layout(
             sg.Column(
                 expand_x=True,
                 pad=((0, 0), (0, 10)),
-                right_click_menu=["", ["Help::SEARCH_BAR", "Code BTS::CODE(simplecte/database/database.py,794)", "Code LYT::CODE(simplecte/layouts/search.py,131)"]],
+                right_click_menu=[
+                    "",
+                    [
+                        "Help::SEARCH_BAR",
+                        "Code BTS::CODE(simplecte/database/database.py,794)",
+                        "Code LYT::CODE(simplecte/layouts/search.py,131)",
+                    ],
+                ],
                 layout=[
                     [
                         sg.Button("Search", k="-SEARCH_BUTTON-"),
@@ -180,7 +187,10 @@ def get_search_layout(
                 element_justification="center",
                 key="-ORG_SCREEN-",
                 visible=screen == Screen.ORG_SEARCH,
-                right_click_menu=["", ["Help::SEARCH", "Code LYT::CODE(simplecte/layouts/search.py,176)"]],
+                right_click_menu=[
+                    "",
+                    ["Help::SEARCH", "Code LYT::CODE(simplecte/layouts/search.py,176)"],
+                ],
                 layout=[
                     [
                         sg.Text(
@@ -204,7 +214,14 @@ def get_search_layout(
                             font=("Arial", 15),
                             right_click_menu=[
                                 "&Right",
-                                ["View", "Copy ID", "Delete", "Help::SEARCH", "Code BTS::CODE(simplecte/process/app.py,197)", "Code LYT::CODE(simplecte/layouts/search.py,238)"],
+                                [
+                                    "View",
+                                    "Copy ID",
+                                    "Delete",
+                                    "Help::SEARCH",
+                                    "Code BTS::CODE(simplecte/process/app.py,197)",
+                                    "Code LYT::CODE(simplecte/layouts/search.py,238)",
+                                ],
                             ],
                             right_click_selects=True,
                             enable_click_events=True,
@@ -225,7 +242,10 @@ def get_search_layout(
                 element_justification="center",
                 key="-CONTACT_SCREEN-",
                 visible=screen == Screen.CONTACT_SEARCH,
-                right_click_menu=["", ["Help::SEARCH", "Code LYT::CODE(simplecte/layouts/search.py,221)"]],
+                right_click_menu=[
+                    "",
+                    ["Help::SEARCH", "Code LYT::CODE(simplecte/layouts/search.py,221)"],
+                ],
                 layout=[
                     [
                         sg.Text(
@@ -248,7 +268,14 @@ def get_search_layout(
                             font=("Arial", 15),
                             right_click_menu=[
                                 "&Right",
-                                ["View", "Copy ID", "Delete", "Help::SEARCH", "Code BTS::CODE(simplecte/process/app.py,197)", "Code LYT::CODE(simplecte/layouts/search.py,238)"],
+                                [
+                                    "View",
+                                    "Copy ID",
+                                    "Delete",
+                                    "Help::SEARCH",
+                                    "Code BTS::CODE(simplecte/process/app.py,197)",
+                                    "Code LYT::CODE(simplecte/layouts/search.py,238)",
+                                ],
                             ],
                             right_click_selects=True,
                             k="-CONTACT_TABLE-",

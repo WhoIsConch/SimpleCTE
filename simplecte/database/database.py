@@ -720,8 +720,9 @@ db = Database()
 class Organization(db.Entity):
     """
     An organization is a business or other professional non-human
-    entity that can be associated with the school or CTE department. 
+    entity that can be associated with the school or CTE department.
     """
+
     id = orm.PrimaryKey(int, auto=True)
     name = orm.Required(str)
     type = orm.Required(str)
@@ -751,6 +752,7 @@ class Contact(db.Entity):
     A contact is an individual person that can be associated
     with a business or resource.
     """
+
     id = orm.PrimaryKey(int, auto=True)
     first_name = orm.Required(str)
     last_name = orm.Required(str)
@@ -777,6 +779,7 @@ class Resource(db.Entity):
     A resource can act as an "agreement" of sorts between organizations and/or contacts.
     This can also be used simply to relate data between organizations and contacts.
     """
+
     id = orm.PrimaryKey(int, auto=True)
     name = orm.Required(str)
     value = orm.Required(str)
