@@ -1,10 +1,9 @@
 import PySimpleGUI as sg
 
-__all__ = ("EVENT_MAP",)
+__all__ = ("handle_debug",)
 
-def display_code(app):
-    sg.execute_editor("simplecte/process/events/debug.py")
+def handle_debug(event: str):
+    # Parse out the "function call"
+    path, line = event.split("(")[1].strip(")").split(",")
 
-EVENT_MAP = {
-    "View Code": display_code
-}
+    sg.execute_editor(path, line)

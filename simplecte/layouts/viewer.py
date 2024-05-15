@@ -18,7 +18,7 @@ def get_viewer_head(contact: bool = False) -> list:
                 layout=get_action_bar(Screen.ORG_VIEW),
                 background_color=sg.theme_progress_bar_color()[1],
                 element_justification="left",
-                right_click_menu=["", ["Help::ACTION_BAR"]],
+                right_click_menu=["", ["Help::ACTION_BAR", "View Code"]],
             ),
             sg.Push(),
             sg.Column(
