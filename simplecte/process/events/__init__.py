@@ -1,6 +1,8 @@
 from .manage_record import EVENT_MAP as RECORD_MAP, _delete_record
 from .edit_info import EVENT_MAP as EDIT_INFO_MAP
+from .debug import EVENT_MAP as DEBUG_MAP
 from typing import TYPE_CHECKING
+from inspect import signature
 
 if TYPE_CHECKING:
     from process.app import App
@@ -10,23 +12,21 @@ def handle_other_events(app: "App", event: str, data: dict) -> bool:
     """
     Updates some part of the system, whether it be a record, a screen, or something else.
     """
-    for func_map in (RECORD_MAP, EDIT_INFO_MAP):
+    for func_map in [EDIT_INFO_MAP, RECORD_MAP, DEBUG_MAP]:
         method = func_map.get(event, None)
 
+        # _delete_record() gets special treatment
         if method is None:
             if event.lower().strip("-").startswith("delete"):
                 method = _delete_record
             else:
                 continue
 
-        # Check if the method requires one argument, App, or both App and Data
-        try:
-            method(app)
-        except TypeError:
-            try:
-                method(app, data)
-            except TypeError:
-                method(app, data, event)
+        # Find out how many parameters the callback takes and call it based on that
+        num_params = len(signature(method).parameters)
+        params = [app, data, event]
+
+        method(*params[0:num_params])
 
         return True
 
