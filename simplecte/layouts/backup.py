@@ -13,6 +13,13 @@ def get_backup_layout():
                 "directory. To restore a backup, you can simply copy the file and paste it where\n"
                 "the old file was, or open the database directly via settings.",
                 auto_size_text=True,
+                right_click_menu=[
+                    "",
+                    [
+                        "Code LYT::CODE(simplecte/layouts/backup.py,6)",
+                        "Code BTS::CODE(simplecte/ui_management/backup.py,15)",
+                    ],
+                ],
             ),
         ],
         [sg.HorizontalSeparator()],

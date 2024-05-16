@@ -10,7 +10,12 @@ class Settings:
         "theme": "dark",
         "database": {
             "system": "sqlite",
-            "path": "data/db.db",
+            "path": str(os.path.abspath("simplecte/data/db.db")),
+        },
+        "backup": {
+            "interval": 86400,  # Seconds between backups
+            "path": str(os.path.abspath("simplecte/data/backups/")),
+            "name": "{dbName}_{date}",
         },
     }
 

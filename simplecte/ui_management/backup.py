@@ -1,6 +1,7 @@
 from layouts import get_backup_layout
 import shutil
 import os
+from process.events.debug import handle_debug
 
 import PySimpleGUI as sg
 from typing import TYPE_CHECKING
@@ -16,6 +17,9 @@ def backup_handler(app: "App"):
 
     while True:
         event, values = window.read()
+
+        if event.find("CODE") != -1:
+            handle_debug(event)
 
         match event:
             case sg.WIN_CLOSED | "-BACKUP_CANCEL-":

@@ -94,7 +94,13 @@ def get_search_layout(
                             element_justification="left",
                             background_color=sg.theme_progress_bar_color()[1],
                             layout=get_action_bar(screen),
-                            right_click_menu=["", ["Help::ACTION_BAR"]],
+                            right_click_menu=[
+                                "",
+                                [
+                                    "Help::ACTION_BAR",
+                                    "Code LYT::CODE(simplecte/layouts/action_bar.py,7)",
+                                ],
+                            ],
                         ),
                         sg.Push(background_color=sg.theme_progress_bar_color()[1]),
                         sg.Column(

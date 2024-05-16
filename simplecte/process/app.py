@@ -43,7 +43,7 @@ class App:
         self.last_clicked_table_time = None
         self.last_selected_id: int | None = None
         self.logger.info("Loading database settings...")
-        self.settings: Settings = Settings("data/settings.json")
+        self.settings: Settings = Settings("simplecte/data/settings.json")
         self.settings.load_settings()
         self.db = db
         self.db.app = self
