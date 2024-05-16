@@ -139,6 +139,18 @@ def get_database_layout():
     return layout
 
 
+def get_backup_layout():
+    return [
+        [
+            sg.Checkbox("Perform Automated Backups")
+        ],
+        [
+            sg.Text("Backup Interval:"),
+            sg.DropDown(["Hourly", "Daily", "Weekly", "Monthly"])
+        ]
+    ]
+
+
 def get_settings_layout():
     layout = [
         [
@@ -146,6 +158,7 @@ def get_settings_layout():
                 [
                     [sg.Tab("General", get_general_layout())],
                     [sg.Tab("Database", get_database_layout())],
+                    [sg.Tab("Backup", get_backup_layout())]
                 ]
             )
         ],
