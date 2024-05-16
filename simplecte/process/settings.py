@@ -16,6 +16,8 @@ class Settings:
             "interval": 86400,  # Seconds between backups
             "path": str(os.path.abspath("simplecte/data/backups/")),
             "name": "{dbName}_{date}",
+            "date": "%m-%d-%Y",
+            "last_backup": None,
         },
     }
 
@@ -40,15 +42,19 @@ class Settings:
         Load the settings from the settings file.
         """
         if os.path.exists(self.settings_path):
-            with open(self.settings_path, "r") as settings_file:
-                settings = json.load(settings_file)
+            try:
+                with open(self.settings_path, "r") as settings_file:
+                    settings = json.load(settings_file)
 
-        else:
-            # Create the directory relative to the top-level of this project
-            os.makedirs(os.path.dirname(self.settings_path), exist_ok=True)
+                return settings
+            except:
+                pass
 
-            settings = self.save_settings(self.template)
-            self.first_time = True
+        # Create the directory relative to the top-level of this project
+        os.makedirs(os.path.dirname(self.settings_path), exist_ok=True)
+
+        settings = self.save_settings(self.template)
+        self.first_time = True
 
         return settings
 
