@@ -29,7 +29,7 @@ class Settings:
             backup_path=settings["backup"]["path"],
             name_format=settings["backup"]["name"],
             date_format=settings["backup"]["date"],
-            last_backup=settings["backup"]["last_backup"],
+            last_backup=settings["backup"]["lastBackup"],
             backup_interval=settings["backup"]["interval"],
         )
 

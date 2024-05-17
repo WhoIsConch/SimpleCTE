@@ -28,3 +28,11 @@ class AppStatus(Enum):
     READY = 1
     BUSY = 2
     ERROR = 3
+
+
+class BackupInterval(Enum):
+    HOURLY = 3600
+    DAILY = HOURLY * 24
+    WEEKLY = DAILY * 7
+    MONTHLY = WEEKLY * 4
+    CUSTOM = 0

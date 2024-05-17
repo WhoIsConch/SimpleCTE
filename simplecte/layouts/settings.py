@@ -14,7 +14,7 @@ def gen_saved_db_layout(db_path: str, is_current: bool = False):
         layout=[
             [
                 sg.Text("Path: "),
-                sg.Input(db_path, size=(None, 20)),
+                sg.Input(db_path, size=(None, 20), key=f"-SAVED_DB::{db_path}"),
             ],
             [
                 sg.Button("Open", key=f"-LOAD_SAVED_DB::{db_path}-"),
@@ -31,6 +31,7 @@ def get_general_layout():
             sg.Combo(
                 sg.theme_list(),
                 default_value=sg.theme(),
+                readonly=True,
                 key="-SET_THEME-",
                 tooltip=" Change the app's theme! ",
             ),
@@ -48,7 +49,7 @@ def get_sqlite_layout():
         [
             sg.Text("Saved Databases", font=10),
             sg.Push(),
-            sg.Button("Save current database"),
+            sg.Button("Save current database", key="-SAVE_DATABASE-"),
         ],
         [
             gen_saved_db_layout("D:\\SimpleCTE\\simplecte\\data\\db.db", True),
@@ -70,8 +71,12 @@ def get_backup_layout():
                 readonly=True,
                 key="-BACKUP_INTERVAL-",
             ),
-            sg.Text("Custom Value (ex. 1d2h3m4s)", visible=False),
-            sg.Input(key="-BACKUP_INTERVAL_CUSTOM-", visible=False),
+            sg.Input(
+                key="-BACKUP_INTERVAL_CUSTOM-",
+                visible=False,
+                default_text="1d2h3m4s",
+                tooltip="Use d, h, m to mark the number before it as a day, hour, or minute. Unmarked numbers are seconds.",
+            ),
         ],
         [
             sg.Text("Backup Path:"),
@@ -86,12 +91,12 @@ def get_backup_layout():
             sg.Button(button_text=" ? ", key="-BACKUP_NAME_HELP-"),
             sg.Text("Backup Name Format"),
             # sg.Text("This is the format you want the file names of your backups. Use {dbName} for the database's name and {date} for your set date format.", size=(10, 10)),
-            sg.Input(default_text="{dbName}_{date}"),
+            sg.Input(default_text="{dbName}_{date}", key="-BACKUP_NAME-"),
         ],
         [
             sg.Button(button_text=" ? ", key="-BACKUP_NAME_HELP-"),
             sg.Text("Name Date Format"),
-            sg.Input(default_text="%M-%D-%Y"),
+            sg.Input(default_text="%M-%D-%Y", key="-BACKUP_DATE-"),
         ],
     ]
 

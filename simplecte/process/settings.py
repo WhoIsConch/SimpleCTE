@@ -1,5 +1,6 @@
 import json
 import os
+from utils.enums import BackupInterval
 
 
 __all__ = ("Settings",)
@@ -9,7 +10,6 @@ class Settings:
     template = {
         "theme": "dark",
         "database": {
-            "system": "sqlite",
             "path": str(os.path.abspath("simplecte/data/db.db")),
             "saved_dbs": [str(os.path.abspath("simplecte/data/db.db"))],
         },
@@ -18,7 +18,7 @@ class Settings:
             "path": str(os.path.abspath("simplecte/data/backups/")),
             "name": "{dbName}_{date}",
             "date": "%m-%d-%Y",
-            "last_backup": None,
+            "lastBackup": None,
         },
     }
 
@@ -91,54 +91,17 @@ class Settings:
         """
         return Settings(self.settings_path)
 
-    @property
-    def theme(self) -> str:
-        """
-        Get the current theme.
-        """
-        return self.settings["theme"]
+    def __getattr__(self, name: str) -> str | int | None:
+        parts = name.split("_")
 
-    @theme.setter
-    def theme(self, theme: str) -> None:
-        """
-        Set the current theme.
-        """
-        self.settings["theme"] = theme
+        try:
+            if len(parts) == 1:
+                return self.settings[name]
 
-    @property
-    def database_system(self) -> str:
-        """
-        Get the current database system.
-        """
-        return self.settings["database"]["system"].lower()
-
-    @database_system.setter
-    def database_system(self, database_system: str) -> None:
-        """
-        Set the current database system.
-        """
-        self.settings["database"]["system"] = database_system
-
-    @property
-    def database_location(self) -> str:
-        """
-        Get the current database location.
-        """
-        return "local"
-
-    @property
-    def database_path(self) -> str:
-        """
-        Get the current database path.
-        """
-        return self.settings["database"]["path"]
-
-    @database_path.setter
-    def database_path(self, database_path: str) -> None:
-        """
-        Set the current database path.
-        """
-        self.settings["database"]["path"] = database_path
+            else:
+                return self.settings[parts[0]][parts[1]]
+        except IndexError:
+            return None
 
     @property
     def absolute_database_path(self) -> str:
@@ -146,3 +109,16 @@ class Settings:
         Get the current absolute database path.
         """
         return os.path.abspath(self.database_path)
+
+    @property
+    def backup_interval(self):
+        try:
+            return BackupInterval(self.backup_interval_).name.capitalize()
+        except ValueError:
+            return self.backup_interval_
+
+    @backup_interval.setter
+    def set_backup_interval(self, value: BackupInterval | int):
+        self.backup_interval_ = (
+            value.value if isinstance(BackupInterval, value) else value
+        )
