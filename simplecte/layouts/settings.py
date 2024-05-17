@@ -3,6 +3,27 @@ import PySimpleGUI as sg
 __all__ = ("get_settings_layout",)
 
 
+def gen_saved_db_layout(db_path: str, is_current: bool = False):
+    db_title = " " + db_path.split("\\")[-1][0:-3] + " "
+
+    if is_current:
+        db_title += "(current) "
+
+    return sg.Frame(
+        title=db_title,
+        layout=[
+            [
+                sg.Text("Path: "),
+                sg.Input(db_path, size = (None, 20)),
+            ],
+            [
+                sg.Button("Open", key=f"-LOAD_SAVED_DB::{db_path}-"),
+                sg.Button("Delete", key=f"-DELETE_SAVED_DB::{db_path}-"),
+            ]
+        ]
+    )
+
+
 def get_general_layout():
     return [
         [
@@ -20,120 +41,19 @@ def get_general_layout():
 def get_sqlite_layout():
     layout = [
         [
-            sg.Text(
-                "SQLite Location Type:",
-                tooltip=" Whether to store the database locally or remotely. ",
-            ),
-            sg.Combo(
-                ["Local", "Remote"],
-                key="-SET_SQLITE_LOCATION_TYPE-",
-                enable_events=True,
-                tooltip=" Whether to store the database locally or remotely. ",
-            ),
-        ],
-        [
             sg.Text("Database Path:", tooltip=" The path to the file. "),
             sg.InputText(key="-SET_DB_PATH-", tooltip=" The path to the file. "),
             sg.FileBrowse(tooltip=" Select the path to the file. "),
-        ],  # Disabled if remote
-        [
-            sg.Text(
-                "Database URL: ", tooltip=" The URL to the database server, if remote. "
-            ),
-            sg.Input(
-                key="-SET_DB_URL-",
-                tooltip=" The URL to the database server, if remote. ",
-            ),
-        ],  # Disabled if local
-    ]
-
-    return layout
-
-
-def get_postgresql_layout():
-    layout = [
-        [
-            sg.Text("Database Name: "),
-            sg.Input(
-                key="-SET_POSTGRESQL_DB_NAME-", tooltip=" The name of the database. "
-            ),
         ],
         [
-            sg.Text("Address: "),
-            sg.Input(
-                key="-SET_POSTGRESQL_ADDRESS-",
-                tooltip=" The address of the database server. ",
-            ),
+            sg.Text("Saved Databases", font=10),
+            sg.Push(),
+            sg.Button("Save current database")
         ],
         [
-            sg.Text("Port: "),
-            sg.Input(
-                key="-SET_POSTGRESQL_PORT-",
-                tooltip=" The port of the database server. ",
-            ),
-        ],
-        [
-            sg.Text("Username: "),
-            sg.Input(
-                key="-SET_POSTGRESQL_USERNAME-",
-                tooltip=" The username to connect with. ",
-            ),
-        ],
-        [
-            sg.Text("Password: "),
-            sg.Input(
-                key="-SET_POSTGRESQL_PASSWORD-",
-                password_char="*",
-                tooltip=" The password to connect with. ",
-            ),
-        ],
-        [
-            sg.Checkbox(
-                "Show Password",
-                key="-SET_POSTGRESQL_SHOW_PASSWORD-",
-                enable_events=True,
-                tooltip=" Show the password in plain text. ",
-            ),
-            sg.Checkbox(
-                "Save Password",
-                key="-SET_POSTGRESQL_SAVE_PASSWORD-",
-                tooltip=" Save the password to the settings file. ",
-            ),
-        ],
-    ]
-
-    return layout
-
-
-def get_database_layout():
-    layout = [
-        # Always enabled
-        [
-            sg.Text("Current Database System:"),
-            sg.Combo(
-                ["PostgreSQL", "SQLite"],
-                key="-SET_DB_SYSTEM-",
-                enable_events=True,
-                tooltip=" This feature is not yet implemented. ",
-                disabled=True,
-            ),
-        ],
-        [sg.HorizontalSeparator()],
-        # Disabled if SQLite is not selected
-        [
-            sg.TabGroup(
-                [
-                    [sg.Tab("SQLite", get_sqlite_layout(), key="-SET_SQLITE_TAB-")],
-                    [
-                        sg.Tab(
-                            "PostgreSQL",
-                            get_postgresql_layout(),
-                            key="-SET_POSTGRESQL_TAB-",
-                        )
-                    ],
-                ]
-            )
-        ],
+            gen_saved_db_layout("D:\\SimpleCTE\\simplecte\\data\\db.db", True),
+            gen_saved_db_layout("D:\\SimpleCTE\\simplecte\\data\\db.db"),
+        ]
     ]
 
     return layout
@@ -146,8 +66,26 @@ def get_backup_layout():
         ],
         [
             sg.Text("Backup Interval:"),
-            sg.DropDown(["Hourly", "Daily", "Weekly", "Monthly"])
-        ]
+            sg.Combo(["Hourly", "Daily", "Weekly", "Monthly", "Custom"], default_value="Daily", readonly=True, key="-BACKUP_INTERVAL-"),
+            sg.Text("Custom Value (ex. 1d2h3m4s)", visible=False),
+            sg.Input(key="-BACKUP_INTERVAL_CUSTOM-", visible=False),
+        ],
+        [
+            sg.Text("Backup Path:"),
+            sg.Input(key="-BACKUP_PATH-", disabled=True, disabled_readonly_background_color=sg.theme_background_color()),
+            sg.FolderBrowse(),
+        ],
+        [
+            sg.Button(button_text=" ? ", key="-BACKUP_NAME_HELP-"),
+            sg.Text("Backup Name Format"),
+            # sg.Text("This is the format you want the file names of your backups. Use {dbName} for the database's name and {date} for your set date format.", size=(10, 10)),
+            sg.Input(default_text="{dbName}_{date}"),
+        ],
+        [   
+            sg.Button(button_text=" ? ", key="-BACKUP_NAME_HELP-"),
+            sg.Text("Name Date Format"),
+            sg.Input(default_text="%M-%D-%Y")
+        ],
     ]
 
 
@@ -157,7 +95,7 @@ def get_settings_layout():
             sg.TabGroup(
                 [
                     [sg.Tab("General", get_general_layout())],
-                    [sg.Tab("Database", get_database_layout())],
+                    [sg.Tab("Database", get_sqlite_layout())],
                     [sg.Tab("Backup", get_backup_layout())]
                 ]
             )

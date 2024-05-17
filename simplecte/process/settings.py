@@ -11,6 +11,7 @@ class Settings:
         "database": {
             "system": "sqlite",
             "path": str(os.path.abspath("simplecte/data/db.db")),
+            "saved_dbs": [str(os.path.abspath("simplecte/data/db.db"))]
         },
         "backup": {
             "interval": 86400,  # Seconds between backups
