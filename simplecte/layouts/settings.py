@@ -14,13 +14,13 @@ def gen_saved_db_layout(db_path: str, is_current: bool = False):
         layout=[
             [
                 sg.Text("Path: "),
-                sg.Input(db_path, size = (None, 20)),
+                sg.Input(db_path, size=(None, 20)),
             ],
             [
                 sg.Button("Open", key=f"-LOAD_SAVED_DB::{db_path}-"),
                 sg.Button("Delete", key=f"-DELETE_SAVED_DB::{db_path}-"),
-            ]
-        ]
+            ],
+        ],
     )
 
 
@@ -48,12 +48,12 @@ def get_sqlite_layout():
         [
             sg.Text("Saved Databases", font=10),
             sg.Push(),
-            sg.Button("Save current database")
+            sg.Button("Save current database"),
         ],
         [
             gen_saved_db_layout("D:\\SimpleCTE\\simplecte\\data\\db.db", True),
             gen_saved_db_layout("D:\\SimpleCTE\\simplecte\\data\\db.db"),
-        ]
+        ],
     ]
 
     return layout
@@ -61,18 +61,25 @@ def get_sqlite_layout():
 
 def get_backup_layout():
     return [
-        [
-            sg.Checkbox("Perform Automated Backups")
-        ],
+        [sg.Checkbox("Perform Automated Backups")],
         [
             sg.Text("Backup Interval:"),
-            sg.Combo(["Hourly", "Daily", "Weekly", "Monthly", "Custom"], default_value="Daily", readonly=True, key="-BACKUP_INTERVAL-"),
+            sg.Combo(
+                ["Hourly", "Daily", "Weekly", "Monthly", "Custom"],
+                default_value="Daily",
+                readonly=True,
+                key="-BACKUP_INTERVAL-",
+            ),
             sg.Text("Custom Value (ex. 1d2h3m4s)", visible=False),
             sg.Input(key="-BACKUP_INTERVAL_CUSTOM-", visible=False),
         ],
         [
             sg.Text("Backup Path:"),
-            sg.Input(key="-BACKUP_PATH-", disabled=True, disabled_readonly_background_color=sg.theme_background_color()),
+            sg.Input(
+                key="-BACKUP_PATH-",
+                disabled=True,
+                disabled_readonly_background_color=sg.theme_background_color(),
+            ),
             sg.FolderBrowse(),
         ],
         [
@@ -81,10 +88,10 @@ def get_backup_layout():
             # sg.Text("This is the format you want the file names of your backups. Use {dbName} for the database's name and {date} for your set date format.", size=(10, 10)),
             sg.Input(default_text="{dbName}_{date}"),
         ],
-        [   
+        [
             sg.Button(button_text=" ? ", key="-BACKUP_NAME_HELP-"),
             sg.Text("Name Date Format"),
-            sg.Input(default_text="%M-%D-%Y")
+            sg.Input(default_text="%M-%D-%Y"),
         ],
     ]
 
@@ -96,7 +103,7 @@ def get_settings_layout():
                 [
                     [sg.Tab("General", get_general_layout())],
                     [sg.Tab("Database", get_sqlite_layout())],
-                    [sg.Tab("Backup", get_backup_layout())]
+                    [sg.Tab("Backup", get_backup_layout())],
                 ]
             )
         ],
