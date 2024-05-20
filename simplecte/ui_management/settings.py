@@ -65,6 +65,7 @@ def update_settings_window(window: sg.Window, app: "App"):
     window["-BACKUP_PATH-"].update(value=app.settings.backup_path)
     window["-BACKUP_NAME-"].update(value=app.settings.backup_name)
     window["-BACKUP_DATE-"].update(value=app.settings.backup_date)
+    window["-BACKUP_ENABLED-"].update(value=app.settings.backup_enabled)
 
 
 def settings_handler(app: "App"):
@@ -82,25 +83,18 @@ def settings_handler(app: "App"):
                 break
 
             # TODO: Fix this, it doesn't work
-            case "-BACKUP_NAME_HELP-":
-                sg.Window(
-                    title="Backup Names and Dates",
-                    layout=[
-                        [
-                            sg.Multiline(
-                                "Backup names and dates are special fields that dynamically change the name and date on a backup. This helps keep them organized.\nBackup names are formatted with {dbName} and {date}, where dbName is the name of your database file and date is your date format. The date format is formatted with %M, %D, and %Y, which represent the month, day, and year respectively.",
-                                size=(200, 200),
-                            )
-                        ]
-                    ],
-                    finalize=True,
-                    modal=True,
-                ).read()
-                break
+            case "-BACKUP_NAME_HELP-" | "-BACKUP_NAME_HELP_2-":
+                sg.popup_ok(
+                    "Backup names and dates are special fields that dynamically change "
+                    "the name and date on a backup. This helps keep them organized. Backup "
+                    "names are formatted with {dbName} and {date}, where dbName is the name "
+                    "of your database file and date is your date format. The date format is "
+                    "formatted with %M, %D, and %Y, which represent the month, day, and year respectively."
+                )
 
             case "-SET_SAVE_SETTINGS-":
-                settings.theme = values["-SET_THEME-"]
-                settings.database_path = values["-SET_DB_PATH-"]
+                settings.settings["theme"] = values["-SET_THEME-"]
+                settings.settings["database"]["path"] = values["-SET_DB_PATH-"]
 
                 if settings.database_path == "":
                     settings.database_path = app.settings.database_path
@@ -115,8 +109,9 @@ def settings_handler(app: "App"):
                     ).value
 
                 for setting in settings.backup:
-                    # Skip this because it cannot be edited by the user
-                    if setting == "lastBackup" or setting == "interval":
+                    # Make sure none of these are edited because they are either handled
+                    # specially or should not be edited by the user
+                    if setting in ["lastBackup", "interval", "processId"]:
                         continue
 
                     settings.settings["backup"][setting] = values[
@@ -131,6 +126,7 @@ def settings_handler(app: "App"):
                     "You must restart the application for the changes to take effect. Would you like to restart now?"
                 )
 
+                settings.spawn_backup_process()
                 app.settings.save_settings(settings)
 
                 if restart_win == "Yes":

@@ -1,11 +1,17 @@
+"""
+SimpleCTE backup program. This will autonomously back up your database files to the specified location in settings.json.
+"""
+
 import os
 import json
 import time
 from datetime import timedelta, datetime as dt
 import shutil
 from dataclasses import dataclass
+from filelock import FileLock
 
 DATETIME_FORMAT = r"%m/%d/%Y %H:%M:%S"
+# TODO: Make sure this can run on its own, from startup.
 
 
 @dataclass
@@ -17,13 +23,17 @@ class Settings:
     date_format: str
     backup_interval: int
     last_backup: str
+    backup_enabled: bool
 
     @classmethod
     def load_settings(cls) -> "Settings":
-        with open("simplecte/data/settings.json", "r") as f:
-            settings = json.load(f)
+        with FileLock("settings.lock"):
+            with open("simplecte/data/settings.json", "r") as f:
+                settings = json.load(f)
 
-        return cls(
+        written_pid = settings["backup"]["processId"]
+
+        self = cls(
             raw=settings,
             db_path=settings["database"]["path"],
             backup_path=settings["backup"]["path"],
@@ -31,18 +41,31 @@ class Settings:
             date_format=settings["backup"]["date"],
             last_backup=settings["backup"]["lastBackup"],
             backup_interval=settings["backup"]["interval"],
+            backup_enabled=settings["backup"]["enabled"],
         )
 
-    def mark_backup(self) -> None:
-        self.raw["backup"]["last_backup"] = dt.now().strftime(DATETIME_FORMAT)
+        if written_pid is None or written_pid != os.getpid():
+            settings["backup"]["processId"] = os.getpid()
 
-        with open("simplecte/data/settings.json", "w") as f:
-            json.dump(self.raw, f, indent=4)
+            self.write_settings(mark_backup=False)
+
+        return self
+
+    def write_settings(self, mark_backup=True) -> None:
+        if mark_backup:
+            self.raw["backup"]["lastBackup"] = dt.now().strftime(DATETIME_FORMAT)
+
+        with FileLock("settings.lock"):
+            with open("simplecte/data/settings.json", "w") as f:
+                json.dump(self.raw, f, indent=4)
 
 
 def backup():
     while True:
         config = Settings.load_settings()
+
+        if not config.backup_enabled:
+            exit()
 
         if config.last_backup is not None:
             last_backup_time = dt.strptime(config.last_backup, DATETIME_FORMAT)
@@ -69,7 +92,7 @@ def backup():
 
         shutil.copy(config.db_path, backup)
 
-        config.mark_backup()
+        config.write_settings()
 
         time.sleep(config.backup_interval)
 

@@ -58,6 +58,7 @@ class App:
 
         self.show_start_screen()
         self.lazy_load_table_values()
+        self.settings.spawn_backup_process()
         self.window.Font = ("Arial", 12)
 
     @property

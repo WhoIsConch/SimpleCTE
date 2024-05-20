@@ -1,20 +1,26 @@
 import PySimpleGUI as sg
 
-__all__ = ("get_settings_layout",)
+__all__ = ("get_settings_layout", "gen_saved_db_layout")
 
 
 def gen_saved_db_layout(db_path: str, is_current: bool = False):
     db_title = " " + db_path.split("\\")[-1][0:-3] + " "
 
     if is_current:
-        db_title += "(current) "
+        db_title += "(Current) "
 
     return sg.Frame(
         title=db_title,
         layout=[
             [
                 sg.Text("Path: "),
-                sg.Input(db_path, size=(None, 20), key=f"-SAVED_DB::{db_path}"),
+                sg.Input(
+                    db_path,
+                    size=(None, 20),
+                    key=f"-SAVED_DB::{db_path}",
+                    readonly=True,
+                    disabled_readonly_background_color=sg.theme_background_color(),
+                ),
             ],
             [
                 sg.Button("Open", key=f"-LOAD_SAVED_DB::{db_path}-"),
@@ -43,17 +49,13 @@ def get_sqlite_layout():
     layout = [
         [
             sg.Text("Database Path:", tooltip=" The path to the file. "),
-            sg.InputText(key="-SET_DB_PATH-", tooltip=" The path to the file. "),
+            sg.InputText(
+                key="-SET_DB_PATH-",
+                tooltip=" The path to the file. ",
+                readonly=True,
+                disabled_readonly_background_color=sg.theme_background_color(),
+            ),
             sg.FileBrowse(tooltip=" Select the path to the file. "),
-        ],
-        [
-            sg.Text("Saved Databases", font=10),
-            sg.Push(),
-            sg.Button("Save current database", key="-SAVE_DATABASE-"),
-        ],
-        [
-            gen_saved_db_layout("D:\\SimpleCTE\\simplecte\\data\\db.db", True),
-            gen_saved_db_layout("D:\\SimpleCTE\\simplecte\\data\\db.db"),
         ],
     ]
 
@@ -62,7 +64,10 @@ def get_sqlite_layout():
 
 def get_backup_layout():
     return [
-        [sg.Checkbox("Perform Automated Backups")],
+        [
+            sg.Checkbox("Perform Automated Backups", key="-BACKUP_ENABLED-"),
+            sg.Checkbox("Run at System Startup", key="-BACKUP_STARTUP-"),
+        ],
         [
             sg.Text("Backup Interval:"),
             sg.Combo(
@@ -95,7 +100,7 @@ def get_backup_layout():
             sg.Input(default_text="{dbName}_{date}", key="-BACKUP_NAME-"),
         ],
         [
-            sg.Button(button_text=" ? ", key="-BACKUP_NAME_HELP-"),
+            sg.Button(button_text=" ? ", key="-BACKUP_NAME_HELP_2-"),
             sg.Text("Name Date Format"),
             sg.Input(default_text="%M-%D-%Y", key="-BACKUP_DATE-"),
         ],
