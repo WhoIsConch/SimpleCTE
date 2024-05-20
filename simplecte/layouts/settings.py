@@ -70,6 +70,7 @@ def get_backup_layout():
                 default_value="Daily",
                 readonly=True,
                 key="-BACKUP_INTERVAL-",
+                enable_events=True,
             ),
             sg.Input(
                 key="-BACKUP_INTERVAL_CUSTOM-",

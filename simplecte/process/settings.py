@@ -111,9 +111,9 @@ class Settings:
         return os.path.abspath(self.database_path)
 
     @property
-    def backup_interval(self):
+    def backup_interval(self) -> BackupInterval | int:
         try:
-            return BackupInterval(self.backup_interval_).name.capitalize()
+            return BackupInterval(self.backup_interval_)
         except ValueError:
             return self.backup_interval_
 

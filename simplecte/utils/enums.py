@@ -35,4 +35,4 @@ class BackupInterval(Enum):
     DAILY = HOURLY * 24
     WEEKLY = DAILY * 7
     MONTHLY = WEEKLY * 4
-    CUSTOM = 0
+    CUSTOM = None

@@ -12,23 +12,19 @@ __all__ = ("settings_handler",)
 
 
 def parse_custom_interval(interval: str):
-    try:
-        # Split based on unit separators, handle missing units with defaults
-        parts = interval[:-1].split("d") + [0]  # Days (default 0)
-        parts = parts[0].split("h") + [0, 0]  # Hours (default 0), Minutes (default 0)
-        parts = parts[0].split("m") + [0]  # Minutes (default 0), Seconds
-        parts.append(int(interval[-1]))  # Extract seconds
+    """
+    Parse a custom interval, like 1d2h3m4s, into seconds, like 93784.
+    """
+    time_units = {"d": 86400, "h": 3600, "m": 60, "s": 1}
+    total_seconds = 0
+    remaining_str = interval
 
-        # Create timedelta with extracted values
-        delta = dt.timedelta(
-            days=int(parts[0]),
-            hours=int(parts[1]),
-            minutes=int(parts[2]),
-            seconds=int(parts[3]),
-        )
-        return delta.total_seconds()
-    except ValueError:
-        raise ValueError("Invalid time format. Please use 'XdYhMmS'.")
+    for unit, seconds_per_unit in time_units.items():
+        if unit in remaining_str:
+            value, remaining_str = remaining_str.split(unit)
+            total_seconds += int(value) * seconds_per_unit
+
+    return total_seconds
 
 
 def format_custom_interval(interval: int):
@@ -42,9 +38,9 @@ def format_custom_interval(interval: int):
     # Format the time string with leading zeros for days, hours, minutes if needed
     return (
         (f"{days}d" if days else "")
-        + (f"{hours:02d}h" if hours else "")
-        + (f"{minutes:02d}m" if minutes else "")
-        + f"{seconds}"
+        + (f"{hours}h" if hours else "")
+        + (f"{minutes}m" if minutes else "")
+        + (f"{seconds}s" if seconds else "")
     )
 
 
@@ -56,14 +52,14 @@ def update_settings_window(window: sg.Window, app: "App"):
     window["-SET_THEME-"].update(value=app.settings.theme)
     window["-SET_DB_PATH-"].update(value=app.settings.absolute_database_path)
 
-    if isinstance(app.settings.backup_interval, str):
-        interval_str = app.settings.backup_interval
-    else:
-        interval_str = "Custom"
+    interval_str = "Custom"
 
+    if isinstance(app.settings.backup_interval, int):
         window["-BACKUP_INTERVAL_CUSTOM-"].update(
             visible=True, value=format_custom_interval(app.settings.backup_interval)
         )
+    else:
+        interval_str = app.settings.backup_interval.name.capitalize()
 
     window["-BACKUP_INTERVAL-"].update(value=interval_str)
     window["-BACKUP_PATH-"].update(value=app.settings.backup_path)
@@ -109,7 +105,7 @@ def settings_handler(app: "App"):
                 if settings.database_path == "":
                     settings.database_path = app.settings.database_path
 
-                if settings.backup_interval == "Custom":
+                if values["-BACKUP_INTERVAL-"] == "Custom":
                     settings.settings["backup"]["interval"] = parse_custom_interval(
                         values["-BACKUP_INTERVAL_CUSTOM-"]
                     )
@@ -142,3 +138,9 @@ def settings_handler(app: "App"):
 
                 window.close()
                 break
+
+            case "-BACKUP_INTERVAL-":
+                if values["-BACKUP_INTERVAL-"] == "Custom":
+                    window["-BACKUP_INTERVAL_CUSTOM-"].update(visible=True)
+                else:
+                    window["-BACKUP_INTERVAL_CUSTOM-"].update(visible=False)
