@@ -577,6 +577,121 @@ def delete_contact_info(app: "App", values: dict):
     swap_to_contact_viewer(app, contact_id=contact_id, push=False)
 
 
+def _manage_custom_field(app: "App", values: dict) -> None:
+    try:
+        record_id = app.window[app.current_screen.value].metadata
+    except IndexError:
+        return
+
+    method = [{"app": app, "push": False}]
+
+    if app.current_screen == Screen.ORG_VIEW:
+        record = app.db.get_organization(record_id)
+        record_type = "org"
+        method.insert(0, swap_to_org_viewer)
+        method[1]["org_id"] = record.id
+
+        try:
+            field_name = app.window["-ORG_CUSTOM_FIELDS_TABLE-"].get()[
+                values["-ORG_CUSTOM_FIELDS_TABLE-"][0]
+            ][0]
+
+        except IndexError:
+            return
+
+    elif app.current_screen == Screen.CONTACT_VIEW:
+        record = app.db.get_contact(record_id)
+        record_type = "contact"
+        method.insert(0, swap_to_contact_viewer)
+        method[1]["contact_id"] = record.id
+
+        try:
+            field_name = app.window["-CONTACT_CUSTOM_FIELDS_TABLE-"].get()[
+                values["-CONTACT_CUSTOM_FIELDS_TABLE-"][0]
+            ][0]
+        except IndexError:
+            return
+
+    else:
+        return
+
+    name_tooltip = "The names of custom fields cannot be changed. Consider creating a new custom field instead."
+
+    layout = [
+        [
+            sg.Text("Custom Field Name: ", tooltip=name_tooltip),
+            sg.Text(field_name, tooltip=name_tooltip),
+        ],
+        [
+            sg.Multiline(
+                record.custom_fields[field_name],
+                expand_x=True,
+                size=(30, 10),
+                key="-CUSTOM_FIELD_VALUE-",
+            )
+        ],
+        [sg.Button("Edit", key="-EDIT-"), sg.Button("Close", key="-CLOSE-")],
+    ]
+
+    window = sg.Window("Custom Field Content", finalize=True, modal=True, layout=layout)
+
+    event, values = window.read()
+    window.close()
+
+    if event == sg.WIN_CLOSED or event == "-CLOSE-":
+        return
+
+    elif event != "-EDIT-":
+        return
+
+    app.db.update_custom_field(
+        name=field_name,
+        value=values["-CUSTOM_FIELD_VALUE-"],
+        **{record_type: record_id},
+    )
+
+    app.db.update_custom_field(
+        name=field_name,
+        value=values["-CUSTOM_FIELD_VALUE-"],
+        **{record_type: record_id},
+    )
+
+    method[0](**method[1])
+
+
+def _change_value(app: "App"):
+    # Change the value of a resource
+    resource_id = app.window["-RESOURCE_VIEW-"].metadata
+    resource = app.db.get_resource(resource_id)
+
+    layout = [
+        [sg.Text("Full Resource Value:")],
+        [sg.Multiline(resource.value, size=(30, 10), key="-NEW_VALUE-")],
+        [sg.Button("Close")],
+    ]
+
+    input_window = sg.Window("Change Value", layout, finalize=True, modal=True)
+
+    event, values = input_window.read()
+    input_window.close()
+
+    if event == "Cancel" or event == sg.WIN_CLOSED:
+        return
+
+    new_value = values["-NEW_VALUE-"]
+
+    if new_value == resource.value:
+        return
+
+    app.db.update_resource(resource_id, value=new_value)
+    swap_to_resource_viewer(app, resource_id=resource_id, push=False)
+
+
+def _update_tables(app: "App", values: dict):
+    app.window["-CONTACT_TABLE-"].update(values["-UPDATE_TABLES-"][0])
+    app.window["-ORG_TABLE-"].update(values["-UPDATE_TABLES-"][1])
+
+
 EVENT_MAP = {
     "Change Title": _change_title,
     "Change Name": _change_name,
@@ -593,4 +708,8 @@ EVENT_MAP = {
     "View All Phones": _edit_phones,
     "Add::CONTACT_INFO": add_contact_info,
     "Delete::CONTACT_INFO": delete_contact_info,
+    "Edit Custom Field": _manage_custom_field,
+    "View Full Content": _manage_custom_field,
+    "Change Value": _change_value,
+    "Update Tables": _update_tables,
 }
