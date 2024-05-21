@@ -18,14 +18,14 @@ def backup_handler(app: "App"):
     while True:
         event, values = window.read()
 
+        if event == sg.WIN_CLOSED or event == "-BACKUP_CANCEL-":
+            window.close()
+            break
+
         if event.find("CODE") != -1:
             handle_debug(event)
 
         match event:
-            case sg.WIN_CLOSED | "-BACKUP_CANCEL-":
-                window.close()
-                break
-
             case "-BACKUP_BACKUP-":
                 # Check if the backup name violates Windows' file naming rules
                 if any(c in values["-BACKUP_NAME-"] for c in '\\/:*?"<>|'):

@@ -108,6 +108,10 @@ def export_handler(
 
         print(event, values)
 
+        if event == sg.WIN_CLOSED or event == "-EXPORT_CANCEL-":
+            window.close()
+            break
+
         for d, r in zip(
             [contact_search_info, org_search_info], ["Contact", "Organization"]
         ):
@@ -116,11 +120,7 @@ def export_handler(
             d["sort"] = values[f"-EXPORT_SORT_TYPE_{r}-"]
             d["descending"] = values[f"-EXPORT_SORT_DESCENDING_{r}-"]
 
-        if event == sg.WIN_CLOSED or event == "-EXPORT_CANCEL-":
-            window.close()
-            break
-
-        elif event == "-EXPORT_FILTER-":
+        if event == "-EXPORT_FILTER-":
             window["-EXPORT_FILTER_COL-"].update(visible=values["-EXPORT_FILTER-"])
 
         elif event == "-EXPORT_EXPORT-":
