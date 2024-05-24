@@ -122,12 +122,20 @@ def settings_handler(app: "App"):
                     window.close()
                     break
 
-                restart_win = sg.popup_yes_no(
-                    "You must restart the application for the changes to take effect. Would you like to restart now?"
-                )
+                if not (
+                    settings.theme == app.settings.theme
+                    and settings.database == app.settings.database
+                    and not settings.backup == app.settings.backup
+                ):
+                    restart_win = sg.popup_yes_no(
+                        "You must restart the application for the changes to take effect. Would you like to restart now?"
+                    )
+                else:
+                    restart_win = None
 
                 settings.spawn_backup_process()
-                app.settings.save_settings(settings)
+                app.settings = settings
+                app.settings.save_settings()
 
                 if restart_win == "Yes":
                     app.restart()
