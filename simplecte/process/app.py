@@ -33,7 +33,7 @@ class App:
     and keeping essential information in a central location.
     """
 
-    ICON_PATH = os.path.join(os.path.dirname(__file__), "../data/ico")
+    ICON_PATH = os.path.join(os.path.dirname(__file__), "../data/simplecte.ico")
 
     def __init__(self):
         self.logger = logging.getLogger("app")
