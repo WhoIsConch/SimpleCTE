@@ -462,31 +462,33 @@ def _edit_phones(app: "App"):
 
     input_window = sg.Window("Edit Phones", layout, finalize=True, modal=True)
 
-    event, values = input_window.read()
-    input_window.close()
+    while True:
+        event, values = input_window.read()
 
-    if event == "Cancel" or event == sg.WIN_CLOSED:
-        return
+        if event == "Cancel" or event == sg.WIN_CLOSED:
+            input_window.close()
+            return
 
-    try:
-        new_phones = [
-            int(strip_phone(phone)) for phone in values["-PHONES-"].split("\n")
-        ]
-    except ValueError:
-        sg.popup(
-            "Invalid phone number! Phone number must be a continuous string of numbers, or a string "
-            "of numbers separated by dashes or parentheses."
-        )
-        _edit_phones(app)
-        return
+        try:
+            new_phones = [
+                int(strip_phone(phone)) for phone in values["-PHONES-"].split("\n")
+            ]
+        except ValueError:
+            sg.popup(
+                "Invalid phone number! Phone number must be a continuous string of numbers, or a string "
+                "of numbers separated by dashes or parentheses."
+            )
+            continue
 
-    if app.current_screen == Screen.ORG_VIEW:
-        app.db.update_organization(org_id, phones=new_phones)
-        swap_to_org_viewer(app, org_id=org_id, push=False)
+        if app.current_screen == Screen.ORG_VIEW:
+            app.db.update_organization(org_id, phones=new_phones)
+            swap_to_org_viewer(app, org_id=org_id, push=False)
 
-    elif app.current_screen == Screen.CONTACT_VIEW:
-        app.db.update_contact(contact_id, phone_numbers=new_phones)
-        swap_to_contact_viewer(app, contact_id=contact_id, push=False)
+        elif app.current_screen == Screen.CONTACT_VIEW:
+            app.db.update_contact(contact_id, phone_numbers=new_phones)
+            swap_to_contact_viewer(app, contact_id=contact_id, push=False)
+
+        input_window.close()
 
 
 def add_contact_info(app: "App"):
