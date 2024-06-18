@@ -477,6 +477,7 @@ def _edit_phones(app: "App"):
             "Invalid phone number! Phone number must be a continuous string of numbers, or a string "
             "of numbers separated by dashes or parentheses."
         )
+        _edit_phones(app)
         return
 
     if app.current_screen == Screen.ORG_VIEW:

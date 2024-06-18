@@ -114,7 +114,16 @@ def get_settings_layout():
                 [
                     [sg.Tab("General", get_general_layout())],
                     [sg.Tab("Database", get_sqlite_layout())],
-                    [sg.Tab("Backup", get_backup_layout())],
+                    [
+                        sg.Tab(
+                            "Backup",
+                            get_backup_layout(),
+                            right_click_menu=[
+                                "",
+                                ["Code BTS::CODE(simplecte/utils/backup.py,63)"],
+                            ],
+                        )
+                    ],
                 ]
             )
         ],

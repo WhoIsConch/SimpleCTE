@@ -219,7 +219,6 @@ class App:
                     descending=descending,
                 ),
             ]
-            # time.sleep(3)
 
             return values
 

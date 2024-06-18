@@ -1,5 +1,6 @@
 from .manage_record import EVENT_MAP as RECORD_MAP, _delete_record
 from .edit_info import EVENT_MAP as EDIT_INFO_MAP
+from .manage_ui import EVENT_MAP as UI_MAP
 from .debug import handle_debug
 from typing import TYPE_CHECKING
 from inspect import signature
@@ -15,7 +16,7 @@ def handle_other_events(app: "App", event: str, data: dict) -> bool:
     if event.find("::CODE") != -1:
         return handle_debug(event)
 
-    for func_map in [EDIT_INFO_MAP, RECORD_MAP]:
+    for func_map in [EDIT_INFO_MAP, RECORD_MAP, UI_MAP]:
         method = func_map.get(event, None)
 
         # _delete_record() gets special treatment

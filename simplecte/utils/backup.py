@@ -1,5 +1,7 @@
 """
 SimpleCTE backup program. This will autonomously back up your database files to the specified location in settings.json.
+This script is not meant to be imported by the program, and is meant to run as a separate process.
+This script is invoked by simplecte/process/settings.py line 103 (spawn_backup_process) and is not meant to be run manually.
 """
 
 import os

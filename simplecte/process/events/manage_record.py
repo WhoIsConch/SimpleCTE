@@ -38,7 +38,7 @@ def _add_contact(app: "App"):
 
     org_id = app.window["-ORG_VIEW-"].metadata
 
-    status = app.db.add_contact_to_org(user_input, org_id)  # TODO: app.db
+    status = app.db.add_contact_to_org(user_input, org_id)
 
     if not status:
         sg.popup("Error adding contact.\nPerhaps you used an incorrect ID?")
@@ -63,7 +63,7 @@ def _remove_contact(app: "App", values: dict):
     org_id = app.window["-ORG_VIEW-"].metadata
 
     # Remove contact from organization
-    status = app.db.remove_contact_from_org(contact_name, org_id)  # TODO: app.db
+    status = app.db.remove_contact_from_org(contact_name, org_id)
 
     if not status:
         sg.popup("Error removing contact.")
@@ -95,7 +95,7 @@ def _add_org(app: "App"):
         sg.popup("Invalid ID!")
         return
 
-    status = app.db.add_contact_to_org(contact_id, user_input)  # TODO: app.db
+    status = app.db.add_contact_to_org(contact_id, user_input)
 
     if not status:
         sg.popup("Error adding organization.\nPerhaps you used an incorrect ID?")

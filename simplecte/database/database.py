@@ -800,9 +800,11 @@ def get_table_values(
     """
     table_values = []
 
+    # Make sure we don't have an empty search_info
     if search_info is None:
         search_info = {}
 
+    # If we can't get records based on the search info, get all records
     record_pages = app.db.get_records(
         record, **search_info, paginated=False, descending=descending
     )
@@ -810,6 +812,7 @@ def get_table_values(
     if not record_pages:
         record_pages = app.db.get_records(record, paginated=False)
 
+    # Iterate through the records to format them in a way that can be displayed in the table
     for rec in record_pages:
         if record == Organization:
             contact = rec.primary_contact

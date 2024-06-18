@@ -82,14 +82,14 @@ def settings_handler(app: "App"):
                 window.close()
                 break
 
-            # TODO: Fix this, it doesn't work
             case "-BACKUP_NAME_HELP-" | "-BACKUP_NAME_HELP_2-":
                 sg.popup_ok(
                     "Backup names and dates are special fields that dynamically change "
                     "the name and date on a backup. This helps keep them organized. Backup "
                     "names are formatted with {dbName} and {date}, where dbName is the name "
                     "of your database file and date is your date format. The date format is "
-                    "formatted with %M, %D, and %Y, which represent the month, day, and year respectively."
+                    "formatted with %m, %d, and %Y, which represent the month, day, and year respectively."
+                    "%H, %M, and %S can also be used for the hour, minute, and second."
                 )
 
             case "-SET_SAVE_SETTINGS-":
