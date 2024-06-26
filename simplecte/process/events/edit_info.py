@@ -462,6 +462,7 @@ def _edit_phones(app: "App"):
 
     input_window = sg.Window("Edit Phones", layout, finalize=True, modal=True)
 
+    # Window Loop
     while True:
         event, values = input_window.read()
 
@@ -470,6 +471,7 @@ def _edit_phones(app: "App"):
             return
 
         try:
+            # Make sure each phone number is valid
             new_phones = [
                 int(strip_phone(phone)) for phone in values["-PHONES-"].split("\n")
             ]

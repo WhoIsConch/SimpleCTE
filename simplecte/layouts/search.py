@@ -226,7 +226,7 @@ def get_search_layout(
                                     "Delete",
                                     "Help::SEARCH",
                                     "Code BTS::CODE(simplecte/process/app.py,197)",
-                                    "Code LYT::CODE(simplecte/layouts/search.py,238)",
+                                    "Code LYT::CODE(simplecte/layouts/search.py,209)",
                                 ],
                             ],
                             right_click_selects=True,

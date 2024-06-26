@@ -112,7 +112,15 @@ def get_viewer_head(contact: bool = False) -> list:
                             element_justification="center",
                             expand_x=True,
                             background_color=sg.theme_progress_bar_color()[1],
-                            right_click_menu=["", ["Edit Phones", "View All Phones"]],
+                            right_click_menu=[
+                                "",
+                                [
+                                    "Edit Phones",
+                                    "View All Phones",
+                                    "Code BTS::CODE(simplecte/process/events/edit_info.py,433)",
+                                    "Code LYT::CODE(simplecte/layouts/viewer.py,111)",
+                                ],
+                            ],
                             layout=[
                                 [
                                     sg.Text(
@@ -141,7 +149,12 @@ def get_viewer_head(contact: bool = False) -> list:
                             background_color=sg.theme_progress_bar_color()[1],
                             right_click_menu=[
                                 "",
-                                ["Edit Addresses", "View All Addresses"],
+                                [
+                                    "Edit Addresses",
+                                    "View All Addresses",
+                                    "Code BTS::CODE(simplecte/process/events/edit_info.py,391)",
+                                    "Code LYT::CODE(simplecte/layouts/viewer.py,138)",
+                                ],
                             ],
                             layout=[
                                 [

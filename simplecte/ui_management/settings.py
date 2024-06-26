@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING
 import PySimpleGUI as sg
 from utils.enums import BackupInterval
 import datetime as dt
+from pathlib import Path
 
 from layouts import get_settings_layout
 
@@ -124,8 +125,8 @@ def settings_handler(app: "App"):
 
                 if not (
                     settings.theme == app.settings.theme
-                    and settings.database == app.settings.database
-                    and not settings.backup == app.settings.backup
+                    and Path(settings.database["path"])
+                    == Path(app.settings.database["path"])
                 ):
                     restart_win = sg.popup_yes_no(
                         "You must restart the application for the changes to take effect. Would you like to restart now?"
