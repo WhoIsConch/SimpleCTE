@@ -1,4 +1,4 @@
-def format_phone(phone_number: int) -> str:
+def format_phone(phone_number: int, truncate: bool = True) -> str:
     """
     Convert a ten-digit or eleven-digit phone number, such as
     1234567890 or 11234567890, into a formatted phone number, such as
@@ -11,7 +11,7 @@ def format_phone(phone_number: int) -> str:
     elif len(phone_number) == 11:
         return f"+{phone_number[0]} ({phone_number[1:4]}) {phone_number[4:7]}-{phone_number[7:]}"
     else:
-        if len(phone_number) > 15:
+        if len(phone_number) > 15 and truncate:
             return str(phone_number)[:15] + "..."
 
         return str(phone_number)

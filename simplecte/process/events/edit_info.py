@@ -436,13 +436,13 @@ def _edit_phones(app: "App"):
         org_id = app.window["-ORG_VIEW-"].metadata
         record = app.db.get_organization(org_id)
 
-        phones = [format_phone(phone) for phone in record.phones]
+        phones = [format_phone(phone, False) for phone in record.phones]
 
     elif app.current_screen == Screen.CONTACT_VIEW:
         contact_id = app.window["-CONTACT_VIEW-"].metadata
 
         record = app.db.get_contact(contact_id)
-        phones = [format_phone(phone) for phone in record.phone_numbers]
+        phones = [format_phone(phone, False) for phone in record.phone_numbers]
 
     else:
         return
