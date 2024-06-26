@@ -120,7 +120,7 @@ def get_settings_layout():
                             get_backup_layout(),
                             right_click_menu=[
                                 "",
-                                ["Code BTS::CODE(simplecte/utils/backup.py,63)"],
+                                ["Code BTS::CODE(simplecte/utils/backup.py,65)"],
                             ],
                         )
                     ],

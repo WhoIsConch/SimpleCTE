@@ -5,6 +5,7 @@ import datetime as dt
 from pathlib import Path
 
 from layouts import get_settings_layout
+from process.events.debug import handle_debug
 
 if TYPE_CHECKING:
     from process.app import App
@@ -77,6 +78,9 @@ def settings_handler(app: "App"):
 
     while True:
         event, values = window.read()
+
+        if event.find("CODE") != -1:
+            handle_debug(event)
 
         match event:
             case sg.WIN_CLOSED | "-SET_CANCEL_SETTINGS-":
