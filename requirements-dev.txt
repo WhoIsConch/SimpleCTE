@@ -6,6 +6,7 @@ tabulate==0.9.0 # Tabulate to print the data in a table
 
 PySimpleGUI==4.60.5 # PySimpleGUI to power the GUI interface
 pylnk3==0.4.2 # For creating the shortcut lnk file for backups
+filelock==3.15.4 # For making sure the settings file is only accessed by one script at a time
 
 ruff==0.3.2 # Ruff to format and check our files for errors [DEV]
 pre-commit # To make sure ruff formats our files and checks for errors before committing [DEV]

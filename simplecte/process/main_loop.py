@@ -107,6 +107,7 @@ def main_loop(app: "App"):
             app.window.close()
             break
 
+        # MARK: Events
         # Handle any events that may have to do with updating data
         if handle_other_events(app, event, values):
             continue
