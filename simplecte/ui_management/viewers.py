@@ -63,7 +63,7 @@ def swap_to_org_viewer(
     resource_table_values = []
 
     # Compile the information of each org-related contact into a table
-    for contact in org.contacts:
+    for contact in org.contacts.order_by(lambda c: c.name):
         contact_table_values.append(
             [
                 contact.id,
@@ -79,7 +79,7 @@ def swap_to_org_viewer(
         )
 
     # Add available resources to the table of organization resources
-    for resource in org.resources:
+    for resource in org.resources.order_by(lambda r: r.name):
         resource_table_values.append(
             [resource.id, resource.name, sanitize(resource.value, 20)]
         )
@@ -154,12 +154,12 @@ def swap_to_contact_viewer(
     for key, value in contact.contact_info.items():
         contact_info_table_values.append([key, sanitize(value, 20)])
 
-    for org in contact.organizations:
+    for org in contact.organizations.order_by(lambda o: o.name):
         organization_table_values.append(
             [org.id, sanitize(org.name, 20), sanitize(org.status, 10)]
         )
 
-    for resource in contact.resources:
+    for resource in contact.resources.order_by(lambda r: r.name):
         resource_table_values.append(
             [resource.id, resource.name, sanitize(resource.value, 20)]
         )
@@ -212,7 +212,7 @@ def swap_to_resource_viewer(
     organizations_values = []  # ID, Name, Status, and Primary Contact
 
     # Compile the information of each resource-related contact into a table
-    for contact in resource.contacts:
+    for contact in resource.contacts.order_by(lambda c: c.name):
         contacts_values.append(
             [
                 contact.id,
@@ -225,7 +225,7 @@ def swap_to_resource_viewer(
         )
 
     # Compile the information of each resource-related organization into a table
-    for org in resource.organizations:
+    for org in resource.organizations.order_by(lambda o: o.name):
         if org.primary_contact:
             primary = org.primary_contact.name
         else:
